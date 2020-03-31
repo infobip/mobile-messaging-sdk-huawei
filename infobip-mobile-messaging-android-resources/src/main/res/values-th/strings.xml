@@ -1,7 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<resources>
-    <string name="mm_button_accept">ยอมรับ</string>
-    <string name="mm_button_decline">ปฏิเสธ</string>
-    <string name="mm_button_open">เปิด</string>
-    <string name="mm_button_cancel">ยกเลิก</string>
-</resources>

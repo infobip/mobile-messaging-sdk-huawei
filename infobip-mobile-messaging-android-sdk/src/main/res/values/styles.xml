@@ -1,5 +1,0 @@
-<resources>
-    <style name="InAppDialog" parent="Theme.AppCompat.Light.Dialog.Alert">
-        <item name="android:windowNoTitle">true</item>
-    </style>
-</resources>

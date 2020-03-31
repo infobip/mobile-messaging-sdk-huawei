@@ -5,7 +5,6 @@ buildscript {
     }
 
     repositories {
-        jcenter()
         maven {
             url 'https://oss.jfrog.org/artifactory/plugins-release'
             credentials {
@@ -13,13 +12,13 @@ buildscript {
                 password = "${artifactoryPassword}"
             }
         }
-        maven {
-            url 'https://maven.google.com/'
-            name 'Google'
-        }
+        google()
+        jcenter()
+        // huawei maven
+        maven { url 'http://developer.huawei.com/repo/' }
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:3.5.3'
+        classpath 'com.android.tools.build:gradle:3.6.2'
         classpath 'org.jfrog.buildinfo:build-info-extractor-gradle:4.4.7'
         classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:1.7.3'
     }
@@ -32,23 +31,20 @@ plugins {
 }
 
 ext {
-    mm_minSdkVersion = 14
+    mm_minSdkVersion = 17
     mm_compileSdkVersion = 28
     mm_targetSdkVersion = 28
     mm_buildToolsVersion = "28.0.3"
     mm_supportLibrariesVersion = "28.0.0"
-    mm_firebaseMessagingVersion = "17.6.0"
-    mm_gcmVersion = "16.1.0"
-    mm_gmsLocationVersion = "16.0.0"
+    mm_apiVersion = "3.0.4"
 }
 
 allprojects {
     repositories {
+        google()
         jcenter()
-        maven {
-            url 'https://maven.google.com/'
-            name 'Google'
-        }
+        // huawei maven
+        maven { url 'http://developer.huawei.com/repo/' }
     }
 }
 
@@ -104,7 +100,7 @@ task updateVersionInReadme {
         def readmeFile = new File('README.md')
         def text = readmeFile.text
         readmeFile.withWriter { w ->
-            w << text.replaceFirst('infobip-mobile-messaging-android-sdk:\\d+\\.\\d+\\.\\S+@aar', "infobip-mobile-messaging-android-sdk:$version@aar")
+            w << text.replaceFirst('infobip-mobile-messaging-huawei-sdk:\\d+\\.\\d+\\.\\S+@aar', "infobip-mobile-messaging-huawei-sdk:$version@aar")
         }
     }
 }

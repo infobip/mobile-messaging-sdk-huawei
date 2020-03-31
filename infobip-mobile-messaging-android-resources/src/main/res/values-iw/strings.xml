@@ -1,7 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<resources>
-    <string name="mm_button_accept">אשר</string>
-    <string name="mm_button_decline">דחה</string>
-    <string name="mm_button_cancel">ביטול</string>
-    <string name="mm_button_open">פתח</string>
-</resources>

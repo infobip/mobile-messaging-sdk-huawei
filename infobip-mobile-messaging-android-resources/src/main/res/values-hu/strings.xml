@@ -1,7 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<resources>
-    <string name="mm_button_accept">Fogadd el</string>
-    <string name="mm_button_decline">Utasítsd el</string>
-    <string name="mm_button_cancel">Mégse</string>
-    <string name="mm_button_open">Megnyitás</string>
-</resources>

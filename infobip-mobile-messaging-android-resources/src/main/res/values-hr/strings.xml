@@ -1,7 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<resources>
-    <string name="mm_button_accept">Prihvati</string>
-    <string name="mm_button_decline">Odbaci</string>
-    <string name="mm_button_open">Otvori</string>
-    <string name="mm_button_cancel">Poništi</string>
-</resources>

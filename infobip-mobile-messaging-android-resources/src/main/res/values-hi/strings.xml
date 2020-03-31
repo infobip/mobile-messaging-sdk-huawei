@@ -1,7 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<resources>
-    <string name="mm_button_accept">स्वीकार करें</string>
-    <string name="mm_button_decline">अस्वीकारें</string>
-    <string name="mm_button_cancel">रद्द करें</string>
-    <string name="mm_button_open">खोलें</string>
-</resources>
