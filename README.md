@@ -34,8 +34,18 @@ Mobile Messaging SDK is designed and developed to easily enable push notificatio
     </resources>
     ```
    HMS App ID could be taken from Huawei Developer Console - Application settings
-   
-5. Add code to `MainActivity#onCreate`
+
+5. Download `agconnect-services.json` from <a href="https://developer.huawei.com/consumer/ru/service/josp/agc/index.html"  target="_blank">AppGallery Connect </a> and copy it to your app's folder.
+        
+        a. Find your App from the list and click the link under Android App in the Mobile phone column.
+        
+        b. Go to Develop > Overview.
+        
+        c. In the App information area, Click `agconnect-services.json` to download the configuration file.
+        
+        **Note** that if you are developing / testing FCM and HMS at the same device then better to remove cache for installed app, remove app and after that install build with other push cloud. 
+ 
+6. Add code to `MainActivity#onCreate`
 
     ```java
     public class MainActivity extends AppCompatActivity {
