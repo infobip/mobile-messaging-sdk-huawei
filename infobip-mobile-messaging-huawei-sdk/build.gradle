@@ -42,7 +42,7 @@ android {
 }
 
 dependencies {
-    api 'org.infobip.mobile.messaging.api:infobip-mobile-messaging-api-java:3.0.4'
+    api 'org.infobip.mobile.messaging.api:infobip-mobile-messaging-api-java:3.3.0'
     api 'org.infobip.mobile.messaging.api:infobip-mobile-messaging-android-resources:3.0.4@aar'
     api "com.android.support:support-v4:${mm_supportLibrariesVersion}"
     api "com.android.support:appcompat-v7:${mm_supportLibrariesVersion}"

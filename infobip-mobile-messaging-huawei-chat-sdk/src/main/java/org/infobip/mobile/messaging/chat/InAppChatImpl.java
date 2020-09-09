@@ -147,20 +147,32 @@ public class InAppChatImpl extends InAppChat implements MessageHandlerModule {
 
     @Override
     public void cleanup() {
-        isChatWidgetConfigSynced = false;
-        webView().clearHistory();
-        webView().clearCache(true);
+        mobileApiResourceProvider = null;
+        inAppChatSynchronizer = null;
+        cleanupWidgetData();
         PropertyHelper.remove(context, MobileMessagingChatProperty.IN_APP_CHAT_WIDGET_ID.getKey());
         PropertyHelper.remove(context, MobileMessagingChatProperty.IN_APP_CHAT_WIDGET_TITLE.getKey());
         PropertyHelper.remove(context, MobileMessagingChatProperty.IN_APP_CHAT_WIDGET_PRIMARY_COLOR.getKey());
         PropertyHelper.remove(context, MobileMessagingChatProperty.IN_APP_CHAT_WIDGET_BACKGROUND_COLOR.getKey());
+        PropertyHelper.remove(context, MobileMessagingChatProperty.IN_APP_CHAT_WIDGET_MAX_UPLOAD_CONTENT_SIZE.getKey());
+    }
+
+    // must be done on separate thread if it's not invoked by UI thread
+    private void cleanupWidgetData() {
+        isChatWidgetConfigSynced = false;
+        final Runnable runnable = new Runnable() {
+            @Override
+            public void run() {
+                webView().clearHistory();
+                webView().clearCache(true);
+            }
+        };
+        webView().post(runnable);
     }
 
     @Override
     public void depersonalize() {
-        isChatWidgetConfigSynced = false;
-        webView().clearHistory();
-        webView().clearCache(true);
+        cleanupWidgetData();
     }
 
     @Override

@@ -51,7 +51,11 @@ public class SharedPreferencesMigrationTest extends MobileMessagingTestCase {
         internalData.put("silent", new JSONObject());
 
         internalData.put("webViewUrl", "http://www.bla.com");
+        internalData.put("browserUrl", "http://www.openinbrowser.com");
+        internalData.put("deeplink", "app://deep/link");
         internalData.put("messageType", "some msg type");
+        internalData.put("inAppOpenTitle", "in-app open title");
+        internalData.put("inAppDismissTitle", "in-app dismiss title");
 
         for (int i = 0; i < numberOfMessages; i++) {
             sharedPreferencesMessageStore.save(context, new Message(
@@ -76,7 +80,11 @@ public class SharedPreferencesMigrationTest extends MobileMessagingTestCase {
                     null,
                     0,
                     "http://www.bla.com",
-                    "some msg type"
+                    "http://www.openinbrowser.com",
+                    "some msg type",
+                    "app://deep/link",
+                    "in-app open title",
+                    "in-app dismiss title"
             ));
         }
 
@@ -112,7 +120,11 @@ public class SharedPreferencesMigrationTest extends MobileMessagingTestCase {
             assertEquals("http://www.some-content.com.ru.hr", message.getContentUrl());
             assertEquals(0, message.getInAppExpiryTimestamp());
             assertEquals("http://www.bla.com", message.getWebViewUrl());
+            assertEquals("http://www.openinbrowser.com", message.getBrowserUrl());
+            assertEquals("app://deep/link", message.getDeeplink());
             assertEquals("some msg type", message.getMessageType());
+            assertEquals("in-app open title", message.getInAppOpenTitle());
+            assertEquals("in-app dismiss title", message.getInAppDismissTitle());
         }
     }
 
@@ -125,7 +137,11 @@ public class SharedPreferencesMigrationTest extends MobileMessagingTestCase {
         JSONObject internalData = new JSONObject();
 
         internalData.put("webViewUrl", "http://www.bla.com");
+        internalData.put("browserUrl", "http://www.openinbrowser.com");
+        internalData.put("deeplink", "app://deep/link");
         internalData.put("messageType", "chat");
+        internalData.put("inAppOpenTitle", "in-app open title");
+        internalData.put("inAppDismissTitle", "in-app dismiss title");
 
         for (int i = 0; i < numberOfMessages; i++) {
             sharedPreferencesMessageStore.save(context, new Message(
@@ -150,7 +166,11 @@ public class SharedPreferencesMigrationTest extends MobileMessagingTestCase {
                     null,
                     0,
                     "http://www.bla.com",
-                    "chat"
+                    "http://www.openinbrowser.com",
+                    "chat",
+                    "app://deep/link",
+                    "in-app open title",
+                    "in-app dismiss title"
             ));
         }
 

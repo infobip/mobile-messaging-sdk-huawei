@@ -32,12 +32,7 @@ public class Platform {
     public static volatile Lazy<MobileMessageHandler, Context> mobileMessageHandler = create(new Lazy.Initializer<MobileMessageHandler, Context>() {
         @Override
         public MobileMessageHandler initialize(Context context) {
-            MobileMessagingCore mobileMessagingCore = Platform.mobileMessagingCore.get(context);
-            return new MobileMessageHandler(
-                    mobileMessagingCore,
-                    broadcaster.get(context),
-                    mobileMessagingCore.getNotificationHandler(),
-                    mobileMessagingCore.getMessageStoreWrapper());
+            return Platform.initializeMobileMessageHandler(context);
         }
     });
     public static volatile Lazy<RegistrationTokenHandler, Context> registrationTokenHandler = create(new Lazy.Initializer<RegistrationTokenHandler, Context>() {
@@ -69,6 +64,8 @@ public class Platform {
 
     public static void verify(Context context) {
         ComponentUtil.verifyManifestComponentsForPush(context);
+        // TODO: Check: FirebaseManifestHelper.verifyAndConfigureManifest(context);
+        ComponentUtil.verifyManifestComponentsForPush(context);
     }
 
     public static void executeInBackground(Runnable command) {
@@ -81,7 +78,7 @@ public class Platform {
     }
 
     @VisibleForTesting
-    protected static void reset(MobileMessageHandler mobileMessageHandler) {
+    public static void reset(MobileMessageHandler mobileMessageHandler) {
         Platform.mobileMessageHandler = Lazy.just(mobileMessageHandler);
     }
 
@@ -90,8 +87,7 @@ public class Platform {
         Platform.sdkInt = sdkVersionInt;
     }
 
-    @VisibleForTesting
-    protected static void reset(MobileMessagingCloudHandler mobileMessagingCloudHandler) {
+    public static void reset(MobileMessagingCloudHandler mobileMessagingCloudHandler) {
         Platform.mobileMessagingCloudHandler = Lazy.just(mobileMessagingCloudHandler);
     }
 
@@ -102,6 +98,21 @@ public class Platform {
 
     private static RegistrationTokenHandler initializeTokenHandler(Context context) {
         return new HmsRegistrationTokenHandler(mobileMessagingCore.get(context), broadcaster.get(context));
+    }
+
+    protected static MobileMessageHandler initializeMobileMessageHandler(Context context) {
+        MobileMessagingCore mobileMessagingCore = Platform.mobileMessagingCore.get(context);
+        return new MobileMessageHandler(
+                mobileMessagingCore,
+                broadcaster.get(context),
+                mobileMessagingCore.getNotificationHandler(),
+                mobileMessagingCore.getMessageStoreWrapper());
+    }
+
+    public static MobileMessagingCloudHandler initializeMobileMessagingCloudHandler(Context context) {
+        RegistrationTokenHandler registrationTokenHandler = Platform.initializeTokenHandler(context);
+        MobileMessageHandler messageHandler = Platform.initializeMobileMessageHandler(context);
+        return new MobileMessagingCloudHandler(registrationTokenHandler, messageHandler);
     }
 
     private static Installation.PushServiceType usedPushServiceType() {

@@ -41,8 +41,12 @@ public class Message implements Comparable<Message> {
     private String internalData;
     private String contentUrl;
     private String webViewUrl;
+    private String browserUrl;
     private InAppStyle inAppStyle;
     private String messageType;
+    private String deeplink;
+    private String inAppOpenTitle;
+    private String inAppDismissTitle;
 
     public enum Status {
         SUCCESS,
@@ -74,7 +78,8 @@ public class Message implements Comparable<Message> {
                    String from, long receivedTimestamp, long seenTimestamp, long sentTimestamp,
                    JSONObject customPayload, String internalData,
                    String destination, Status status, String statusMessage, String contentUrl, InAppStyle inAppStyle,
-                   long inAppExpiryTimestamp, String webViewUrl, String messageType) {
+                   long inAppExpiryTimestamp, String webViewUrl, String browserUrl, String messageType, String deeplink,
+                   String inAppOpenTitle, String inAppDismissTitle) {
         this.messageId = messageId;
         this.title = title;
         this.body = body;
@@ -96,7 +101,11 @@ public class Message implements Comparable<Message> {
         this.inAppStyle = inAppStyle;
         this.inAppExpiryTimestamp = inAppExpiryTimestamp;
         this.webViewUrl = webViewUrl;
+        this.browserUrl = browserUrl;
         this.messageType = messageType;
+        this.deeplink = deeplink;
+        this.inAppOpenTitle = inAppOpenTitle;
+        this.inAppDismissTitle = inAppDismissTitle;
     }
 
     public Message() {
@@ -286,6 +295,14 @@ public class Message implements Comparable<Message> {
         this.webViewUrl = webViewUrl;
     }
 
+    public String getBrowserUrl() {
+        return browserUrl;
+    }
+
+    public void setBrowserUrl(String browserUrl) {
+        this.browserUrl = browserUrl;
+    }
+
     public String getMessageType() {
         return messageType;
     }
@@ -296,5 +313,29 @@ public class Message implements Comparable<Message> {
 
     public boolean isChatMessage() {
         return StringUtils.isNotBlank(messageType) && MESSAGE_TYPE_CHAT.equals(messageType);
+    }
+
+    public String getDeeplink() {
+        return deeplink;
+    }
+
+    public void setDeeplink(String deeplink) {
+        this.deeplink = deeplink;
+    }
+
+    public String getInAppOpenTitle() {
+        return inAppOpenTitle;
+    }
+
+    public void setInAppOpenTitle(String inAppOpenTitle) {
+        this.inAppOpenTitle = inAppOpenTitle;
+    }
+
+    public String getInAppDismissTitle() {
+        return inAppDismissTitle;
+    }
+
+    public void setInAppDismissTitle(String inAppDismissTitle) {
+        this.inAppDismissTitle = inAppDismissTitle;
     }
 }

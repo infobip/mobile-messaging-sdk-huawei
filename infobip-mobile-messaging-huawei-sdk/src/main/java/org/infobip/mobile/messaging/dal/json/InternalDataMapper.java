@@ -35,11 +35,16 @@ public class InternalDataMapper {
         Silent<VibrateValueType> silent;
         String bulkId;
         String initialMessageId;
-        @Deprecated Boolean inApp;
+        @Deprecated
+        Boolean inApp;
         Message.InAppStyle inAppStyle;
         long inAppExpiryDateTime;
         String webViewUrl;
+        String browserUrl;
         String messageType;
+        String deeplink;
+        String inAppOpenTitle;
+        String inAppDismissTitle;
 
         public InternalData() {
         }
@@ -229,6 +234,20 @@ public class InternalDataMapper {
     }
 
     /**
+     * Returns browser URL from internal data
+     *
+     * @param json internal data json
+     * @return browser URL if present or null otherwise
+     */
+    public static String getInternalDataBrowserUrl(String json) {
+        try {
+            return serializer.deserialize(json, InternalData.class).browserUrl;
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    /**
      * Returns message type from internal data
      *
      * @param json internal data json
@@ -282,6 +301,48 @@ public class InternalDataMapper {
             }
 
             return null;
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    /**
+     * Returns Deeplink URI from internal data
+     *
+     * @param json internal data json
+     * @return Deeplink URI if present or null otherwise
+     */
+    public static String getInternalDataDeeplinkUri(String json) {
+        try {
+            return serializer.deserialize(json, InternalData.class).deeplink;
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    /**
+     * Returns in-app open title from internal data
+     *
+     * @param json internal data json
+     * @return Title for in-app open button if present or null otherwise
+     */
+    public static String getInternalDataInAppOpenTitle(String json) {
+        try {
+            return serializer.deserialize(json, InternalData.class).inAppOpenTitle;
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    /**
+     * Returns in-app dismiss title from internal data
+     *
+     * @param json internal data json
+     * @return Title for in-app dismiss button if present or null otherwise
+     */
+    public static String getInternalDataInAppDismissTitle(String json) {
+        try {
+            return serializer.deserialize(json, InternalData.class).inAppDismissTitle;
         } catch (Exception e) {
             return null;
         }

@@ -54,9 +54,9 @@ class MessagesMapper {
                 null,
                 Time.now(),
                 0,
-                InternalDataMapper.getInternalDataSendDateTime(internalData),
+                InternalDataMapper.getInternalDataSendDateTime(response.getInternalData()),
                 customPayload,
-                internalData,
+                response.getInternalData(),
                 null,
                 Message.Status.UNKNOWN,
                 null,
@@ -64,7 +64,11 @@ class MessagesMapper {
                 InternalDataMapper.getInternalDataInAppStyle(internalData),
                 InternalDataMapper.getInternalDataInAppExpiryDateTime(internalData),
                 InternalDataMapper.getInternalDataWebViewUrl(internalData),
-                InternalDataMapper.getInternalDataMessageType(internalData)
+                InternalDataMapper.getInternalDataBrowserUrl(internalData),
+                InternalDataMapper.getInternalDataMessageType(internalData),
+                InternalDataMapper.getInternalDataDeeplinkUri(internalData),
+                InternalDataMapper.getInternalDataInAppOpenTitle(internalData),
+                InternalDataMapper.getInternalDataInAppDismissTitle(internalData)
         );
 
         InternalDataMapper.updateMessageWithInternalData(message, internalData);

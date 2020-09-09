@@ -8,6 +8,7 @@ import android.content.DialogInterface;
 import com.huawei.hms.api.ConnectionResult;
 import com.huawei.hms.api.HuaweiApiAvailability;
 
+
 public class ApiAvailability {
 
     /**

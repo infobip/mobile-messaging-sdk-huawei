@@ -68,8 +68,12 @@ public class HmsMessageMapper {
         NotificationSettings notificationSettings = data.notification != null ? data.notification : new NotificationSettings();
         long sentDateTime = data.internal != null ? data.internal.optLong("sendDateTime", Time.now()) : Time.now();
         long inAppExpiryDateTime = data.internal != null ? data.internal.optLong("inAppExpiryDateTime", 0) : 0;
-        String webViewUrl = data.internal != null ? data.internal.optString("webViewUrl") : null;
-        String messageType = data.internal != null ? data.internal.optString("messageType") : null;
+        String webViewUrl = getInternalDataStringValue(data.internal, "webViewUrl");
+        String browserUrl = getInternalDataStringValue(data.internal, "browserUrl");
+        String deeplink = getInternalDataStringValue(data.internal, "deeplink");
+        String messageType = getInternalDataStringValue(data.internal, "messageType");
+        String inAppOpenTitle = getInternalDataStringValue(data.internal, "inAppOpenTitle");
+        String inAppDismissTitle = getInternalDataStringValue(data.internal, "inAppDismissTitle");
         boolean inApp = data.internal != null && data.internal.optBoolean("inApp"); // deprecated
         Message.InAppStyle inAppStyle = null;
         if (data.notification.inAppStyle != null) {
@@ -99,11 +103,18 @@ public class HmsMessageMapper {
                 inAppStyle,
                 inAppExpiryDateTime,
                 webViewUrl,
-                messageType);
+                browserUrl,
+                messageType,
+                deeplink,
+                inAppOpenTitle,
+                inAppDismissTitle);
+    }
+
+    private String getInternalDataStringValue(JSONObject internalData, String key) {
+        return internalData != null ? internalData.optString(key) : null;
     }
 
     private static IBData getIBData(RemoteMessage remoteMessage) {
-        Map<String, String> data = remoteMessage.getDataOfMap();
         if (remoteMessage == null || remoteMessage.getData() == null) {
             return null;
         }
