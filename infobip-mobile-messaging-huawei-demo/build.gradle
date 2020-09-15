@@ -4,7 +4,6 @@ buildscript {
         maven { url 'http://developer.huawei.com/repo/' }
     }
     dependencies {
-        // classpath 'com.huawei.hms:push:4.0.2.300'
         classpath 'com.huawei.agconnect:agcp:1.2.1.301'
     }
 }
@@ -95,7 +94,7 @@ dependencies {
 
     implementation 'org.infobip.mobile.messaging.api:infobip-mobile-messaging-api-java:3.0.4'
 
-    implementation 'com.huawei.hms:push:4.0.2.300'
+    implementation 'com.huawei.hms:push:5.0.0.300'
 
     implementation "com.android.support:appcompat-v7:${mm_supportLibrariesVersion}"
     implementation "com.android.support:design:${mm_supportLibrariesVersion}"

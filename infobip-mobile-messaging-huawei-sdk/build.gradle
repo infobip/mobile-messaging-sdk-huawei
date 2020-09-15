@@ -48,7 +48,7 @@ dependencies {
     api "com.android.support:appcompat-v7:${mm_supportLibrariesVersion}"
 
     // push kit
-    implementation 'com.huawei.hms:push:4.0.2.300'
+    implementation 'com.huawei.hms:push:5.0.0.300'
 
     androidTestImplementation project(':infobip-mobile-messaging-huawei-test')
     androidTestImplementation "com.android.support.test:runner:1.0.2"
