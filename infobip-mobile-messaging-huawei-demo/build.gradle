@@ -89,7 +89,7 @@ dependencies {
 
     implementation project(':infobip-mobile-messaging-huawei-chat-sdk')
     implementation project(':infobip-mobile-messaging-huawei-geo-sdk')
-    implementation ('org.infobip.mobile.messaging.api:infobip-mobile-messaging-android-resources:3.0.4@aar')
+    implementation ('org.infobip.mobile.messaging.api:infobip-mobile-messaging-android-resources:4.0.6@aar')
     implementation project(':infobip-mobile-messaging-huawei-sdk')
 
     implementation 'org.infobip.mobile.messaging.api:infobip-mobile-messaging-api-java:3.0.4'
