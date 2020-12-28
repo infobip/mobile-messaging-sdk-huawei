@@ -57,8 +57,18 @@ import android.content.BroadcastReceiver;
  *
  * @author mstipanov
  * @see BroadcastReceiver
- * @see Event#MESSAGE_RECEIVED
  * @see Event#TOKEN_RECEIVED
+ * @see Event#REGISTRATION_CREATED
+ * @see Event#INSTALLATION_UPDATED
+ * @see Event#USER_UPDATED
+ * @see Event#MESSAGE_RECEIVED
+ * @see Event#MESSAGES_SENT
+ * @see Event#NOTIFICATION_DISPLAYED
+ * @see Event#NOTIFICATION_TAPPED
+ * @see Event#USER_SESSIONS_SENT
+ * @see Event#CUSTOM_EVENTS_SENT
+ * @see Event#PERSONALIZED
+ * @see Event#DEPERSONALIZED
  * @see Event#DELIVERY_REPORTS_SENT
  * @see Event#API_COMMUNICATION_ERROR
  * @since 01.03.2016.
@@ -162,6 +172,33 @@ public enum Event {
      * </pre>
      */
     SEEN_REPORTS_SENT("org.infobip.mobile.messaging.SEEN_REPORTS_SENT"),
+
+    /**
+     * It is triggered when notification is displayed in the status bar.
+     * <p>
+     * Contains message that was sent and notification ID of the displayed notification.
+     * Notification ID is -1 if it wasn't displayed. Check logs for those cases.
+     * <pre>
+     * {@code
+     * Message message = Message.createFrom(intent.getExtras());
+     * int notificationId = intent.getIntExtra(BroadcastParameter.EXTRA_NOTIFICATION_ID, BroadcastParameter.NOTIFICATION_NOT_DISPLAYED_ID);
+     * }
+     * </pre>
+     * In case you want to cancel notification by notification ID you can use following method:
+     * <pre>
+     * {@code
+     * private void cancelNotification(Context context, int notificationId) {
+     *     if (notificationId != BroadcastParameter.NOTIFICATION_NOT_DISPLAYED_ID) {
+     *         NotificationManager notificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
+     *         if (notificationManager != null) {
+     *             notificationManager.cancel(notificationId);
+     *         }
+     *     }
+     * }
+     * }
+     * </pre>
+     */
+    NOTIFICATION_DISPLAYED("org.infobip.mobile.messaging.NOTIFICATION_DISPLAYED"),
 
     /**
      * It is triggered when notification is tapped.
