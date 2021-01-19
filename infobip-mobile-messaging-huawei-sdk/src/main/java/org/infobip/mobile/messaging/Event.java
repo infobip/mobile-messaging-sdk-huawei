@@ -155,7 +155,7 @@ public enum Event {
      * Contains the list of all reported message IDs.
      * <pre>
      * {@code
-     * String[] messageIDs = intent.getStringArrayExtra({@link BroadcastParameter#EXTRA_MESSAGE_IDS});
+     * String[] messageIDs = intent.getStringArrayExtra(BroadcastParameter.EXTRA_MESSAGE_IDS);
      * }
      * </pre>
      */
@@ -167,7 +167,7 @@ public enum Event {
      * Contains the list of all reported message IDs.
      * <pre>
      * {@code
-     * String[] messageIDs = intent.getStringArrayExtra({@link BroadcastParameter#EXTRA_MESSAGE_IDS});
+     * String[] messageIDs = intent.getStringArrayExtra(BroadcastParameter.EXTRA_MESSAGE_IDS);
      * }
      * </pre>
      */
