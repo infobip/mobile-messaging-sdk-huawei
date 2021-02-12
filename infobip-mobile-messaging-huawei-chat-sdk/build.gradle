@@ -50,8 +50,8 @@ android {
 
 dependencies {
     implementation project(':infobip-mobile-messaging-huawei-sdk')
-    api ('org.infobip.mobile.messaging.api:infobip-mobile-messaging-android-resources:4.3.1@aar')
-    implementation 'org.infobip.mobile.messaging.api:infobip-mobile-messaging-api-java:4.3.1'
+    api ('org.infobip.mobile.messaging.api:infobip-mobile-messaging-android-resources:4.3.5@aar')
+    implementation 'org.infobip.mobile.messaging.api:infobip-mobile-messaging-api-java:4.3.5'
     implementation "com.android.support:support-v4:${mm_supportLibrariesVersion}"
     implementation "com.android.support:appcompat-v7:${mm_supportLibrariesVersion}"
     implementation "com.android.support:exifinterface:${mm_supportLibrariesVersion}"

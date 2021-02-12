@@ -12,6 +12,7 @@ import android.net.Uri;
 import android.util.Base64;
 import android.webkit.MimeTypeMap;
 
+import org.infobip.mobile.messaging.api.support.http.serialization.JsonSerializer;
 import org.infobip.mobile.messaging.chat.properties.MobileMessagingChatProperty;
 import org.infobip.mobile.messaging.logging.MobileMessagingLogger;
 import org.infobip.mobile.messaging.mobileapi.InternalSdkError;
@@ -68,7 +69,12 @@ public class InAppChatMobileAttachment {
     }
 
     public String base64UrlString() {
-        return "data:" + mimeType + ";base64," + JSONObject.quote(base64);
+        return "data:" + mimeType + ";base64," + escapeString(base64);
+    }
+
+    private String escapeString(String source) {
+        String serialize = new JsonSerializer().serialize(source);
+        return serialize.substring(1, serialize.length() - 1);
     }
 
     public String getFileName() {

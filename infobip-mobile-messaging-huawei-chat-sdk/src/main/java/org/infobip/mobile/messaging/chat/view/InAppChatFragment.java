@@ -21,6 +21,8 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
+import android.os.Handler;
+import android.os.Looper;
 import android.provider.MediaStore;
 import android.support.annotation.ColorInt;
 import android.support.annotation.NonNull;
@@ -89,6 +91,7 @@ public class InAppChatFragment extends Fragment implements InAppChatWebViewManag
     private static final String OUTPUT_MEDIA_PATH = "/InAppChat";
     private static final int CHAT_NOT_AVAILABLE_ANIM_DURATION_MILLIS = 500;
     private static final int CONTENT_SELECTION_INTENT_CODE = 100;
+    private static final int USER_INPUT_CHECKER_DELAY_MS = 250;
 
     private boolean sendButtonIsColored;
     private WidgetInfo widgetInfo;
@@ -106,6 +109,8 @@ public class InAppChatFragment extends Fragment implements InAppChatWebViewManag
 
     private InAppChatClient inAppChatClient;
     private InAppChatViewSettingsResolver inAppChatViewSettingsResolver;
+    private final Handler inputCheckerHandler = new Handler(Looper.getMainLooper());
+    private InAppChatInputFinishChecker inputFinishChecker;
     private Boolean shouldUseWidgetConfig = null;
     private boolean receiversRegistered = false;
     private boolean chatNotAvailableViewShown = false;
@@ -116,6 +121,7 @@ public class InAppChatFragment extends Fragment implements InAppChatWebViewManag
     private PermissionsRequestManager permissionsRequestManager;
     private boolean fragmentCouldBePaused = true;
     private boolean fragmentCouldBeResumed = true;
+    private boolean isToolbarHidden = false;
 
     /**
      * Implement InAppChatActionBarProvider in your Activity, where InAppChatWebViewFragment will be added.
@@ -198,6 +204,7 @@ public class InAppChatFragment extends Fragment implements InAppChatWebViewManag
 
     private void fragmentPaused() {
         if (!fragmentCouldBePaused) return;
+        sendInputDraftImmediately();
         unregisterReceivers();
         hideChatNotAvailableView(0);
         webView.onPause();
@@ -239,6 +246,11 @@ public class InAppChatFragment extends Fragment implements InAppChatWebViewManag
         fillButtonByPrimaryColor(btnSendAttachment);
     }
 
+    private void sendInputDraftImmediately() {
+        inputCheckerHandler.removeCallbacks(inputFinishChecker);
+        inputCheckerHandler.post(inputFinishChecker);
+    }
+
     private WidgetInfo prepareWidgetInfo() {
         SharedPreferences prefs = PropertyHelper.getDefaultMMSharedPreferences(getContext());
         String widgetId = prefs.getString(MobileMessagingChatProperty.IN_APP_CHAT_WIDGET_ID.getKey(), null);
@@ -275,36 +287,50 @@ public class InAppChatFragment extends Fragment implements InAppChatWebViewManag
         toolbar = containerView.findViewById(R.id.ib_toolbar_chat_fragment);
         if (toolbar == null) return;
 
-        //If Activity has it's own ActionBar, it should be hidden.
-        InAppChatActionBarProvider actionBarProvider = (InAppChatActionBarProvider) getFragmentActivity();
-        if (actionBarProvider != null) {
-            ActionBar ab = actionBarProvider.getOriginalSupportActionBar();
-            if (ab != null) {
-                ab.hide();
+        if (isToolbarHidden) {
+            toolbar.setVisibility(View.GONE);
+        } else {
+            //If Activity has it's own ActionBar, it should be hidden.
+            try {
+                InAppChatActionBarProvider actionBarProvider = (InAppChatActionBarProvider) getFragmentActivity();
+                if (actionBarProvider != null) {
+                    ActionBar ab = actionBarProvider.getOriginalSupportActionBar();
+                    if (ab != null) {
+                        ab.hide();
+                    }
+                }
+            } catch (Exception e) {
+                MobileMessagingLogger.e("[InAppChat] can't get actionBarProvider", e);
             }
+            toolbar.setNavigationIcon(R.drawable.ic_chat_arrow_back);
+            toolbar.setNavigationOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    closeChatPage();
+                }
+            });
         }
-        toolbar.setNavigationIcon(R.drawable.ic_chat_arrow_back);
-        toolbar.setNavigationOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                closeChatPage();
-            }
-        });
     }
 
     public void closeChatPage() {
-        InAppChatActionBarProvider actionBarProvider = (InAppChatActionBarProvider) getFragmentActivity();
-        if (actionBarProvider != null) {
-            ActionBar ab = actionBarProvider.getOriginalSupportActionBar();
-            if (ab != null) {
-                ab.show();
+        try {
+            InAppChatActionBarProvider actionBarProvider = (InAppChatActionBarProvider) getFragmentActivity();
+            if (actionBarProvider != null) {
+                ActionBar ab = actionBarProvider.getOriginalSupportActionBar();
+                if (ab != null) {
+                    ab.show();
+                }
+                actionBarProvider.onInAppChatBackPressed();
             }
-            actionBarProvider.onInAppChatBackPressed();
+        } catch (Exception e) {
+            MobileMessagingLogger.e("[InAppChat] can't get actionBarProvider", e);
         }
     }
 
     private void initTextBar() {
         editText = containerView.findViewById(R.id.ib_et_message_text);
+        inputFinishChecker = new InAppChatInputFinishChecker(inAppChatClient);
+
         editText.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {
@@ -313,6 +339,7 @@ public class InAppChatFragment extends Fragment implements InAppChatWebViewManag
 
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
+                inputCheckerHandler.removeCallbacks(inputFinishChecker);
                 if (s.length() > 0 && !sendButtonIsColored) {
                     fillButtonByPrimaryColor(btnSend);
                     sendButtonIsColored = true;
@@ -324,7 +351,8 @@ public class InAppChatFragment extends Fragment implements InAppChatWebViewManag
 
             @Override
             public void afterTextChanged(Editable s) {
-                // nothing
+                inputFinishChecker.setInputValue(s.toString());
+                inputCheckerHandler.postDelayed(inputFinishChecker, USER_INPUT_CHECKER_DELAY_MS);
             }
         });
         editText.setOnFocusChangeListener(new View.OnFocusChangeListener() {
@@ -353,7 +381,7 @@ public class InAppChatFragment extends Fragment implements InAppChatWebViewManag
     }
 
     private void updateToolbarConfigs() {
-        if (toolbar == null || widgetInfo == null) {
+        if (toolbar == null || widgetInfo == null || isToolbarHidden) {
             return;
         }
 
@@ -801,4 +829,7 @@ public class InAppChatFragment extends Fragment implements InAppChatWebViewManag
         return theme;
     }
 
+    public void setIsToolbarHidden(Boolean hidden) {
+        isToolbarHidden = hidden;
+    }
 }
