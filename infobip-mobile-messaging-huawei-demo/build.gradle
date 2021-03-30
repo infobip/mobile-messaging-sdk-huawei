@@ -80,6 +80,10 @@ android {
         web {
             dimension "default"
         }
+
+        customInApp {
+            dimension "default"
+        }
     }
 }
 
