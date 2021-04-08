@@ -2,6 +2,7 @@ buildscript {
     repositories {
         jcenter()
         maven { url 'http://developer.huawei.com/repo/' }
+        mavenCentral()
     }
     dependencies {
         classpath 'com.huawei.agconnect:agcp:1.2.1.301'
@@ -93,10 +94,10 @@ dependencies {
 
     implementation project(':infobip-mobile-messaging-huawei-chat-sdk')
     implementation project(':infobip-mobile-messaging-huawei-geo-sdk')
-    implementation ('org.infobip.mobile.messaging.api:infobip-mobile-messaging-android-resources:5.0.1@aar')
+    implementation ('com.infobip:infobip-mobile-messaging-android-resources:5.2.0@aar')
     implementation project(':infobip-mobile-messaging-huawei-sdk')
 
-    implementation 'org.infobip.mobile.messaging.api:infobip-mobile-messaging-api-java:5.0.1'
+    implementation 'com.infobip:infobip-mobile-messaging-api-java:5.2.0'
 
     implementation 'com.huawei.hms:push:5.0.0.300'
 

@@ -43,3 +43,6 @@ captures/
 
 #Jenkins
 .android/
+*.gpg
+agconnect-services.json
+HmsDemo.jks
