@@ -13,13 +13,13 @@ buildscript {
     }
     dependencies {
         classpath 'com.android.tools.build:gradle:3.6.2'
-        classpath 'io.codearte.gradle.nexus:gradle-nexus-staging-plugin:0.30.0'
     }
 }
 
 plugins {
     id 'net.researchgate.release' version '2.8.1'
     id 'maven-publish'
+    id "io.github.gradle-nexus.publish-plugin" version "1.1.0"
 }
 
 ext {
@@ -44,8 +44,6 @@ allprojects {
         maven { url 'http://developer.huawei.com/repo/' }
     }
 }
-
-apply plugin: 'io.codearte.nexus-staging'
 
 subprojects {
     apply plugin: "maven"
@@ -81,4 +79,17 @@ release {
         requireBranch = ''
         pushToRemote = 'origin'
     }
+}
+
+nexusPublishing {
+    repositories {
+        sonatype {
+            nexusUrl.set(uri("https://s01.oss.sonatype.org/service/local/"))
+            username = project.hasProperty('ossrhUsername') ? project.property('ossrhUsername') : System.getenv('OSSRH_USERNAME')
+            password = project.hasProperty('ossrhPassword') ? project.property('ossrhPassword') : System.getenv('OSSRH_PASSWORD')
+            stagingProfileId.set(project.hasProperty('sonatypeStagingProfileId') ? project.property('sonatypeStagingProfileId') : System.getenv('SONATYPE_STAGING_PROFILE_ID'))
+        }
+    }
+    connectTimeout = Duration.ofMinutes(3)
+    clientTimeout = Duration.ofMinutes(3)
 }
