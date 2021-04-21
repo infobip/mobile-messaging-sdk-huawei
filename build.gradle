@@ -84,8 +84,8 @@ nexusPublishing {
     clientTimeout = Duration.ofMinutes(3)
 }
 
-afterReleaseBuild.dependsOn subprojects.publish
-afterReleaseBuild.dependsOn closeAndReleaseSonatypeStagingRepository
+closeAndReleaseSonatypeStagingRepository.mustRunAfter subprojects.publish
+afterReleaseBuild.dependsOn subprojects.publish, closeAndReleaseSonatypeStagingRepository
 
 release {
     buildTasks = ['clean', 'build']
