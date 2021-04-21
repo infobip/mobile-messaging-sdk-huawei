@@ -71,16 +71,6 @@ afterReleaseBuild.dependsOn updateVersionInReadme
 task build {}
 build.dependsOn subprojects.findAll {!it.name.contains("demo")}.build
 
-afterReleaseBuild.dependsOn subprojects.publish
-
-release {
-    buildTasks = ['clean', 'build']
-    git {
-        requireBranch = ''
-        pushToRemote = 'origin'
-    }
-}
-
 nexusPublishing {
     repositories {
         sonatype {
@@ -92,4 +82,15 @@ nexusPublishing {
     }
     connectTimeout = Duration.ofMinutes(3)
     clientTimeout = Duration.ofMinutes(3)
+}
+
+afterReleaseBuild.dependsOn subprojects.publish
+afterReleaseBuild.dependsOn closeAndReleaseSonatypeStagingRepository
+
+release {
+    buildTasks = ['clean', 'build']
+    git {
+        requireBranch = ''
+        pushToRemote = 'origin'
+    }
 }
