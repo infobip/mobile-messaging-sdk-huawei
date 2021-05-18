@@ -29,6 +29,7 @@ ext {
     mm_buildToolsVersion = "28.0.3"
     mm_supportLibrariesVersion = "28.0.0"
     mm_apiVersion = "3.0.4"
+    mm_androidSdkVersion = "5.2.3"
 }
 
 allprojects {

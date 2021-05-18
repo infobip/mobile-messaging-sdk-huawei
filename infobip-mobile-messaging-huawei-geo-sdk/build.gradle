@@ -49,7 +49,7 @@ android {
 
 dependencies {
     implementation project(':infobip-mobile-messaging-huawei-sdk')
-    implementation 'com.infobip:infobip-mobile-messaging-api-java:5.2.1'
+    implementation "com.infobip:infobip-mobile-messaging-api-java:${mm_androidSdkVersion}"
     implementation('com.huawei.hms:location:5.0.0.300')
     implementation "com.android.support:support-v4:${mm_supportLibrariesVersion}"
 

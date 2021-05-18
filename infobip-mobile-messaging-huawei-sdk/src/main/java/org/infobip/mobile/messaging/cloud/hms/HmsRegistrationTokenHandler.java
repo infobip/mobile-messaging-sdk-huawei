@@ -28,6 +28,11 @@ public class HmsRegistrationTokenHandler extends RegistrationTokenHandler {
     }
 
     public void handleNewToken(String senderId, String token) {
+        if (StringUtils.isBlank(token)) {
+            MobileMessagingLogger.w("Not processing empty HMS token");
+            return;
+        }
+
         MobileMessagingLogger.v(TAG, "RECEIVED HMS TOKEN", token);
         broadcaster.tokenReceived(token);
         sendRegistrationToServer(token);
@@ -51,7 +56,7 @@ public class HmsRegistrationTokenHandler extends RegistrationTokenHandler {
         try {
             MobileMessagingLogger.i(TAG, "Try to get token for senderId: " + senderId);
             String token = HmsInstanceId.getInstance(context).getToken(senderId, "HCM");
-            if (StringUtils.isNotBlank(token)) handleNewToken(senderId, token);
+            handleNewToken(senderId, token);
         } catch (ApiException e) {
             MobileMessagingLogger.e(TAG, "Error while acquiring token", e);
         }
