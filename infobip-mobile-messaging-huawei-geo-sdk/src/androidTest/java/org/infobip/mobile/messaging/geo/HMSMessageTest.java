@@ -10,7 +10,7 @@ import static org.junit.Assert.assertNotEquals;
  * @author mstipanov
  * @since 30.03.2016.
  */
-public class FCMMessageTest extends TestCase {
+public class HMSMessageTest extends TestCase {
 
     public void test_geofence_expiryTime() throws Exception {
         String geofence =
