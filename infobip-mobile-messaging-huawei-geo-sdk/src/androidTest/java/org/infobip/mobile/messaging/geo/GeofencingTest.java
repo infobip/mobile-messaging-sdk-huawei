@@ -2,7 +2,7 @@ package org.infobip.mobile.messaging.geo;
 
 import android.util.Pair;
 
-import com.google.android.gms.location.Geofence;
+import com.huawei.hms.location.Geofence;
 
 import org.infobip.mobile.messaging.geo.geofencing.Geofencing;
 import org.infobip.mobile.messaging.geo.geofencing.GeofencingHelper;
