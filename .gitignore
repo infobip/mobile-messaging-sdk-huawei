@@ -45,4 +45,4 @@ captures/
 .android/
 *.gpg
 agconnect-services.json
-HmsDemo.jks
+*.jks
