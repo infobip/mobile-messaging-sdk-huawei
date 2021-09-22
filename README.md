@@ -1,4 +1,4 @@
-# Mobile Messaging SDK for Android
+# Mobile Messaging SDK for Huawei on Android
 
 [![Download](https://img.shields.io/github/v/tag/infobip/mobile-messaging-sdk-huawei?label=maven%20central)](https://mvnrepository.com/artifact/com.infobip/infobip-mobile-messaging-huawei-sdk)
 [![License](https://img.shields.io/github/license/infobip/mobile-messaging-sdk-huawei.svg?label=License)](https://github.com/infobip/mobile-messaging-sdk-huawei/blob/master/LICENSE)
@@ -69,7 +69,7 @@ Mobile Messaging SDK is designed and developed to easily enable push notificatio
 
 > ### Notes
 > 1. All required manifest components are merged to application manifest automatically by manifest merger. Please include <a href="https://github.com/infobip/mobile-messaging-sdk-android/wiki/Android-Manifest-components#push-notifications" target="_blank">push-related components</a> to manifest manually if manifest merger was disabled.
-> 2. Keep in mind that some proprietary android versions may restrict network traffic for your app. It may in turn affect delivery of push notifications.
+> 2. Keep in mind that some proprietary Android versions may restrict network traffic for your app. It may in turn affect delivery of push notifications.
 
 <br>
 
