@@ -28,27 +28,29 @@
 # Preserve all public classes, and their public and protected fields and
 # methods.
 
--keep public class * {
+-keep public class org.infobip.mobile.messaging.** {
     public protected *;
 }
 
 # Preserve all .class method names.
 
--keepclassmembernames class * {
+-keepclassmembernames class org.infobip.mobile.messaging.** {
     java.lang.Class class$(java.lang.String);
     java.lang.Class class$(java.lang.String, boolean);
 }
 
+-keepclassmembernames class org.infobip.mobile.messaging.mobileapi.common.ResultWrapper { *; }
+
 # Preserve all native method names and the names of their classes.
 
--keepclasseswithmembernames class * {
+-keepclasseswithmembernames class org.infobip.mobile.messaging.** {
     native <methods>;
 }
 
 # Preserve the special static methods that are required in all enumeration
 # classes.
 
--keepclassmembers class * extends java.lang.Enum {
+-keepclassmembers class org.infobip.mobile.messaging.** extends java.lang.Enum {
     <fields>;
     public static **[] values();
     public static ** valueOf(java.lang.String);
@@ -61,7 +63,7 @@
 # If your code contains serializable classes that have to be backward
 # compatible, please refer to the manual.
 
--keepclassmembers class * implements java.io.Serializable {
+-keepclassmembers class org.infobip.mobile.messaging.** implements java.io.Serializable {
     static final long serialVersionUID;
     static final java.io.ObjectStreamField[] serialPersistentFields;
     private void writeObject(java.io.ObjectOutputStream);
