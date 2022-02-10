@@ -106,3 +106,8 @@
 -keep class * implements com.google.gson.TypeAdapterFactory
 -keep class * implements com.google.gson.JsonSerializer
 -keep class * implements com.google.gson.JsonDeserializer
+
+# huawei
+-keep class com.huawei.hianalytics.** { *; }
+-keep class com.huawei.updatesdk.** { *; }
+-keep class com.huawei.hms.** { *; }

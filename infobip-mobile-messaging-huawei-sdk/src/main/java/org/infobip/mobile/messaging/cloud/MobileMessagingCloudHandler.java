@@ -3,8 +3,8 @@ package org.infobip.mobile.messaging.cloud;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
-import android.support.annotation.NonNull;
-import android.support.annotation.VisibleForTesting;
+import androidx.annotation.NonNull;
+import androidx.annotation.VisibleForTesting;
 
 import org.infobip.mobile.messaging.Message;
 import org.infobip.mobile.messaging.dal.bundle.MessageBundleMapper;

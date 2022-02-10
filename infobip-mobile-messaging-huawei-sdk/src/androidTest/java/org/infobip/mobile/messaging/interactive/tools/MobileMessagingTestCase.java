@@ -3,8 +3,8 @@ package org.infobip.mobile.messaging.interactive.tools;
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
-import android.support.annotation.NonNull;
-import android.support.test.runner.AndroidJUnit4;
+import androidx.annotation.NonNull;
+import androidx.test.ext.junit.runners.AndroidJUnit4;
 
 import org.infobip.mobile.messaging.Message;
 import org.infobip.mobile.messaging.MobileMessaging;
@@ -42,6 +42,8 @@ import static org.infobip.mobile.messaging.BroadcastParameter.EXTRA_MESSAGE;
 import static org.infobip.mobile.messaging.BroadcastParameter.EXTRA_NOTIFICATION_ID;
 import static org.infobip.mobile.messaging.BroadcastParameter.EXTRA_TAPPED_ACTION;
 import static org.infobip.mobile.messaging.BroadcastParameter.EXTRA_TAPPED_CATEGORY;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 /**
  * @author tjuric

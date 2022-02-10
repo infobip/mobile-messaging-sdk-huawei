@@ -3,7 +3,7 @@ package org.infobip.mobile.messaging.util;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
-import android.support.annotation.NonNull;
+import androidx.annotation.NonNull;
 
 import org.infobip.mobile.messaging.MobileMessagingProperty;
 import org.infobip.mobile.messaging.logging.MobileMessagingLogger;
@@ -435,9 +435,8 @@ public abstract class PreferenceHelper {
         migrateCryptedEntriesFromPublicToPrivatePrefs(context, cryptedProperties());
     }
 
-    public static void migrateCryptorIfNeeded(Context context) {
-        Cryptor oldCryptor = new ECBCryptorImpl(keySecretForCryptor(context));
-        if (shouldMigrateFromCryptor(oldCryptor, context)) {
+    public static void migrateCryptorIfNeeded(Context context, Cryptor oldCryptor) {
+        if (oldCryptor != null && shouldMigrateFromCryptor(oldCryptor, context)) {
             migrate(oldCryptor, getCryptor(context), cryptedProperties(), context);
         }
     }

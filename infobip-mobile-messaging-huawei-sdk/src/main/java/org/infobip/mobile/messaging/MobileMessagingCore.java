@@ -5,8 +5,8 @@ import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.content.Context;
 import android.os.Build;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import android.text.TextUtils;
 import android.util.Pair;
 
@@ -58,6 +58,8 @@ import org.infobip.mobile.messaging.storage.MessageStoreWrapper;
 import org.infobip.mobile.messaging.storage.MessageStoreWrapperImpl;
 import org.infobip.mobile.messaging.telephony.MobileNetworkStateListener;
 import org.infobip.mobile.messaging.util.ComponentUtil;
+import org.infobip.mobile.messaging.util.Cryptor;
+import org.infobip.mobile.messaging.util.CryptorImpl;
 import org.infobip.mobile.messaging.util.DateTimeUtil;
 import org.infobip.mobile.messaging.util.DeviceInformation;
 import org.infobip.mobile.messaging.util.MobileNetworkInformation;
@@ -1958,6 +1960,7 @@ public class MobileMessagingCore
         private NotificationSettings notificationSettings = null;
         private String applicationCode = null;
         private ApplicationCodeProvider applicationCodeProvider;
+        private Cryptor oldCryptor = null;
 
         public Builder(Application application) {
             if (null == application) {
@@ -2024,6 +2027,19 @@ public class MobileMessagingCore
         }
 
         /**
+         * This method will migrate data, encrypted with old unsecure algorithm (ECB) to new one {@link CryptorImpl} (CBC).
+         * If you have installations of the application with MobileMessaging SDK version < 5.0.0,
+         * use this method with providing old cryptor, so MobileMessaging SDK will migrate data using the new cryptor.
+         * For code snippets (old cryptor implementation) and more details check docs on github - https://github.com/infobip/mobile-messaging-sdk-android/wiki/ECB-Cryptor-migration.
+         * @param oldCryptor, provide old cryptor, to migrate encrypted data to new one {@link CryptorImpl}.
+         * @return {@link Builder}
+         */
+        public Builder withCryptorMigration(Cryptor oldCryptor) {
+            this.oldCryptor = oldCryptor;
+            return this;
+        }
+
+        /**
          * Builds the <i>MobileMessagingCore</i> configuration. Registration token patch is started by default.
          * Any messages received in the past will be reported as delivered!
          *
@@ -2054,7 +2070,7 @@ public class MobileMessagingCore
         }
 
         private void cleanupLibraryDataIfAppCodeWasChanged(Context applicationContext) {
-            PreferenceHelper.migrateCryptorIfNeeded(applicationContext);
+            PreferenceHelper.migrateCryptorIfNeeded(applicationContext, oldCryptor);
             String existingApplicationCodeHash = MobileMessagingCore.getStoredApplicationCodeHash(applicationContext);
             if (shouldSaveApplicationCode(applicationContext)) {
                 String existingApplicationCode = MobileMessagingCore.getStoredApplicationCode(applicationContext);

@@ -10,9 +10,9 @@ import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.location.LocationManager;
 import android.os.Build;
-import android.support.annotation.NonNull;
-import android.support.annotation.VisibleForTesting;
-import android.support.v4.content.ContextCompat;
+import androidx.annotation.NonNull;
+import androidx.annotation.VisibleForTesting;
+import androidx.core.content.ContextCompat;
 import android.util.Pair;
 
 import com.huawei.hmf.tasks.OnCompleteListener;
@@ -26,7 +26,6 @@ import com.huawei.hms.location.LocationServices;
 import org.infobip.mobile.messaging.ConfigurationException;
 import org.infobip.mobile.messaging.ConfigurationException.Reason;
 import org.infobip.mobile.messaging.Message;
-import org.infobip.mobile.messaging.cloud.PlayServicesSupport;
 import org.infobip.mobile.messaging.geo.Area;
 import org.infobip.mobile.messaging.geo.BootReceiver;
 import org.infobip.mobile.messaging.geo.Geo;
@@ -248,8 +247,7 @@ public class GeofencingImpl extends Geofencing implements HuaweiApiClient.Connec
     @Override
     public void startGeoMonitoring() {
 
-        if (!PlayServicesSupport.isPlayServicesAvailable(context) ||
-                !GeofencingHelper.isGeoActivated(context) ||
+        if (!GeofencingHelper.isGeoActivated(context) ||
                 // checking this to avoid multiple activation of geofencing API on Play services
                 GeofencingHelper.areAllActiveGeoAreasMonitored(context)) {
             return;
@@ -388,7 +386,11 @@ public class GeofencingImpl extends Geofencing implements HuaweiApiClient.Connec
     private PendingIntent geofencePendingIntent() {
         if (geofencePendingIntent == null) {
             Intent intent = new Intent(context, GeofenceTransitionsReceiver.class);
-            geofencePendingIntent = PendingIntent.getBroadcast(context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+            int flags = PendingIntent.FLAG_UPDATE_CURRENT;
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                flags = flags | PendingIntent.FLAG_MUTABLE;
+            }
+            geofencePendingIntent = PendingIntent.getBroadcast(context, 0, intent, flags);
         }
 
         return geofencePendingIntent;
