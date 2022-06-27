@@ -17,6 +17,7 @@ import org.infobip.mobile.messaging.api.appinstance.MobileApiAppInstance;
 import org.infobip.mobile.messaging.api.baseurl.MobileApiBaseUrl;
 import org.infobip.mobile.messaging.api.messages.MobileApiMessages;
 import org.infobip.mobile.messaging.api.version.MobileApiVersion;
+import org.infobip.mobile.messaging.cloud.firebase.FirebaseAppProvider;
 import org.infobip.mobile.messaging.dal.sqlite.DatabaseHelper;
 import org.infobip.mobile.messaging.dal.sqlite.SqliteDatabaseProvider;
 import org.infobip.mobile.messaging.logging.MobileMessagingLogger;
@@ -44,6 +45,8 @@ import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.withSettings;
 
+import com.google.firebase.FirebaseOptions;
+
 /**
  * @author sslavin
  * @since 10/03/2017.
@@ -67,6 +70,7 @@ public abstract class MobileMessagingTestCase extends MobileMessagingBaseTestCas
     protected MobileApiVersion mobileApiVersion;
     protected MobileApiBaseUrl mobileApiBaseUrl;
     protected String myDeviceRegId = "TestDeviceRegId";
+    protected FirebaseAppProvider firebaseAppProvider;
 
     protected static final String KEY_FOR_LIST_PARAM_1 = "param1";
     protected static final String KEY_FOR_LIST_PARAM_2 = "param2";
@@ -176,7 +180,12 @@ public abstract class MobileMessagingTestCase extends MobileMessagingBaseTestCas
 
         notificationHandler = mock(NotificationHandler.class);
         broadcaster = mock(Broadcaster.class);
-        mobileMessagingCore = MobileMessagingTestable.create(context, broadcaster, mobileApiResourceProvider);
+
+        firebaseAppProvider = new FirebaseAppProvider(context);
+        FirebaseOptions firebaseOptions = new FirebaseOptions.Builder().setProjectId("project_id").setApiKey("api_key").setApplicationId("application_id").build();
+        firebaseAppProvider.setFirebaseOptions(firebaseOptions);
+
+        mobileMessagingCore = MobileMessagingTestable.create(context, broadcaster, mobileApiResourceProvider, firebaseAppProvider);
         mobileMessaging = mobileMessagingCore;
 
         databaseHelper = MobileMessagingCore.getDatabaseHelper(context);

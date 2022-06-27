@@ -15,13 +15,6 @@ import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
-import androidx.annotation.ColorInt;
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.core.graphics.drawable.DrawableCompat;
-import androidx.appcompat.app.ActionBar;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.Toolbar;
 import android.util.TypedValue;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -33,11 +26,20 @@ import android.webkit.WebViewClient;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
+import androidx.annotation.ColorInt;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.ActionBar;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
+import androidx.core.graphics.drawable.DrawableCompat;
+
 import org.infobip.mobile.messaging.ConfigurationException;
 import org.infobip.mobile.messaging.chat.R;
 import org.infobip.mobile.messaging.chat.attachments.InAppChatWebAttachment;
-import org.infobip.mobile.messaging.chat.attachments.PermissionsRequestManager;
+import org.infobip.mobile.messaging.chat.utils.LocalizationUtils;
 import org.infobip.mobile.messaging.logging.MobileMessagingLogger;
+import org.infobip.mobile.messaging.permissions.PermissionsRequestManager;
 import org.infobip.mobile.messaging.util.ResourceLoader;
 
 
@@ -56,6 +58,12 @@ public class InAppChatAttachmentPreviewActivity extends AppCompatActivity implem
     private Intent webViewIntent;
     private InAppChatWebAttachment attachment;
     private PermissionsRequestManager permissionsRequestManager;
+
+
+    @Override
+    protected void attachBaseContext(Context newBase) {
+        super.attachBaseContext(LocalizationUtils.getInstance(this).updateContext());
+    }
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -126,6 +134,21 @@ public class InAppChatAttachmentPreviewActivity extends AppCompatActivity implem
     @Override
     public String[] requiredPermissions() {
         return new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE};
+    }
+
+    @Override
+    public boolean shouldShowPermissionsNotGrantedDialogIfShownOnce() {
+        return true;
+    }
+
+    @Override
+    public int permissionsNotGrantedDialogTitle() {
+        return R.string.ib_chat_permissions_not_granted_title;
+    }
+
+    @Override
+    public int permissionsNotGrantedDialogMessage() {
+        return R.string.ib_chat_permissions_not_granted_message;
     }
 
     @Override

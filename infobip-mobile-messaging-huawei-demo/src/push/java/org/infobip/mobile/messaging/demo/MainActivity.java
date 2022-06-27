@@ -34,7 +34,9 @@ import org.infobip.mobile.messaging.Message;
 import org.infobip.mobile.messaging.MobileMessaging;
 import org.infobip.mobile.messaging.User;
 import org.infobip.mobile.messaging.api.support.util.CollectionUtils;
-import org.infobip.mobile.messaging.geo.MobileGeo;
+
+// current version  of SDK doesn't support geo   
+//import org.infobip.mobile.messaging.geo.MobileGeo;
 import org.infobip.mobile.messaging.mobileapi.MobileMessagingError;
 import org.infobip.mobile.messaging.mobileapi.Result;
 import org.infobip.mobile.messaging.storage.MessageStore;
@@ -70,7 +72,8 @@ public class MainActivity extends AppCompatActivity {
         ListView lv = findViewById(R.id.lv_messages);
         lv.setAdapter(adapter);
 
-        activateGeofencing();
+// current version  of SDK doesn't support geo
+//        activateGeofencing();
         refresh();
         clearNotifications();
 
@@ -98,13 +101,14 @@ public class MainActivity extends AppCompatActivity {
         clearNotifications();
     }
 
-    @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        if (requestCode == LOCATION_PERMISSION_REQUEST_CODE) {
-            activateGeofencing();
-        }
-    }
+// current version  of SDK doesn't support geo
+//    @Override
+//    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+//        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+//        if (requestCode == LOCATION_PERMISSION_REQUEST_CODE) {
+//            activateGeofencing();
+//        }
+//    }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -170,15 +174,16 @@ public class MainActivity extends AppCompatActivity {
         refresh();
     }
 
-    private void activateGeofencing() {
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            String[] permissions = {Manifest.permission.ACCESS_FINE_LOCATION};
-            ActivityCompat.requestPermissions(this, permissions, LOCATION_PERMISSION_REQUEST_CODE);
-            return;
-        }
-
-       MobileGeo.getInstance(this).activateGeofencing();
-    }
+// current version  of SDK doesn't support geo
+//    private void activateGeofencing() {
+//        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+//            String[] permissions = {Manifest.permission.ACCESS_FINE_LOCATION};
+//            ActivityCompat.requestPermissions(this, permissions, LOCATION_PERMISSION_REQUEST_CODE);
+//            return;
+//        }
+//
+//       MobileGeo.getInstance(this).activateGeofencing();
+//    }
 
     private void clearNotifications() {
         NotificationManager notificationManager = (NotificationManager) this.getSystemService(Context.NOTIFICATION_SERVICE);

@@ -15,12 +15,16 @@ import org.infobip.mobile.messaging.util.PreferenceHelper;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
 import static junit.framework.Assert.assertEquals;
+import static org.infobip.mobile.messaging.util.DateTimeUtil.dateFromYMDString;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
@@ -221,7 +225,7 @@ public class PersonalizeSynchronizerTest extends MobileMessagingTestCase {
         verify(broadcaster, after(300).atLeastOnce()).depersonalized();
         verify(broadcaster, after(300).never()).error(any(MobileMessagingError.class));
 
-        verify(successPendingResultListener, after(300).times(1)).onResult(captor.capture());
+        verify(successPendingResultListener, after(500).times(1)).onResult(captor.capture());
         Result result = captor.getValue();
         assertNotNull(result.getData());
         assertTrue(result.isSuccess());
@@ -255,6 +259,29 @@ public class PersonalizeSynchronizerTest extends MobileMessagingTestCase {
 
         assertTrue(PreferenceHelper.findBoolean(context, MobileMessagingProperty.IS_DEPERSONALIZE_UNREPORTED));
         verifyNeededPrefsCleanUp();
+    }
+
+    @Test
+    public void test_personalize_arab_locale() throws Exception {
+        //given
+        givenUserData();
+        UserIdentity userIdentity = givenIdentity();
+        Date newBirthday = dateFromYMDString("١٩٨٩-١١-٢١");
+
+
+        UserAttributes userAttributes = new UserAttributes();
+        userAttributes.setBirthday(newBirthday);
+
+        //when
+        mobileMessaging.personalize(userIdentity, userAttributes, true, userResultListener);
+
+        //then
+        verifyNeededPrefsCleanUp(false);
+        verify(broadcaster, after(300).atLeastOnce()).personalized(userCaptor.capture());
+        User returnedUser = userCaptor.getValue();
+        verifyIdentity(returnedUser);
+        assertEquals(newBirthday, returnedUser.getBirthday());
+        assertJEquals(returnedUser, mobileMessagingCore.getUser());
     }
 
     private void givenUserData() {
