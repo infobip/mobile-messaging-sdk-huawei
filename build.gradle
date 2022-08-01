@@ -8,7 +8,7 @@ buildscript {
         mavenCentral()
         google()
         // huawei maven
-        maven { url 'http://developer.huawei.com/repo/' }
+        maven { url 'https://developer.huawei.com/repo/' }
 
     }
     dependencies {
@@ -27,7 +27,7 @@ ext {
     mm_compileSdkVersion = 31
     mm_targetSdkVersion = 31
     mm_buildToolsVersion = "31.0.0"
-    mm_androidSdkVersion = "6.3.1"
+    mm_androidSdkVersion = "6.3.2"
 }
 
 allprojects {
@@ -39,7 +39,7 @@ allprojects {
             name 'Google'
         }
         // huawei maven
-        maven { url 'http://developer.huawei.com/repo/' }
+        maven { url 'https://developer.huawei.com/repo/' }
     }
 }
 
