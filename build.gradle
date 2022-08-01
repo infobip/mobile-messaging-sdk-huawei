@@ -1,10 +1,6 @@
 buildscript {
 
     repositories {
-        maven {
-            url 'https://maven.google.com/'
-            name 'Google'
-        }
         mavenCentral()
         google()
         // huawei maven
@@ -34,10 +30,6 @@ allprojects {
     repositories {
         google()
         mavenCentral()
-        maven {
-            url 'https://maven.google.com/'
-            name 'Google'
-        }
         // huawei maven
         maven { url 'https://developer.huawei.com/repo/' }
     }
