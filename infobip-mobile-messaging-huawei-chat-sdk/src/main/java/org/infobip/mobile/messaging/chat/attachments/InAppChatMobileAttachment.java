@@ -9,7 +9,6 @@ import android.graphics.Rect;
 import android.net.Uri;
 import android.os.Build;
 import android.os.ParcelFileDescriptor;
-import androidx.exifinterface.media.ExifInterface;
 import android.util.Base64;
 import android.webkit.MimeTypeMap;
 
@@ -24,6 +23,8 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.UUID;
+
+import androidx.exifinterface.media.ExifInterface;
 
 public class InAppChatMobileAttachment {
     public static final long DEFAULT_MAX_UPLOAD_CONTENT_SIZE = 10_485_760; //10 MiB
@@ -200,13 +201,14 @@ public class InAppChatMobileAttachment {
     }
 
     private static byte[] getBytes(Context context, Uri uri) {
-        if (uri == null) {
+        if (uri == null || context == null) {
             return null;
         }
+        ParcelFileDescriptor fileDescriptor = null;
         try {
             InputStream stream = null;
             if (Build.VERSION.SDK_INT >= 24) {
-                ParcelFileDescriptor fileDescriptor = context.getContentResolver().openFileDescriptor(uri, "r", null);
+                fileDescriptor = context.getContentResolver().openFileDescriptor(uri, "r", null);
                 stream = new FileInputStream(fileDescriptor.getFileDescriptor());
             } else {
                 stream = context.getContentResolver().openInputStream(uri);
@@ -221,6 +223,8 @@ public class InAppChatMobileAttachment {
         } catch (Exception e) {
             MobileMessagingLogger.e("[InAppChat] Can't get base64 from Uri", e);
             return null;
+        } finally {
+            closeFileDescriptor(context, uri, fileDescriptor);
         }
     }
 
@@ -238,5 +242,18 @@ public class InAppChatMobileAttachment {
 
     private static Long getAttachmentMaxSize(Context context) {
         return PreferenceHelper.findLong(context, MobileMessagingChatProperty.IN_APP_CHAT_WIDGET_MAX_UPLOAD_CONTENT_SIZE.getKey(), DEFAULT_MAX_UPLOAD_CONTENT_SIZE);
+    }
+
+    private static void closeFileDescriptor(Context context, Uri uri, ParcelFileDescriptor fileDescriptor) {
+        try {
+            if (context != null && uri != null) {
+                context.getApplicationContext().getContentResolver().delete(uri, null, null);
+            }
+            if (fileDescriptor != null) {
+                fileDescriptor.close();
+            }
+        } catch (Exception e) {
+            MobileMessagingLogger.e("[InAppChat] Can't close file descriptor", e);
+        }
     }
 }
