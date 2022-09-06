@@ -3,8 +3,8 @@ pluginManagement {
         google()
         mavenCentral()
         // huawei maven
-        maven { url 'https://developer.huawei.com/repo/' }
         maven {url 'https://plugins.gradle.org/m2/'}
+        maven { url 'https://developer.huawei.com/repo/' }
     }
 }
 include ':infobip-mobile-messaging-huawei-sdk', ':infobip-mobile-messaging-huawei-demo', ':infobip-mobile-messaging-huawei-test', ':infobip-mobile-messaging-huawei-chat-sdk', ':infobip-mobile-messaging-huawei-cryptor-migration'
