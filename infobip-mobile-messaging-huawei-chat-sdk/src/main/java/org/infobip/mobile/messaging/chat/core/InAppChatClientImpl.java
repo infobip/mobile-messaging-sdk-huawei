@@ -7,8 +7,6 @@ import static org.infobip.mobile.messaging.chat.core.InAppChatWidgetMethods.setL
 import static org.infobip.mobile.messaging.chat.utils.CommonUtils.isOSOlderThanKitkat;
 import static org.infobip.mobile.messaging.util.StringUtils.isNotBlank;
 
-import android.webkit.ValueCallback;
-
 import org.infobip.mobile.messaging.chat.attachments.InAppChatMobileAttachment;
 import org.infobip.mobile.messaging.chat.view.InAppChatWebView;
 import org.infobip.mobile.messaging.logging.MobileMessagingLogger;
@@ -66,12 +64,9 @@ public class InAppChatClientImpl implements InAppChatClient {
     public void sendContextualData(String data, MMChatMultiThreadFlag multiThreadFlag) {
         if (webView != null && !data.isEmpty()) {
             String script = "sendContextualData(" + data + ", '" + multiThreadFlag + "')";
-            webView.evaluateJavascriptMethod(script, new ValueCallback<String>() {
-                @Override
-                public void onReceiveValue(String value) {
-                    if (value != null) {
-                        MobileMessagingLogger.d(TAG, value);
-                    }
+            webView.evaluateJavascriptMethod(script, value -> {
+                if (value != null) {
+                    MobileMessagingLogger.d(TAG, value);
                 }
             });
         }

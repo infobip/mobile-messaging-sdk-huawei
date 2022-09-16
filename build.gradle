@@ -23,7 +23,7 @@ ext {
     mm_compileSdkVersion = 31
     mm_targetSdkVersion = 31
     mm_buildToolsVersion = "31.0.0"
-    mm_androidSdkVersion = "6.3.4"
+    mm_androidSdkVersion = "6.4.0"
 }
 
 allprojects {
