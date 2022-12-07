@@ -41,6 +41,7 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.activity.OnBackPressedCallback;
 import androidx.activity.result.ActivityResult;
 import androidx.activity.result.ActivityResultCallback;
 import androidx.activity.result.ActivityResultLauncher;
@@ -71,7 +72,7 @@ import org.infobip.mobile.messaging.chat.core.InAppChatClient;
 import org.infobip.mobile.messaging.chat.core.InAppChatClientImpl;
 import org.infobip.mobile.messaging.chat.core.InAppChatEvent;
 import org.infobip.mobile.messaging.chat.core.InAppChatWebViewManager;
-import org.infobip.mobile.messaging.chat.core.MMChatMultiThreadFlag;
+import org.infobip.mobile.messaging.chat.core.InAppChatMultiThreadFlag;
 import org.infobip.mobile.messaging.chat.properties.MobileMessagingChatProperty;
 import org.infobip.mobile.messaging.chat.properties.PropertyHelper;
 import org.infobip.mobile.messaging.chat.utils.CommonUtils;
@@ -81,6 +82,7 @@ import org.infobip.mobile.messaging.mobileapi.InternalSdkError;
 import org.infobip.mobile.messaging.mobileapi.MobileMessagingError;
 import org.infobip.mobile.messaging.permissions.PermissionsRequestManager;
 import org.infobip.mobile.messaging.util.StringUtils;
+import org.infobip.mobile.messaging.chat.core.InAppChatWidgetView;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -121,10 +123,17 @@ public class InAppChatFragment extends Fragment implements InAppChatWebViewManag
     private PermissionsRequestManager permissionsRequestManager;
     private boolean fragmentCouldBePaused = true;
     private boolean fragmentCouldBeResumed = true;
-    private boolean isToolbarHidden = false;
-    private boolean isInputControlsVisible = true;
+    private boolean isInputControlsVisible = false;
     private boolean fragmentHidden = false;
     private LocalizationUtils localization;
+    private InAppChatWidgetView currentWidgetView = null;
+    private final OnBackPressedCallback backPressedCallback = new OnBackPressedCallback(true) {
+        @Override
+        public void handleOnBackPressed() {
+            navigateBack();
+        }
+    };
+    private InAppChatActionBarProvider inAppChatActionBarProvider;
 
     /**
      * Implement InAppChatActionBarProvider in your Activity, where InAppChatWebViewFragment will be added.
@@ -171,6 +180,13 @@ public class InAppChatFragment extends Fragment implements InAppChatWebViewManag
         initViews();
         setControlsEnabled(false);
         updateViews();
+        initBackPressHandler();
+    }
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        removeBackPressHandler();
     }
 
     private void localisation() {
@@ -214,9 +230,11 @@ public class InAppChatFragment extends Fragment implements InAppChatWebViewManag
             initToolbar();
             updateViews();
             fragmentResumed();
-        } else {
+        }
+        else {
             fragmentPaused();
         }
+        backPressedCallback.setEnabled(!hidden);
         super.onHiddenChanged(hidden);
     }
 
@@ -263,6 +281,9 @@ public class InAppChatFragment extends Fragment implements InAppChatWebViewManag
         updateToolbarConfigs();
         fillButtonByPrimaryColor(sendAttachmentButton);
         updateBackgroundColor();
+        if (!isMultiThread()) {
+            setInputVisibility(true);
+        }
     }
 
     private void updateBackgroundColor() {
@@ -283,6 +304,7 @@ public class InAppChatFragment extends Fragment implements InAppChatWebViewManag
         String widgetPrimaryColor = prefs.getString(MobileMessagingChatProperty.IN_APP_CHAT_WIDGET_PRIMARY_COLOR.getKey(), null);
         String widgetBackgroundColor = prefs.getString(MobileMessagingChatProperty.IN_APP_CHAT_WIDGET_BACKGROUND_COLOR.getKey(), null);
         String maxUploadContentSizeStr = prefs.getString(MobileMessagingChatProperty.IN_APP_CHAT_WIDGET_MAX_UPLOAD_CONTENT_SIZE.getKey(), null);
+        boolean widgetMultiThread = prefs.getBoolean(MobileMessagingChatProperty.IN_APP_CHAT_WIDGET_MULTITHREAD.getKey(), false);
         String language = prefs.getString(MobileMessagingChatProperty.IN_APP_CHAT_LANGUAGE.getKey(), null);
         long maxUploadContentSize = InAppChatMobileAttachment.DEFAULT_MAX_UPLOAD_CONTENT_SIZE;
 
@@ -291,7 +313,7 @@ public class InAppChatFragment extends Fragment implements InAppChatWebViewManag
         }
 
         if (widgetId != null) {
-            return new WidgetInfo(widgetId, widgetTitle, widgetPrimaryColor, widgetBackgroundColor, maxUploadContentSize, language);
+            return new WidgetInfo(widgetId, widgetTitle, widgetPrimaryColor, widgetBackgroundColor, maxUploadContentSize, language, widgetMultiThread);
         }
         return null;
     }
@@ -309,17 +331,14 @@ public class InAppChatFragment extends Fragment implements InAppChatWebViewManag
         initAttachmentButton();
     }
 
+    //region Toolbar
     private void initToolbar() {
         toolbar = containerView.findViewById(R.id.ib_toolbar_chat_fragment);
         if (toolbar == null) return;
 
-        if (isToolbarHidden) {
-            toolbar.setVisibility(View.GONE);
-            return;
-        }
         //If Activity has it's own ActionBar, it should be hidden.
         try {
-            InAppChatActionBarProvider actionBarProvider = (InAppChatActionBarProvider) getFragmentActivity();
+            InAppChatActionBarProvider actionBarProvider = getInAppChatActionBarProvider();
             if (actionBarProvider != null) {
                 ActionBar ab = actionBarProvider.getOriginalSupportActionBar();
                 if (ab != null) {
@@ -333,19 +352,40 @@ public class InAppChatFragment extends Fragment implements InAppChatWebViewManag
         toolbar.setNavigationOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                closeChatPage();
+                navigateBack();
             }
         });
     }
 
-    public void closeChatPage() {
+    private void navigateBack() {
+        if (isMultiThread()) {
+            switch (currentWidgetView) {
+                case LOADING:
+                case THREAD_LIST:
+                case SINGLE_MODE_THREAD:
+                    closeChatPage();
+                    break;
+                case THREAD:
+                case LOADING_THREAD:
+                case CLOSED_THREAD:
+                    showThreadList();
+                    break;
+            }
+        }
+        else {
+            closeChatPage();
+        }
+    }
+
+    private void closeChatPage() {
         try {
-            InAppChatActionBarProvider actionBarProvider = (InAppChatActionBarProvider) getFragmentActivity();
+            InAppChatActionBarProvider actionBarProvider = getInAppChatActionBarProvider();
             if (actionBarProvider != null) {
                 ActionBar ab = actionBarProvider.getOriginalSupportActionBar();
                 if (ab != null) {
                     ab.show();
                 }
+                backPressedCallback.setEnabled(false); //when InAppChat is used as Activity need to disable callback before onBackPressed() is called to avoid endless loop
                 actionBarProvider.onInAppChatBackPressed();
             }
         } catch (Exception e) {
@@ -353,61 +393,12 @@ public class InAppChatFragment extends Fragment implements InAppChatWebViewManag
         }
     }
 
-    private void initTextBar() {
-        messageInput = containerView.findViewById(R.id.ib_lc_et_msg_input);
-        inputFinishChecker = new InAppChatInputFinishChecker(inAppChatClient);
-
-        messageInput.addTextChangedListener(new TextWatcher() {
-            @Override
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-                // nothing
-            }
-
-            @Override
-            public void onTextChanged(CharSequence s, int start, int before, int count) {
-                inputCheckerHandler.removeCallbacks(inputFinishChecker);
-                if (s.length() > 0 && !sendButtonIsColored) {
-                    fillButtonByPrimaryColor(sendMessageButton);
-                    sendButtonIsColored = true;
-                } else if (s.length() == 0) {
-                    sendMessageButton.getDrawable().clearColorFilter();
-                    sendButtonIsColored = false;
-                }
-            }
-
-            @Override
-            public void afterTextChanged(Editable s) {
-                inputFinishChecker.setInputValue(s.toString());
-                inputCheckerHandler.postDelayed(inputFinishChecker, USER_INPUT_CHECKER_DELAY_MS);
-            }
-        });
-        messageInput.setOnFocusChangeListener(new View.OnFocusChangeListener() {
-            @Override
-            public void onFocusChange(View v, boolean hasFocus) {
-                FragmentActivity activity = getFragmentActivity();
-                if (activity != null && !hasFocus) {
-                    InputMethodManager inputManager = (InputMethodManager) activity.getSystemService(Context.INPUT_METHOD_SERVICE);
-                    inputManager.hideSoftInputFromWindow(v.getWindowToken(), InputMethodManager.HIDE_NOT_ALWAYS);
-                }
-            }
-        });
-    }
-
-    private void fillButtonByPrimaryColor(ImageView buttonToFill) {
-        @ColorInt int widgetPrimaryColor = Color.parseColor(widgetInfo.getPrimaryColor());
-        if (!shouldUseWidgetConfig()) {
-            TypedValue typedValue = new TypedValue();
-            Resources.Theme theme = getTheme();
-            if (theme != null) {
-                theme.resolveAttribute(R.attr.colorPrimary, typedValue, true);
-                widgetPrimaryColor = typedValue.data;
-            }
-        }
-        buttonToFill.getDrawable().setColorFilter(widgetPrimaryColor, PorterDuff.Mode.SRC_ATOP);
+    private void showThreadList() {
+        inAppChatClient.showThreadList();
     }
 
     private void updateToolbarConfigs() {
-        if (toolbar == null || widgetInfo == null || isToolbarHidden) {
+        if (toolbar == null || widgetInfo == null) {
             return;
         }
 
@@ -457,6 +448,61 @@ public class InAppChatFragment extends Fragment implements InAppChatWebViewManag
         if (drawable != null) {
             drawable.setColorFilter(navigationIconColor, PorterDuff.Mode.SRC_ATOP);
         }
+    }
+    //endregion
+
+    private void initTextBar() {
+        messageInput = containerView.findViewById(R.id.ib_lc_et_msg_input);
+        inputFinishChecker = new InAppChatInputFinishChecker(inAppChatClient);
+
+        messageInput.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+                // nothing
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                inputCheckerHandler.removeCallbacks(inputFinishChecker);
+                if (s.length() > 0 && !sendButtonIsColored) {
+                    fillButtonByPrimaryColor(sendMessageButton);
+                    sendButtonIsColored = true;
+                }
+                else if (s.length() == 0) {
+                    sendMessageButton.getDrawable().clearColorFilter();
+                    sendButtonIsColored = false;
+                }
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+                inputFinishChecker.setInputValue(s.toString());
+                inputCheckerHandler.postDelayed(inputFinishChecker, USER_INPUT_CHECKER_DELAY_MS);
+            }
+        });
+        messageInput.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+            @Override
+            public void onFocusChange(View v, boolean hasFocus) {
+                FragmentActivity activity = getFragmentActivity();
+                if (activity != null && !hasFocus) {
+                    InputMethodManager inputManager = (InputMethodManager) activity.getSystemService(Context.INPUT_METHOD_SERVICE);
+                    inputManager.hideSoftInputFromWindow(v.getWindowToken(), InputMethodManager.HIDE_NOT_ALWAYS);
+                }
+            }
+        });
+    }
+
+    private void fillButtonByPrimaryColor(ImageView buttonToFill) {
+        @ColorInt int widgetPrimaryColor = Color.parseColor(widgetInfo.getPrimaryColor());
+        if (!shouldUseWidgetConfig()) {
+            TypedValue typedValue = new TypedValue();
+            Resources.Theme theme = getTheme();
+            if (theme != null) {
+                theme.resolveAttribute(R.attr.colorPrimary, typedValue, true);
+                widgetPrimaryColor = typedValue.data;
+            }
+        }
+        buttonToFill.getDrawable().setColorFilter(widgetPrimaryColor, PorterDuff.Mode.SRC_ATOP);
     }
 
     private int calculatePrimaryDarkColor(int primaryColor) {
@@ -537,7 +583,8 @@ public class InAppChatFragment extends Fragment implements InAppChatWebViewManag
         if (storedLanguage == null) {
             language = MobileMessagingCore.getInstance(getContext()).getInstallation().getLanguage();
             LocalizationUtils.getInstance(getContext()).setLanguage(LocalizationUtils.localeFromString(language));
-        } else {
+        }
+        else {
             language = storedLanguage;
         }
         localisation();
@@ -569,16 +616,26 @@ public class InAppChatFragment extends Fragment implements InAppChatWebViewManag
 
     @Override
     public void setControlsVisibility(boolean isVisible) {
-        if (isInputControlsVisible == isVisible) {
+        setInputVisibility(isVisible);
+    }
+
+    private void setInputVisibility(boolean isVisible) {
+        boolean canShowInMultiThread = isMultiThread() && (this.currentWidgetView == InAppChatWidgetView.THREAD || this.currentWidgetView == InAppChatWidgetView.SINGLE_MODE_THREAD);
+        boolean isNotMultiThread = !isMultiThread();
+        boolean isVisibleMultiThreadSafe = isVisible && (canShowInMultiThread || isNotMultiThread);
+
+        if (isInputControlsVisible == isVisibleMultiThreadSafe) {
             return;
-        } else if (isVisible) {
+        }
+        else if (isVisibleMultiThreadSafe) {
             msgInputWrapper.animate().translationY(0).setDuration(CHAT_INPUT_VISIBILITY_ANIM_DURATION_MILLIS).setListener(new AnimatorListenerAdapter() {
                 @Override
                 public void onAnimationStart(Animator animation) {
                     msgInputWrapper.setVisibility(View.VISIBLE);
                 }
             });
-        } else {
+        }
+        else {
             msgInputWrapper.animate().translationY(msgInputWrapper.getHeight()).setDuration(CHAT_INPUT_VISIBILITY_ANIM_DURATION_MILLIS).setListener(new AnimatorListenerAdapter() {
                 @Override
                 public void onAnimationEnd(Animator animation) {
@@ -586,7 +643,7 @@ public class InAppChatFragment extends Fragment implements InAppChatWebViewManag
                 }
             });
         }
-        isInputControlsVisible = isVisible;
+        isInputControlsVisible = isVisibleMultiThreadSafe;
     }
 
     @Override
@@ -606,14 +663,49 @@ public class InAppChatFragment extends Fragment implements InAppChatWebViewManag
     }
 
     @Override
-    public void sendContextualMetaData(String data, MMChatMultiThreadFlag multiThreadFlag) {
+    public void onWidgetViewChanged(InAppChatWidgetView widgetView) {
+        this.currentWidgetView = widgetView;
+        updateViewsVisibilityByMultiThreadView();
+    }
+
+    private void updateViewsVisibilityByMultiThreadView() {
+        if (isMultiThread()) {
+            switch (currentWidgetView) {
+                case THREAD:
+                case SINGLE_MODE_THREAD:
+                    setInputVisibility(true);
+                    break;
+                case LOADING:
+                case THREAD_LIST:
+                case CLOSED_THREAD:
+                case LOADING_THREAD:
+                    setInputVisibility(false);
+                    break;
+            }
+        }
+        else {
+            setInputVisibility(true);
+        }
+    }
+
+    @Override
+    public void sendContextualMetaData(String data, InAppChatMultiThreadFlag multiThreadFlag) {
         inAppChatClient.sendContextualData(data, multiThreadFlag);
     }
 
-        /*
-    Errors handling
-     */
+    private void initBackPressHandler() {
+        requireActivity().getOnBackPressedDispatcher().addCallback(getViewLifecycleOwner(), backPressedCallback);
+    }
 
+    private void removeBackPressHandler() {
+        backPressedCallback.remove();
+    }
+
+    private boolean isMultiThread() {
+        return widgetInfo != null && widgetInfo.isMultiThread();
+    }
+
+    //region Errors handling
     private static final String CHAT_SERVICE_ERROR = "12";
     private static final String CHAT_WIDGET_NOT_FOUND = "24";
 
@@ -627,18 +719,22 @@ public class InAppChatFragment extends Fragment implements InAppChatWebViewManag
             if (action.equals(ConnectivityManager.CONNECTIVITY_ACTION)) {
                 if (intent.hasExtra(ConnectivityManager.EXTRA_NO_CONNECTIVITY)) {
                     chatErrors().insertError(InAppChatErrors.INTERNET_CONNECTION_ERROR);
-                } else {
+                }
+                else {
                     chatErrors().removeError(InAppChatErrors.INTERNET_CONNECTION_ERROR);
                 }
-            } else if (action.equals(InAppChatEvent.CHAT_CONFIGURATION_SYNCED.getKey())) {
+            }
+            else if (action.equals(InAppChatEvent.CHAT_CONFIGURATION_SYNCED.getKey())) {
                 chatErrors().removeError(InAppChatErrors.CONFIG_SYNC_ERROR);
-            } else if (action.equals(Event.API_COMMUNICATION_ERROR.getKey()) && intent.hasExtra(BroadcastParameter.EXTRA_EXCEPTION)) {
+            }
+            else if (action.equals(Event.API_COMMUNICATION_ERROR.getKey()) && intent.hasExtra(BroadcastParameter.EXTRA_EXCEPTION)) {
                 MobileMessagingError mobileMessagingError = (MobileMessagingError) intent.getSerializableExtra(BroadcastParameter.EXTRA_EXCEPTION);
                 String errorCode = mobileMessagingError.getCode();
                 if (errorCode.equals(CHAT_SERVICE_ERROR) || errorCode.equals(CHAT_WIDGET_NOT_FOUND)) {
                     chatErrors().insertError(InAppChatErrors.CONFIG_SYNC_ERROR);
                 }
-            } else if (action.equals(Event.REGISTRATION_CREATED.getKey())) {
+            }
+            else if (action.equals(Event.REGISTRATION_CREATED.getKey())) {
                 syncInAppChatConfigIfNeeded();
             }
         }
@@ -667,7 +763,8 @@ public class InAppChatFragment extends Fragment implements InAppChatWebViewManag
 
                     if (newErrors.isEmpty()) {
                         hideChatNotAvailableView(CHAT_NOT_AVAILABLE_ANIM_DURATION_MILLIS);
-                    } else {
+                    }
+                    else {
                         showChatNotAvailableView(CHAT_NOT_AVAILABLE_ANIM_DURATION_MILLIS);
                     }
                 }
@@ -700,6 +797,7 @@ public class InAppChatFragment extends Fragment implements InAppChatWebViewManag
         }
         chatNotAvailableViewShown = false;
     }
+    //endregion
 
     protected void registerReceivers() {
         if (!receiversRegistered) {
@@ -730,6 +828,7 @@ public class InAppChatFragment extends Fragment implements InAppChatWebViewManag
         }
     }
 
+    //region Attachment
     private void initAttachmentButton() {
         sendAttachmentButton = containerView.findViewById(R.id.ib_lc_iv_send_attachment_btn);
         sendAttachmentButton.setOnClickListener(new View.OnClickListener() {
@@ -759,7 +858,8 @@ public class InAppChatFragment extends Fragment implements InAppChatWebViewManag
                                 if (attachment != null) {
                                     MobileMessagingLogger.w("[InAppChat] Attachment created, will send Attachment");
                                     inAppChatClient.sendChatMessage(null, attachment);
-                                } else {
+                                }
+                                else {
                                     MobileMessagingLogger.e("[InAppChat] Can't create attachment");
                                     Toast.makeText(getFragmentActivity(), R.string.ib_chat_cant_create_attachment, Toast.LENGTH_SHORT).show();
                                 }
@@ -771,21 +871,23 @@ public class InAppChatFragment extends Fragment implements InAppChatWebViewManag
                                 if (exception.getMessage().equals(InternalSdkError.ERROR_ATTACHMENT_MAX_SIZE_EXCEEDED.get())) {
                                     MobileMessagingLogger.e("[InAppChat] Maximum allowed attachment size exceeded" + widgetInfo.getMaxUploadContentSize());
                                     Toast.makeText(context, R.string.ib_chat_allowed_attachment_size_exceeded, Toast.LENGTH_SHORT).show();
-                                } else {
+                                }
+                                else {
                                     MobileMessagingLogger.e("[InAppChat] Attachment content is not valid.");
                                     Toast.makeText(context, R.string.ib_chat_cant_create_attachment, Toast.LENGTH_SHORT).show();
                                 }
                                 deleteEmptyMediaFiles();
                             }
                         });
-                    } else {
+                    }
+                    else {
                         deleteEmptyMediaFiles();
                     }
                 }
             }
     );
 
-    private void deleteEmptyMediaFiles(){
+    private void deleteEmptyMediaFiles() {
         InAppChatAttachmentHelper.deleteEmptyFileByUri(getContext(), capturedImageUri);
         InAppChatAttachmentHelper.deleteEmptyFileByUri(getContext(), capturedVideoUri);
     }
@@ -814,7 +916,8 @@ public class InAppChatFragment extends Fragment implements InAppChatWebViewManag
         Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
         if (Build.VERSION.SDK_INT < 29) {
             capturedImageUri = InAppChatAttachmentHelper.getOutputImageUri(getFragmentActivity());
-        } else {
+        }
+        else {
             capturedImageUri = InAppChatAttachmentHelper.getOutputImageUrlAPI29(getFragmentActivity());
         }
         takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, capturedImageUri);
@@ -834,8 +937,9 @@ public class InAppChatFragment extends Fragment implements InAppChatWebViewManag
         intentsForChooser.toArray(intentsArray);
         return intentsArray;
     }
+    //endregion
 
-    /* PermissionsRequester */
+    //region PermissionsRequester
     @NonNull
     @Override
     public String[] requiredPermissions() {
@@ -872,10 +976,9 @@ public class InAppChatFragment extends Fragment implements InAppChatWebViewManag
         }
         return permissionsRequestManager.isRequiredPermissionsGranted();
     }
+    //endregion
 
-    /* PermissionsRequester endregion */
-
-    /* Helper methods to get FragmentActivity properties */
+    //region Helper methods to get FragmentActivity properties
     @Nullable
     private FragmentActivity getFragmentActivity() {
         FragmentActivity activity = getActivity();
@@ -903,9 +1006,22 @@ public class InAppChatFragment extends Fragment implements InAppChatWebViewManag
         return theme;
     }
 
-    public void setIsToolbarHidden(Boolean hidden) {
-        isToolbarHidden = hidden;
+    /**
+     * Function allows another way how to inject InAppChatActionBarProvider to InAppChatFragment.
+     */
+    public void setInAppChatActionBarProvider(InAppChatActionBarProvider inAppChatActionBarProvider) {
+        //it is used in React Native plugin to handle multithread navigation
+        this.inAppChatActionBarProvider = inAppChatActionBarProvider;
     }
 
-
+    @Nullable
+    private InAppChatActionBarProvider getInAppChatActionBarProvider() {
+        if (this.inAppChatActionBarProvider != null)
+            return this.inAppChatActionBarProvider;
+        else if (getFragmentActivity() instanceof InAppChatActionBarProvider)
+            return (InAppChatActionBarProvider) getFragmentActivity();
+        else
+            return null;
+    }
+    //endregion
 }

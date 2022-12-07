@@ -38,10 +38,16 @@ public interface InAppChatClient {
 
 
     /**
-     * Send contextual metadata of conversation and a MMChatMultiThreadFlag flag
+     * Send contextual metadata of conversation and a InAppChatMultiThreadFlag flag
      *
-     * @param data
-     * @param multitThreadFlag
+     * @param data            contextual data in the form of JSON string
+     * @param multiThreadFlag multithread strategy flag
      */
-    void sendContextualData(String data, MMChatMultiThreadFlag multiThreadFlag);
+    void sendContextualData(String data, InAppChatMultiThreadFlag multiThreadFlag);
+
+
+    /**
+     * Change destination from thread to list in multiThread widget. For non multiThread widget it does nothing.
+     */
+    void showThreadList();
 }

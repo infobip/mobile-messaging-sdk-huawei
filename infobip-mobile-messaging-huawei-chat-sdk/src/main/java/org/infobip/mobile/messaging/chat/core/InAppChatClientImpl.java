@@ -3,7 +3,9 @@ package org.infobip.mobile.messaging.chat.core;
 import static org.infobip.mobile.messaging.chat.core.InAppChatWidgetMethods.handleMessageDraftSend;
 import static org.infobip.mobile.messaging.chat.core.InAppChatWidgetMethods.handleMessageSend;
 import static org.infobip.mobile.messaging.chat.core.InAppChatWidgetMethods.handleMessageWithAttachmentSend;
+import static org.infobip.mobile.messaging.chat.core.InAppChatWidgetMethods.sendContextualData;
 import static org.infobip.mobile.messaging.chat.core.InAppChatWidgetMethods.setLanguage;
+import static org.infobip.mobile.messaging.chat.core.InAppChatWidgetMethods.showThreadList;
 import static org.infobip.mobile.messaging.chat.utils.CommonUtils.isOSOlderThanKitkat;
 import static org.infobip.mobile.messaging.util.StringUtils.isNotBlank;
 
@@ -61,14 +63,26 @@ public class InAppChatClientImpl implements InAppChatClient {
     }
 
     @Override
-    public void sendContextualData(String data, MMChatMultiThreadFlag multiThreadFlag) {
+    public void sendContextualData(String data, InAppChatMultiThreadFlag multiThreadFlag) {
         if (webView != null && !data.isEmpty()) {
-            String script = "sendContextualData(" + data + ", '" + multiThreadFlag + "')";
-            webView.evaluateJavascriptMethod(script, value -> {
+            StringBuilder script = new StringBuilder();
+            if (isOSOlderThanKitkat()) {
+                script.append("javascript:");
+            }
+            script.append(sendContextualData.name()).append("(").append(data).append(", '").append(multiThreadFlag).append("')");
+            webView.evaluateJavascriptMethod(script.toString(), value -> {
                 if (value != null) {
                     MobileMessagingLogger.d(TAG, value);
                 }
             });
+        }
+    }
+
+    @Override
+    public void showThreadList() {
+        if (webView != null) {
+            String script = buildWidgetMethodInvocation(showThreadList.name(), isOSOlderThanKitkat());
+            webView.evaluateJavascriptMethod(script, null);
         }
     }
 
@@ -90,7 +104,10 @@ public class InAppChatClientImpl implements InAppChatClient {
         if (params.length > 0) {
             String resultParamsStr = StringUtils.join("','", "('", "')", params);
             builder.append(resultParamsStr);
+        } else {
+            builder.append("()");
         }
+
         return builder.toString();
     }
 }

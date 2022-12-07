@@ -12,5 +12,7 @@ public interface InAppChatWebViewManager {
     void setControlsVisibility(boolean isVisible);
     void openAttachmentPreview(String url, String type, String caption);
     void setLanguage(String language);
-    void sendContextualMetaData(String data, MMChatMultiThreadFlag multiThreadFlag);
+    void sendContextualMetaData(String data, InAppChatMultiThreadFlag multiThreadFlag);
+    void onWidgetViewChanged(InAppChatWidgetView widgetView);
+
 }
