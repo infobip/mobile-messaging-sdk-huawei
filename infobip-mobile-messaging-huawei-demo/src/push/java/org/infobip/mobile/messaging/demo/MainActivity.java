@@ -10,15 +10,6 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
-
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.core.app.ActivityCompat;
-import androidx.appcompat.app.AlertDialog;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.Toolbar;
-import androidx.localbroadcastmanager.content.LocalBroadcastManager;
-
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -28,6 +19,14 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.AlertDialog;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
+import androidx.core.app.ActivityCompat;
+import androidx.localbroadcastmanager.content.LocalBroadcastManager;
+
 import org.infobip.mobile.messaging.Event;
 import org.infobip.mobile.messaging.Installation;
 import org.infobip.mobile.messaging.Message;
@@ -35,7 +34,7 @@ import org.infobip.mobile.messaging.MobileMessaging;
 import org.infobip.mobile.messaging.User;
 import org.infobip.mobile.messaging.api.support.util.CollectionUtils;
 
-// current version  of SDK doesn't support geo   
+// current version of SDK doesn't support geo
 //import org.infobip.mobile.messaging.geo.MobileGeo;
 import org.infobip.mobile.messaging.mobileapi.MobileMessagingError;
 import org.infobip.mobile.messaging.mobileapi.Result;
@@ -44,7 +43,6 @@ import org.infobip.mobile.messaging.storage.MessageStore;
 public class MainActivity extends AppCompatActivity {
 
     private static final int LOCATION_PERMISSION_REQUEST_CODE = 1;
-
     private MobileMessaging mobileMessaging;
     private MessageStore messageStore;
     private TextView totalReceivedTextView;
@@ -72,8 +70,9 @@ public class MainActivity extends AppCompatActivity {
         ListView lv = findViewById(R.id.lv_messages);
         lv.setAdapter(adapter);
 
-// current version  of SDK doesn't support geo
+// current version of SDK doesn't support geo
 //        activateGeofencing();
+
         refresh();
         clearNotifications();
 
@@ -83,7 +82,6 @@ public class MainActivity extends AppCompatActivity {
                     addAction(Event.MESSAGE_RECEIVED.getKey());
                     addAction(Event.INSTALLATION_UPDATED.getKey());
                 }});
-
     }
 
     @Override
@@ -101,7 +99,7 @@ public class MainActivity extends AppCompatActivity {
         clearNotifications();
     }
 
-// current version  of SDK doesn't support geo
+// current version of SDK doesn't support geo
 //    @Override
 //    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
 //        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
@@ -174,7 +172,7 @@ public class MainActivity extends AppCompatActivity {
         refresh();
     }
 
-// current version  of SDK doesn't support geo
+    // current version of SDK doesn't support geo
 //    private void activateGeofencing() {
 //        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
 //            String[] permissions = {Manifest.permission.ACCESS_FINE_LOCATION};
@@ -182,7 +180,7 @@ public class MainActivity extends AppCompatActivity {
 //            return;
 //        }
 //
-//       MobileGeo.getInstance(this).activateGeofencing();
+//        MobileGeo.getInstance(this).activateGeofencing();
 //    }
 
     private void clearNotifications() {

@@ -2,6 +2,7 @@ package org.infobip.mobile.messaging.interactive;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.VisibleForTesting;
 

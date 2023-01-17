@@ -50,6 +50,7 @@ import androidx.annotation.ColorInt;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.ActionBar;
+import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.graphics.ColorUtils;
 import androidx.fragment.app.Fragment;
@@ -71,8 +72,9 @@ import org.infobip.mobile.messaging.chat.attachments.InAppChatMobileAttachment;
 import org.infobip.mobile.messaging.chat.core.InAppChatClient;
 import org.infobip.mobile.messaging.chat.core.InAppChatClientImpl;
 import org.infobip.mobile.messaging.chat.core.InAppChatEvent;
-import org.infobip.mobile.messaging.chat.core.InAppChatWebViewManager;
 import org.infobip.mobile.messaging.chat.core.InAppChatMultiThreadFlag;
+import org.infobip.mobile.messaging.chat.core.InAppChatWebViewManager;
+import org.infobip.mobile.messaging.chat.core.InAppChatWidgetView;
 import org.infobip.mobile.messaging.chat.properties.MobileMessagingChatProperty;
 import org.infobip.mobile.messaging.chat.properties.PropertyHelper;
 import org.infobip.mobile.messaging.chat.utils.CommonUtils;
@@ -82,7 +84,7 @@ import org.infobip.mobile.messaging.mobileapi.InternalSdkError;
 import org.infobip.mobile.messaging.mobileapi.MobileMessagingError;
 import org.infobip.mobile.messaging.permissions.PermissionsRequestManager;
 import org.infobip.mobile.messaging.util.StringUtils;
-import org.infobip.mobile.messaging.chat.core.InAppChatWidgetView;
+import org.infobip.mobile.messaging.util.SystemInformation;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -230,8 +232,7 @@ public class InAppChatFragment extends Fragment implements InAppChatWebViewManag
             initToolbar();
             updateViews();
             fragmentResumed();
-        }
-        else {
+        } else {
             fragmentPaused();
         }
         backPressedCallback.setEnabled(!hidden);
@@ -371,8 +372,7 @@ public class InAppChatFragment extends Fragment implements InAppChatWebViewManag
                     showThreadList();
                     break;
             }
-        }
-        else {
+        } else {
             closeChatPage();
         }
     }
@@ -467,8 +467,7 @@ public class InAppChatFragment extends Fragment implements InAppChatWebViewManag
                 if (s.length() > 0 && !sendButtonIsColored) {
                     fillButtonByPrimaryColor(sendMessageButton);
                     sendButtonIsColored = true;
-                }
-                else if (s.length() == 0) {
+                } else if (s.length() == 0) {
                     sendMessageButton.getDrawable().clearColorFilter();
                     sendButtonIsColored = false;
                 }
@@ -583,8 +582,7 @@ public class InAppChatFragment extends Fragment implements InAppChatWebViewManag
         if (storedLanguage == null) {
             language = MobileMessagingCore.getInstance(getContext()).getInstallation().getLanguage();
             LocalizationUtils.getInstance(getContext()).setLanguage(LocalizationUtils.localeFromString(language));
-        }
-        else {
+        } else {
             language = storedLanguage;
         }
         localisation();
@@ -626,16 +624,14 @@ public class InAppChatFragment extends Fragment implements InAppChatWebViewManag
 
         if (isInputControlsVisible == isVisibleMultiThreadSafe) {
             return;
-        }
-        else if (isVisibleMultiThreadSafe) {
+        } else if (isVisibleMultiThreadSafe) {
             msgInputWrapper.animate().translationY(0).setDuration(CHAT_INPUT_VISIBILITY_ANIM_DURATION_MILLIS).setListener(new AnimatorListenerAdapter() {
                 @Override
                 public void onAnimationStart(Animator animation) {
                     msgInputWrapper.setVisibility(View.VISIBLE);
                 }
             });
-        }
-        else {
+        } else {
             msgInputWrapper.animate().translationY(msgInputWrapper.getHeight()).setDuration(CHAT_INPUT_VISIBILITY_ANIM_DURATION_MILLIS).setListener(new AnimatorListenerAdapter() {
                 @Override
                 public void onAnimationEnd(Animator animation) {
@@ -682,8 +678,7 @@ public class InAppChatFragment extends Fragment implements InAppChatWebViewManag
                     setInputVisibility(false);
                     break;
             }
-        }
-        else {
+        } else {
             setInputVisibility(true);
         }
     }
@@ -719,22 +714,18 @@ public class InAppChatFragment extends Fragment implements InAppChatWebViewManag
             if (action.equals(ConnectivityManager.CONNECTIVITY_ACTION)) {
                 if (intent.hasExtra(ConnectivityManager.EXTRA_NO_CONNECTIVITY)) {
                     chatErrors().insertError(InAppChatErrors.INTERNET_CONNECTION_ERROR);
-                }
-                else {
+                } else {
                     chatErrors().removeError(InAppChatErrors.INTERNET_CONNECTION_ERROR);
                 }
-            }
-            else if (action.equals(InAppChatEvent.CHAT_CONFIGURATION_SYNCED.getKey())) {
+            } else if (action.equals(InAppChatEvent.CHAT_CONFIGURATION_SYNCED.getKey())) {
                 chatErrors().removeError(InAppChatErrors.CONFIG_SYNC_ERROR);
-            }
-            else if (action.equals(Event.API_COMMUNICATION_ERROR.getKey()) && intent.hasExtra(BroadcastParameter.EXTRA_EXCEPTION)) {
+            } else if (action.equals(Event.API_COMMUNICATION_ERROR.getKey()) && intent.hasExtra(BroadcastParameter.EXTRA_EXCEPTION)) {
                 MobileMessagingError mobileMessagingError = (MobileMessagingError) intent.getSerializableExtra(BroadcastParameter.EXTRA_EXCEPTION);
                 String errorCode = mobileMessagingError.getCode();
                 if (errorCode.equals(CHAT_SERVICE_ERROR) || errorCode.equals(CHAT_WIDGET_NOT_FOUND)) {
                     chatErrors().insertError(InAppChatErrors.CONFIG_SYNC_ERROR);
                 }
-            }
-            else if (action.equals(Event.REGISTRATION_CREATED.getKey())) {
+            } else if (action.equals(Event.REGISTRATION_CREATED.getKey())) {
                 syncInAppChatConfigIfNeeded();
             }
         }
@@ -763,8 +754,7 @@ public class InAppChatFragment extends Fragment implements InAppChatWebViewManag
 
                     if (newErrors.isEmpty()) {
                         hideChatNotAvailableView(CHAT_NOT_AVAILABLE_ANIM_DURATION_MILLIS);
-                    }
-                    else {
+                    } else {
                         showChatNotAvailableView(CHAT_NOT_AVAILABLE_ANIM_DURATION_MILLIS);
                     }
                 }
@@ -858,8 +848,7 @@ public class InAppChatFragment extends Fragment implements InAppChatWebViewManag
                                 if (attachment != null) {
                                     MobileMessagingLogger.w("[InAppChat] Attachment created, will send Attachment");
                                     inAppChatClient.sendChatMessage(null, attachment);
-                                }
-                                else {
+                                } else {
                                     MobileMessagingLogger.e("[InAppChat] Can't create attachment");
                                     Toast.makeText(getFragmentActivity(), R.string.ib_chat_cant_create_attachment, Toast.LENGTH_SHORT).show();
                                 }
@@ -871,16 +860,14 @@ public class InAppChatFragment extends Fragment implements InAppChatWebViewManag
                                 if (exception.getMessage().equals(InternalSdkError.ERROR_ATTACHMENT_MAX_SIZE_EXCEEDED.get())) {
                                     MobileMessagingLogger.e("[InAppChat] Maximum allowed attachment size exceeded" + widgetInfo.getMaxUploadContentSize());
                                     Toast.makeText(context, R.string.ib_chat_allowed_attachment_size_exceeded, Toast.LENGTH_SHORT).show();
-                                }
-                                else {
+                                } else {
                                     MobileMessagingLogger.e("[InAppChat] Attachment content is not valid.");
                                     Toast.makeText(context, R.string.ib_chat_cant_create_attachment, Toast.LENGTH_SHORT).show();
                                 }
                                 deleteEmptyMediaFiles();
                             }
                         });
-                    }
-                    else {
+                    } else {
                         deleteEmptyMediaFiles();
                     }
                 }
@@ -895,7 +882,12 @@ public class InAppChatFragment extends Fragment implements InAppChatWebViewManag
     private void chooseFile() {
         fragmentCouldBePaused = false;
         if (!isRequiredPermissionsGranted()) {
-            MobileMessagingLogger.e("[InAppChat]", new ConfigurationException(ConfigurationException.Reason.MISSING_REQUIRED_PERMISSION, Manifest.permission.CAMERA + ", " + Manifest.permission.WRITE_EXTERNAL_STORAGE).getMessage());
+            if (SystemInformation.isTiramisuOrAbove()) {
+                MobileMessagingLogger.e("[InAppChat] Permissions required for attachments not granted", new ConfigurationException(ConfigurationException.Reason.MISSING_REQUIRED_PERMISSION,
+                        Manifest.permission.CAMERA + ", " + Manifest.permission.READ_MEDIA_IMAGES + ", " + Manifest.permission.READ_MEDIA_VIDEO + ", " + Manifest.permission.READ_MEDIA_AUDIO + ", " + Manifest.permission.WRITE_EXTERNAL_STORAGE).getMessage());
+            } else {
+                MobileMessagingLogger.e("[InAppChat] Permissions required for attachments not granted", new ConfigurationException(ConfigurationException.Reason.MISSING_REQUIRED_PERMISSION, Manifest.permission.WRITE_EXTERNAL_STORAGE).getMessage());
+            }
             return;
         }
         Intent chooserIntent = new Intent(Intent.ACTION_CHOOSER);
@@ -916,8 +908,7 @@ public class InAppChatFragment extends Fragment implements InAppChatWebViewManag
         Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
         if (Build.VERSION.SDK_INT < 29) {
             capturedImageUri = InAppChatAttachmentHelper.getOutputImageUri(getFragmentActivity());
-        }
-        else {
+        } else {
             capturedImageUri = InAppChatAttachmentHelper.getOutputImageUrlAPI29(getFragmentActivity());
         }
         takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, capturedImageUri);
@@ -943,7 +934,12 @@ public class InAppChatFragment extends Fragment implements InAppChatWebViewManag
     @NonNull
     @Override
     public String[] requiredPermissions() {
-        return new String[]{
+        if (SystemInformation.isTiramisuOrAbove()) {
+            return new String[]{Manifest.permission.CAMERA,
+                    Manifest.permission.READ_MEDIA_AUDIO,
+                    Manifest.permission.READ_MEDIA_IMAGES,
+                    Manifest.permission.READ_MEDIA_VIDEO};
+        } else return new String[]{
                 Manifest.permission.CAMERA,
                 Manifest.permission.WRITE_EXTERNAL_STORAGE
         };
@@ -1005,10 +1001,11 @@ public class InAppChatFragment extends Fragment implements InAppChatWebViewManag
         }
         return theme;
     }
+    //endregion
 
     /**
-     * Function allows another way how to inject InAppChatActionBarProvider to InAppChatFragment.
-     */
+    * Function allows another way how to inject InAppChatActionBarProvider to InAppChatFragment.
+    */
     public void setInAppChatActionBarProvider(InAppChatActionBarProvider inAppChatActionBarProvider) {
         //it is used in React Native plugin to handle multithread navigation
         this.inAppChatActionBarProvider = inAppChatActionBarProvider;
@@ -1023,5 +1020,5 @@ public class InAppChatFragment extends Fragment implements InAppChatWebViewManag
         else
             return null;
     }
-    //endregion
+
 }

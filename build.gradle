@@ -3,12 +3,11 @@ buildscript {
         google()
         mavenCentral()
         // huawei maven
+        maven {url 'https://plugins.gradle.org/m2/'} // for net.researchgate.release plugin
         maven { url 'https://developer.huawei.com/repo/' }
-        maven {url 'https://plugins.gradle.org/m2/'}
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:3.6.2'
-        classpath "net.researchgate:gradle-release:2.8.1"
+        classpath 'com.android.tools.build:gradle:7.2.2'
     }
 }
 
@@ -20,10 +19,10 @@ plugins {
 
 ext {
     mm_minSdkVersion = 19
-    mm_compileSdkVersion = 31
-    mm_targetSdkVersion = 31
-    mm_buildToolsVersion = "31.0.0"
-    mm_androidSdkVersion = "7.2.1"
+    mm_compileSdkVersion = 33
+    mm_targetSdkVersion = 33
+    mm_buildToolsVersion = "33.0.0"
+    mm_androidSdkVersion = "7.3.1"
 }
 
 allprojects {
@@ -35,8 +34,8 @@ allprojects {
     }
 }
 
+//It's required to be applied here, to have `subprojects.publish` task available
 subprojects {
-    apply plugin: "maven"
     apply plugin: "maven-publish"
 }
 
@@ -58,8 +57,13 @@ afterReleaseBuild.dependsOn updateVersionInReadme
 
 // workaround for `net.researchgate.release` plugin issue:
 // https://github.com/researchgate/gradle-release/issues/186
+
 task build {}
-build.dependsOn subprojects.findAll {!it.name.contains("demo")}.build
+
+build.dependsOn tasks.getByPath('infobip-mobile-messaging-huawei-chat-sdk:build')
+//build.dependsOn tasks.getByPath('infobip-mobile-messaging-huawei-geo-sdk:build')
+build.dependsOn tasks.getByPath('infobip-mobile-messaging-huawei-cryptor-migration:build')
+build.dependsOn tasks.getByPath(':infobip-mobile-messaging-huawei-sdk:build')
 
 nexusPublishing {
     repositories {

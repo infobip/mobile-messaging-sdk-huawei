@@ -1,6 +1,7 @@
 package org.infobip.mobile.messaging;
 
 import androidx.annotation.NonNull;
+
 import org.infobip.mobile.messaging.util.DateTimeUtil;
 
 import java.security.InvalidParameterException;

@@ -143,7 +143,7 @@ public class InAppChatAttachmentHelper {
             MobileMessagingLogger.e("[InAppChat] Can't delete empty file", e);
         }
     }
-
+    
     @Nullable
     private static Uri getUriFromMediaStoreURI(Uri mediaStoreUri, FragmentActivity activity) {
         if (activity == null || mediaStoreUri == null) {

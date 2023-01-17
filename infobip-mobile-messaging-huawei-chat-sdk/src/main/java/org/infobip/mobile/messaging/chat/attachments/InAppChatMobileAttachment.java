@@ -9,6 +9,9 @@ import android.graphics.Rect;
 import android.net.Uri;
 import android.os.Build;
 import android.os.ParcelFileDescriptor;
+
+import androidx.exifinterface.media.ExifInterface;
+
 import android.util.Base64;
 import android.webkit.MimeTypeMap;
 
@@ -19,12 +22,11 @@ import org.infobip.mobile.messaging.mobileapi.InternalSdkError;
 import org.infobip.mobile.messaging.util.PreferenceHelper;
 
 import java.io.ByteArrayOutputStream;
+import java.io.FileDescriptor;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.UUID;
-
-import androidx.exifinterface.media.ExifInterface;
 
 public class InAppChatMobileAttachment {
     public static final long DEFAULT_MAX_UPLOAD_CONTENT_SIZE = 10_485_760; //10 MiB
@@ -194,7 +196,7 @@ public class InAppChatMobileAttachment {
     }
 
     private static byte[] getBytes(Context context, Uri uri) {
-        if (uri == null || context == null) {
+        if (uri == null) {
             return null;
         }
         ParcelFileDescriptor fileDescriptor = null;

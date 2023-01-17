@@ -4,14 +4,15 @@ buildscript {
         mavenCentral()
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:3.6.2'
-        classpath 'com.github.dcendents:android-maven-gradle-plugin:2.1'
+        classpath 'com.android.tools.build:gradle:7.2.2'
     }
 }
 
-apply plugin: 'com.android.library'
-apply plugin: 'com.github.dcendents.android-maven'
-apply plugin: 'idea'
+plugins {
+    id 'com.android.library'
+    id 'maven-publish'
+    id 'idea'
+}
 
 android {
     compileSdkVersion mm_compileSdkVersion
@@ -22,7 +23,10 @@ android {
         targetSdkVersion mm_targetSdkVersion
         versionCode 1
         versionName project.version
-        testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'
+
+        // since AGP 4.1 "VERSION_NAME" is not included anymore to BuildConfig
+        // https://issuetracker.google.com/issues/154275579
+        buildConfigField "String", "VERSION_NAME", "\"$versionName\""
         consumerProguardFiles 'proguard-rules.pro'
     }
 
@@ -108,3 +112,4 @@ ext {
     PUBLISH_ARTIFACT_ID = 'infobip-mobile-messaging-huawei-cryptor-migration'
 }
 apply from: "${rootProject.projectDir}/publish-mavencentral.gradle"
+

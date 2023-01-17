@@ -99,7 +99,7 @@
 -keep class org.infobip.mobile.messaging.interactive.NotificationCategory { *; }
 -keep class org.infobip.mobile.messaging.cloud.hms.HmsMessageMapper { *; }
 -keep class org.infobip.mobile.messaging.cloud.hms.HmsMessageMapper$* { *; }
--keep class org.infobip.mobile.messaging.mobile.** { *; }
+-keep class org.infobip.mobile.messaging.mobileapi.** { *; }
 
 # Prevent proguard from stripping interface information from TypeAdapterFactory,
 # JsonSerializer, JsonDeserializer instances (so they can be used in @JsonAdapter)

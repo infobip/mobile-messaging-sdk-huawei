@@ -1,14 +1,20 @@
 package org.infobip.mobile.messaging;
 
+import static org.infobip.mobile.messaging.UserMapper.filterOutDeletedData;
+import static org.infobip.mobile.messaging.UserMapper.toJson;
+import static org.infobip.mobile.messaging.mobileapi.events.UserSessionTracker.SESSION_BOUNDS_DELIMITER;
+
 import android.app.Application;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.content.Context;
 import android.os.Build;
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
+
 import android.text.TextUtils;
 import android.util.Pair;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import org.infobip.mobile.messaging.api.appinstance.AppInstanceAtts;
 import org.infobip.mobile.messaging.api.appinstance.UserAtts;
@@ -47,6 +53,7 @@ import org.infobip.mobile.messaging.mobileapi.user.PersonalizeSynchronizer;
 import org.infobip.mobile.messaging.mobileapi.user.UserDataReporter;
 import org.infobip.mobile.messaging.mobileapi.version.VersionChecker;
 import org.infobip.mobile.messaging.notification.NotificationHandler;
+import org.infobip.mobile.messaging.permissions.PostNotificationsPermissionRequester;
 import org.infobip.mobile.messaging.platform.AndroidBroadcaster;
 import org.infobip.mobile.messaging.platform.Broadcaster;
 import org.infobip.mobile.messaging.platform.MobileMessagingJobService;
@@ -87,10 +94,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
-
-import static org.infobip.mobile.messaging.UserMapper.filterOutDeletedData;
-import static org.infobip.mobile.messaging.UserMapper.toJson;
-import static org.infobip.mobile.messaging.mobileapi.events.UserSessionTracker.SESSION_BOUNDS_DELIMITER;
 
 
 /**
@@ -145,6 +148,7 @@ public class MobileMessagingCore
     private volatile boolean didSyncAtLeastOnce;
     private volatile Long lastSyncTimeMillis;
     private volatile Long lastForegroundSyncMillis;
+    private PostNotificationsPermissionRequester postNotificationsPermissionRequester;
 
     protected MobileMessagingCore(Context context) {
         this(context, new AndroidBroadcaster(context), Executors.newSingleThreadExecutor(), new ModuleLoader(context));
@@ -161,6 +165,7 @@ public class MobileMessagingCore
         this.moduleLoader = moduleLoader;
         this.notificationHandler = new InteractiveNotificationHandler(context);
         this.messageHandlerModules = loadMessageHandlerModules();
+        this.postNotificationsPermissionRequester = new PostNotificationsPermissionRequester(PreferenceHelper.findBoolean(context, MobileMessagingProperty.POST_NOTIFICATIONS_REQUEST_ENABLED));
 
         if (mobileMessagingSynchronizationReceiver == null) {
             mobileMessagingSynchronizationReceiver = new MobileMessagingSynchronizationReceiver();
@@ -307,6 +312,10 @@ public class MobileMessagingCore
     @Nullable
     public ActivityLifecycleMonitor getActivityLifecycleMonitor() {
         return activityLifecycleMonitor;
+    }
+
+    public PostNotificationsPermissionRequester getPostNotificationsPermissionRequester() {
+        return postNotificationsPermissionRequester;
     }
 
     public void sync() {
@@ -1238,6 +1247,10 @@ public class MobileMessagingCore
         PreferenceHelper.saveBoolean(context, MobileMessagingProperty.MARK_SEEN_ON_NOTIFICATION_TAP, doMarkSeenOnNotificationTap);
     }
 
+    static void setRemoteNotificationsEnabled(Context context, boolean postNotificationPermissionRequest) {
+        PreferenceHelper.saveBoolean(context, MobileMessagingProperty.POST_NOTIFICATIONS_REQUEST_ENABLED, postNotificationPermissionRequest);
+    }
+
     public static void setShouldSaveUserData(Context context, boolean shouldSaveUserData) {
         PreferenceHelper.saveBoolean(context, MobileMessagingProperty.SAVE_USER_DATA_ON_DISK, shouldSaveUserData);
     }
@@ -1248,7 +1261,8 @@ public class MobileMessagingCore
 
     public static void setShouldSaveAppCode(Context context, boolean shouldSaveAppCode) {
         PreferenceHelper.saveBoolean(context, MobileMessagingProperty.SAVE_APP_CODE_ON_DISK, shouldSaveAppCode);
-        if (!shouldSaveAppCode) PreferenceHelper.remove(context, MobileMessagingProperty.APPLICATION_CODE);
+        if (!shouldSaveAppCode)
+            PreferenceHelper.remove(context, MobileMessagingProperty.APPLICATION_CODE);
     }
 
     public static void setAllowUntrustedSSLOnError(Context context, boolean allowUntrustedSSLOnError) {
@@ -1309,6 +1323,7 @@ public class MobileMessagingCore
         PreferenceHelper.remove(context, MobileMessagingProperty.IS_DEPERSONALIZE_UNREPORTED);
         PreferenceHelper.remove(context, MobileMessagingProperty.BASEURL_CHECK_LAST_TIME);
         PreferenceHelper.remove(context, MobileMessagingProperty.BASEURL_CHECK_INTERVAL_HOURS);
+        PreferenceHelper.remove(context, MobileMessagingProperty.POST_NOTIFICATIONS_REQUEST_ENABLED);
 
         MobileMessagingCore mmCore = Platform.mobileMessagingCore.get(context);
         mmCore.messagesSynchronizer = null;
@@ -1320,6 +1335,7 @@ public class MobileMessagingCore
         mmCore.seenStatusReporter = null;
         mmCore.versionChecker = null;
         mmCore.baseUrlChecker = null;
+        resetApiUri(context);
 
         mmCore.didSyncAtLeastOnce = false;
         mmCore.lastForegroundSyncMillis = null;
@@ -1944,6 +1960,12 @@ public class MobileMessagingCore
         return userEventsSynchronizer;
     }
 
+    @Override
+    public void registerForRemoteNotifications() {
+        setRemoteNotificationsEnabled(context, true);
+        MobileMessagingCore.getInstance(context).getPostNotificationsPermissionRequester().requestPermission();
+    }
+
     /**
      * The {@link MobileMessagingCore} builder class.
      *
@@ -2031,6 +2053,7 @@ public class MobileMessagingCore
          * If you have installations of the application with MobileMessaging SDK version < 5.0.0,
          * use this method with providing old cryptor, so MobileMessaging SDK will migrate data using the new cryptor.
          * For code snippets (old cryptor implementation) and more details check docs on github - https://github.com/infobip/mobile-messaging-sdk-android/wiki/ECB-Cryptor-migration.
+         *
          * @param oldCryptor, provide old cryptor, to migrate encrypted data to new one {@link CryptorImpl}.
          * @return {@link Builder}
          */
@@ -2065,7 +2088,6 @@ public class MobileMessagingCore
             Platform.reset(mobileMessagingCore);
             MobileMessagingCloudHandler cloudHandler = Platform.initializeMobileMessagingCloudHandler(application);
             Platform.reset(cloudHandler);
-
             return mobileMessagingCore;
         }
 
