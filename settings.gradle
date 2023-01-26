@@ -1,1 +1,18 @@
-include ':infobip-mobile-messaging-huawei-sdk', ':infobip-mobile-messaging-huawei-demo', ':infobip-mobile-messaging-huawei-test', ':infobip-mobile-messaging-huawei-chat-sdk', ':infobip-mobile-messaging-huawei-cryptor-migration'
+pluginManagement {
+    repositories {
+        gradlePluginPortal()
+        google()
+        mavenCentral()
+        // Configure the Maven repository address for the HMS Core SDK.
+        maven { url 'https://developer.huawei.com/repo/' }
+    }
+}
+dependencyResolutionManagement {
+    repositories {
+        google()
+        mavenCentral()
+        // Configure the Maven repository address for the HMS Core SDK.
+        maven {url 'https://developer.huawei.com/repo/'}
+    }
+}
+include ':infobip-mobile-messaging-huawei-sdk', ':infobip-mobile-messaging-huawei-demo', ':infobip-mobile-messaging-huawei-test', ':infobip-mobile-messaging-huawei-chat-sdk', ':infobip-mobile-messaging-huawei-cryptor-migration', 'infobip-mobile-messaging-huawei-inbox-sdk'

@@ -22,16 +22,7 @@ ext {
     mm_compileSdkVersion = 33
     mm_targetSdkVersion = 33
     mm_buildToolsVersion = "33.0.0"
-    mm_androidSdkVersion = "7.3.1"
-}
-
-allprojects {
-    repositories {
-        google()
-        mavenCentral()
-        // huawei maven
-        maven { url 'https://developer.huawei.com/repo/' }
-    }
+    mm_androidSdkVersion = "7.4.2"
 }
 
 //It's required to be applied here, to have `subprojects.publish` task available
@@ -62,6 +53,7 @@ task build {}
 
 build.dependsOn tasks.getByPath('infobip-mobile-messaging-huawei-chat-sdk:build')
 //build.dependsOn tasks.getByPath('infobip-mobile-messaging-huawei-geo-sdk:build')
+build.dependsOn tasks.getByPath('infobip-mobile-messaging-huawei-inbox-sdk:build')
 build.dependsOn tasks.getByPath('infobip-mobile-messaging-huawei-cryptor-migration:build')
 build.dependsOn tasks.getByPath(':infobip-mobile-messaging-huawei-sdk:build')
 

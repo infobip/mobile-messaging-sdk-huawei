@@ -9,7 +9,6 @@ import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.content.Context;
 import android.os.Build;
-
 import android.text.TextUtils;
 import android.util.Pair;
 
@@ -698,7 +697,7 @@ public class MobileMessagingCore
     }
 
     public void addSyncMessagesIds(String... messageIDs) {
-        String[] timestampMessageIdPair = concatTimestampToMessageId(messageIDs);
+        String[] timestampMessageIdPair = enrichMessageIdsWithTimestamp(messageIDs);
         PreferenceHelper.appendToStringArray(context, MobileMessagingProperty.INFOBIP_SYNC_MESSAGES_IDS, timestampMessageIdPair);
     }
 
@@ -809,11 +808,11 @@ public class MobileMessagingCore
     }
 
     private void addUnreportedSeenMessageIds(final String... messageIDs) {
-        String[] seenMessages = concatTimestampToMessageId(messageIDs);
+        String[] seenMessages = enrichMessageIdsWithTimestamp(messageIDs);
         PreferenceHelper.appendToStringArray(context, MobileMessagingProperty.INFOBIP_UNREPORTED_SEEN_MESSAGE_IDS, seenMessages);
     }
 
-    private String[] concatTimestampToMessageId(String[] messageIDs) {
+    public String[] enrichMessageIdsWithTimestamp(String[] messageIDs) {
         List<String> syncMessages = new ArrayList<>(messageIDs.length);
         if (messageIDs.length > 0) {
             for (String messageId : messageIDs) {
