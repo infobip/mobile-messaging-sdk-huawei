@@ -40,33 +40,27 @@ public class GeofencingHelper {
     }
 
     public GeoReport[] removeUnreportedGeoEvents() {
-        return PreferenceHelper.runTransaction(new PreferenceHelper.Transaction<GeoReport[]>() {
-            @Override
-            public GeoReport[] run() {
-                String[] unreportedGeoEventsJsons = PreferenceHelper.findStringArray(context, MobileMessagingGeoProperty.UNREPORTED_GEO_EVENTS.getKey(), new String[0]);
-                Set<GeoReport> reports = new HashSet<>();
-                for (String unreportedGeoEventJson : unreportedGeoEventsJsons) {
-                    try {
-                        GeoReport report = serializer.deserialize(unreportedGeoEventJson, GeoReport.class);
-                        reports.add(report);
-                    } catch (Exception ignored) {
-                    }
+        return PreferenceHelper.runTransaction(() -> {
+            String[] unreportedGeoEventsJsons = PreferenceHelper.findStringArray(context, MobileMessagingGeoProperty.UNREPORTED_GEO_EVENTS.getKey(), new String[0]);
+            Set<GeoReport> reports = new HashSet<>();
+            for (String unreportedGeoEventJson : unreportedGeoEventsJsons) {
+                try {
+                    GeoReport report = serializer.deserialize(unreportedGeoEventJson, GeoReport.class);
+                    reports.add(report);
+                } catch (Exception ignored) {
                 }
-                PreferenceHelper.remove(context, MobileMessagingGeoProperty.UNREPORTED_GEO_EVENTS.getKey());
-                return reports.toArray(new GeoReport[0]);
             }
+            PreferenceHelper.remove(context, MobileMessagingGeoProperty.UNREPORTED_GEO_EVENTS.getKey());
+            return reports.toArray(new GeoReport[0]);
         });
     }
 
     public void addUnreportedGeoEvents(final GeoReport... reports) {
-        PreferenceHelper.runTransaction(new PreferenceHelper.Transaction<Void>() {
-            @Override
-            public Void run() {
-                for (GeoReport report : reports) {
-                    PreferenceHelper.appendToStringArray(context, MobileMessagingGeoProperty.UNREPORTED_GEO_EVENTS.getKey(), serializer.serialize(report));
-                }
-                return null;
+        PreferenceHelper.runTransaction((PreferenceHelper.Transaction<Void>) () -> {
+            for (GeoReport report : reports) {
+                PreferenceHelper.appendToStringArray(context, MobileMessagingGeoProperty.UNREPORTED_GEO_EVENTS.getKey(), serializer.serialize(report));
             }
+            return null;
         });
     }
 
@@ -83,15 +77,12 @@ public class GeofencingHelper {
     }
 
     public static void addCampaignStatus(final Context context, final Set<String> finishedCampaignIds, final Set<String> suspendedCampaignIds) {
-        PreferenceHelper.runTransaction(new PreferenceHelper.Transaction<Void>() {
-            @Override
-            public Void run() {
-                PreferenceHelper.saveStringSet(context, MobileMessagingGeoProperty.FINISHED_CAMPAIGN_IDS.getKey(),
-                        finishedCampaignIds != null ? finishedCampaignIds : new ArraySet<String>());
-                PreferenceHelper.saveStringSet(context, MobileMessagingGeoProperty.SUSPENDED_CAMPAIGN_IDS.getKey(),
-                        suspendedCampaignIds != null ? suspendedCampaignIds : new ArraySet<String>());
-                return null;
-            }
+        PreferenceHelper.runTransaction((PreferenceHelper.Transaction<Void>) () -> {
+            PreferenceHelper.saveStringSet(context, MobileMessagingGeoProperty.FINISHED_CAMPAIGN_IDS.getKey(),
+                    finishedCampaignIds != null ? finishedCampaignIds : new ArraySet<String>());
+            PreferenceHelper.saveStringSet(context, MobileMessagingGeoProperty.SUSPENDED_CAMPAIGN_IDS.getKey(),
+                    suspendedCampaignIds != null ? suspendedCampaignIds : new ArraySet<String>());
+            return null;
         });
     }
 

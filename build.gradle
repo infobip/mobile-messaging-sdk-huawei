@@ -2,8 +2,8 @@ buildscript {
     repositories {
         google()
         mavenCentral()
-        // huawei maven
         maven {url 'https://plugins.gradle.org/m2/'} // for net.researchgate.release plugin
+        // huawei maven
         maven { url 'https://developer.huawei.com/repo/' }
     }
     dependencies {
@@ -51,9 +51,9 @@ afterReleaseBuild.dependsOn updateVersionInReadme
 
 task build {}
 
-build.dependsOn tasks.getByPath('infobip-mobile-messaging-huawei-chat-sdk:build')
-//build.dependsOn tasks.getByPath('infobip-mobile-messaging-huawei-geo-sdk:build')
 build.dependsOn tasks.getByPath('infobip-mobile-messaging-huawei-inbox-sdk:build')
+build.dependsOn tasks.getByPath('infobip-mobile-messaging-huawei-chat-sdk:build')
+build.dependsOn tasks.getByPath('infobip-mobile-messaging-huawei-geo-sdk:build')
 build.dependsOn tasks.getByPath('infobip-mobile-messaging-huawei-cryptor-migration:build')
 build.dependsOn tasks.getByPath(':infobip-mobile-messaging-huawei-sdk:build')
 

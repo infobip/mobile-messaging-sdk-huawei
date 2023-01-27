@@ -92,14 +92,14 @@ android {
         cryptorMigration {
             dimension "default"
         }
-        //Won't work, until we upgrade the huawei geolocation library
-//        geofencing {
-//            dimension "default"
-//        }
+
         inbox {
             dimension "default"
         }
 
+        geofencing {
+            dimension "default"
+        }
     }
 }
 
@@ -108,8 +108,7 @@ dependencies {
     androidTestImplementation 'androidx.test.ext:junit:1.1.3'
 
     implementation project(':infobip-mobile-messaging-huawei-chat-sdk')
-// current version  of SDK doesn't support geo
-//    implementation project(':infobip-mobile-messaging-huawei-geo-sdk')
+    implementation project(':infobip-mobile-messaging-huawei-geo-sdk')
     implementation project(':infobip-mobile-messaging-huawei-sdk')
     implementation project(':infobip-mobile-messaging-huawei-inbox-sdk')
 
