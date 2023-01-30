@@ -1,12 +1,15 @@
 package org.infobip.mobile.messaging.cloud;
 
+import static org.mockito.Mockito.doReturn;
+
 import android.Manifest;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Build;
-import android.support.annotation.NonNull;
-import android.support.test.runner.AndroidJUnit4;
+
+import androidx.annotation.NonNull;
+import androidx.test.ext.junit.runners.AndroidJUnit4;
 
 import org.infobip.mobile.messaging.Message;
 import org.infobip.mobile.messaging.platform.PlatformTestCase;

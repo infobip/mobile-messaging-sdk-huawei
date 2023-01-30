@@ -3,7 +3,7 @@ package org.infobip.mobile.messaging.cloud;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
-import android.support.test.runner.AndroidJUnit4;
+import androidx.test.ext.junit.runners.AndroidJUnit4;
 
 import junit.framework.TestCase;
 

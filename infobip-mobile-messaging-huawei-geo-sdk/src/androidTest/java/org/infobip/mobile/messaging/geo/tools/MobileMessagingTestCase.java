@@ -34,6 +34,7 @@ import org.infobip.mobile.messaging.storage.MessageStore;
 import org.infobip.mobile.messaging.util.PreferenceHelper;
 import org.junit.After;
 import org.junit.Before;
+import org.mockito.Mockito;
 
 import java.util.ArrayList;
 import java.util.Arrays;

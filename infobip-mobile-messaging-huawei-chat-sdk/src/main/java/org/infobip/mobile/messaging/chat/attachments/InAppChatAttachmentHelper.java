@@ -1,5 +1,6 @@
 package org.infobip.mobile.messaging.chat.attachments;
 
+import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
@@ -9,9 +10,7 @@ import android.os.AsyncTask;
 import android.os.Environment;
 import android.os.ParcelFileDescriptor;
 import android.provider.MediaStore;
-import android.support.annotation.Nullable;
-import android.support.annotation.RequiresApi;
-import android.support.v4.app.FragmentActivity;
+import android.provider.OpenableColumns;
 
 import org.infobip.mobile.messaging.logging.MobileMessagingLogger;
 import org.infobip.mobile.messaging.mobileapi.InternalSdkError;
@@ -19,23 +18,28 @@ import org.infobip.mobile.messaging.util.DateTimeUtil;
 import org.infobip.mobile.messaging.util.SoftwareInformation;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.Date;
+
+import androidx.annotation.Nullable;
+import androidx.annotation.RequiresApi;
+import androidx.fragment.app.FragmentActivity;
 
 public class InAppChatAttachmentHelper {
     private static final String JPEG_FILE_PREFIX = "IMG_";
     private static final String JPEG_FILE_SUFFIX = ".jpg";
     private static final String OUTPUT_MEDIA_PATH = "/InAppChat";
+    private static final String VIDEO_FILE_PREFIX = "VIDEO_";
+    public static final String MIME_TYPE_VIDEO_MP_4 = "video/mp4";
+    public static final String MIME_TYPE_IMAGE_JPEG = "image/jpeg";
 
-    public static void makeAttachment(final FragmentActivity context, final Intent data, final Uri mediaStoreUri, final InAppChatAttachmentHelper.InAppChatAttachmentHelperListener listener) {
+    public static void makeAttachment(final FragmentActivity context, final Intent data, final Uri capturedMediaStoreUri, final InAppChatAttachmentHelper.InAppChatAttachmentHelperListener listener) {
         AsyncTask.execute(new Runnable() {
             @Override
             public void run() {
                 try {
-                    Uri imageUri = getUriFromMediaStoreURI(mediaStoreUri, context);
-                    ParcelFileDescriptor fileDescriptor = openFileDescriptorFromMediaStoreURI(mediaStoreUri, context);
-                    final InAppChatMobileAttachment attachment = InAppChatMobileAttachment.makeAttachment(context, data, mediaStoreUri, imageUri, fileDescriptor);
-                    closeFileDescriptor(fileDescriptor);
+                    //From media store Uri we need to get real Uri of the file
+                    Uri capturedMediaRealUri = getUriFromMediaStoreURI(capturedMediaStoreUri, context);
+                    final InAppChatMobileAttachment attachment = InAppChatMobileAttachment.makeAttachment(context, data, capturedMediaStoreUri, capturedMediaRealUri);
                     context.runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
@@ -55,7 +59,7 @@ public class InAppChatAttachmentHelper {
     }
 
     @Nullable
-    public static Uri getOutputMediaUri(FragmentActivity fragmentActivity) {
+    public static Uri getOutputImageUri(FragmentActivity fragmentActivity) {
         if (fragmentActivity == null) {
             return null;
         }
@@ -78,36 +82,89 @@ public class InAppChatAttachmentHelper {
 
     @RequiresApi(29)
     @Nullable
-    public static Uri getOutputMediaUrlAPI29(FragmentActivity fragmentActivity) {
+    public static Uri getOutputImageUrlAPI29(FragmentActivity fragmentActivity) {
         if (fragmentActivity == null) {
             return null;
         }
         String fileName = JPEG_FILE_PREFIX + DateTimeUtil.dateToYMDHMSString(new Date()) + JPEG_FILE_SUFFIX;
         String appName = SoftwareInformation.getAppName(fragmentActivity.getApplicationContext());
-        String mimeType = "image/jpeg";
 
         ContentValues contentValues = new ContentValues();
         contentValues.put(MediaStore.MediaColumns.DISPLAY_NAME, fileName);
-        contentValues.put(MediaStore.MediaColumns.MIME_TYPE, mimeType);
+        contentValues.put(MediaStore.MediaColumns.MIME_TYPE, MIME_TYPE_IMAGE_JPEG);
 
-        //in case if mm_compileSdkVersion > 28, it will be MediaStore.MediaColumns.RELATIVE_PATH
-        contentValues.put("relative_path", Environment.DIRECTORY_PICTURES + File.separator + appName + OUTPUT_MEDIA_PATH);
+        contentValues.put(
+                MediaStore.MediaColumns.RELATIVE_PATH,
+                Environment.DIRECTORY_PICTURES + File.separator + appName + OUTPUT_MEDIA_PATH
+        );
 
         return fragmentActivity.getContentResolver().insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, contentValues);
     }
 
+    @RequiresApi(31)
+    @Nullable
+    // Required only for 31 API, to get rid of camera error on emulator "Only owner is able to interact with pending item"
+    public static Uri getOutputVideoUrl(FragmentActivity fragmentActivity) {
+        if (fragmentActivity == null) {
+            return null;
+        }
+        String fileName = VIDEO_FILE_PREFIX + DateTimeUtil.dateToYMDHMSString(new Date());
+        String appName = SoftwareInformation.getAppName(fragmentActivity.getApplicationContext());
+
+        ContentValues contentValues = new ContentValues();
+        contentValues.put(MediaStore.MediaColumns.DISPLAY_NAME, fileName);
+        contentValues.put(MediaStore.MediaColumns.MIME_TYPE, MIME_TYPE_VIDEO_MP_4);
+
+        contentValues.put(
+                MediaStore.MediaColumns.RELATIVE_PATH,
+                Environment.DIRECTORY_MOVIES + File.separator + appName + OUTPUT_MEDIA_PATH
+        );
+        return fragmentActivity.getContentResolver().insert(MediaStore.Video.Media.EXTERNAL_CONTENT_URI, contentValues);
+    }
+
+    public static void deleteEmptyFileByUri(Context context, Uri uri) {
+        if (context == null || uri == null)
+            return;
+        try {
+            long fileSize = -1;
+            ContentResolver contentResolver = context.getApplicationContext().getContentResolver();
+            Cursor cursor = contentResolver.query(uri, new String[]{OpenableColumns.SIZE}, null, null, null);
+            if (cursor != null && cursor.moveToFirst()) {
+                int columnIndex = cursor.getColumnIndex(OpenableColumns.SIZE);
+                if (columnIndex == 0) {
+                    fileSize = cursor.getLong(columnIndex);
+                }
+                cursor.close();
+            }
+            if (fileSize == 0) {
+                contentResolver.delete(uri, null, null);
+            }
+        } catch (Exception e) {
+            MobileMessagingLogger.e("[InAppChat] Can't delete empty file", e);
+        }
+    }
+    
     @Nullable
     private static Uri getUriFromMediaStoreURI(Uri mediaStoreUri, FragmentActivity activity) {
         if (activity == null || mediaStoreUri == null) {
             return null;
         }
 
-        String[] proj = {MediaStore.Images.Media.DATA};
-        Cursor cursor = activity.managedQuery(mediaStoreUri, proj, null, null, null);
-        int column_index = cursor
-                .getColumnIndexOrThrow(MediaStore.Images.Media.DATA);
-        cursor.moveToFirst();
-        return Uri.fromFile(new File(cursor.getString(column_index)));
+        try {
+            Uri uri = null;
+            String[] proj = {MediaStore.Images.Media.DATA};
+            Cursor cursor = activity.getContentResolver().query(mediaStoreUri, proj, null, null, null);
+            if (cursor != null && cursor.moveToFirst()) {
+                int columnIndex = cursor.getColumnIndex(MediaStore.Images.Media.DATA);
+                if (columnIndex >= 0) {
+                    uri = Uri.fromFile(new File(cursor.getString(columnIndex)));
+                }
+                cursor.close();
+            }
+            return uri;
+        } catch (Throwable t) {
+            return null;
+        }
     }
 
     @Nullable
@@ -125,19 +182,9 @@ public class InAppChatAttachmentHelper {
         return fileDescriptor;
     }
 
-    private static void closeFileDescriptor(ParcelFileDescriptor fileDescriptor) {
-        if (fileDescriptor == null) {
-            return;
-        }
-        try {
-            fileDescriptor.close();
-        } catch (IOException e) {
-            MobileMessagingLogger.e("[InAppChat] Can't close file descriptor", e);
-        }
-    }
-
     public interface InAppChatAttachmentHelperListener {
         void onAttachmentCreated(InAppChatMobileAttachment attachment);
+
         void onError(Context context, InternalSdkError.InternalSdkException exception);
     }
 }

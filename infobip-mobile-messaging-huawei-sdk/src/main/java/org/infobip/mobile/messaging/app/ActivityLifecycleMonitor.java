@@ -6,13 +6,16 @@ import android.app.Application;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
-import android.support.v4.content.LocalBroadcastManager;
+
+import androidx.activity.ComponentActivity;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import org.infobip.mobile.messaging.LocalEvent;
 import org.infobip.mobile.messaging.MessageHandlerModule;
 import org.infobip.mobile.messaging.MobileMessagingCore;
+import org.infobip.mobile.messaging.logging.MobileMessagingLogger;
 import org.infobip.mobile.messaging.mobileapi.events.UserSessionTracker;
 
 import java.util.Collection;
@@ -72,12 +75,15 @@ public class ActivityLifecycleMonitor implements Application.ActivityLifecycleCa
 
     @Override
     public void onActivityCreated(Activity activity, Bundle savedInstanceState) {
-
+        if (activity instanceof ComponentActivity)
+            MobileMessagingCore.getInstance(activity).getPostNotificationsPermissionRequester().onActivityCreated((ComponentActivity) activity);
+        else
+            MobileMessagingLogger.d("Activity not an instance of ComponentActivity. You'll need to manually require POST_NOTIFICATIONS permission, if you targeting Android 13.");
     }
 
     @Override
     public void onActivityStarted(Activity activity) {
-
+        MobileMessagingCore.getInstance(activity).getPostNotificationsPermissionRequester().onActivityStarted();
     }
 
     @Override

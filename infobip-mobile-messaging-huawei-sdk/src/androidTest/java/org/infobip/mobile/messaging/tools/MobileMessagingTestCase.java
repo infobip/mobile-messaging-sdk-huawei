@@ -2,7 +2,7 @@ package org.infobip.mobile.messaging.tools;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
-import android.support.test.runner.AndroidJUnit4;
+import androidx.test.ext.junit.runners.AndroidJUnit4;
 
 import org.infobip.mobile.messaging.ListCustomAttributeItem;
 import org.infobip.mobile.messaging.ListCustomAttributeValue;
@@ -30,6 +30,7 @@ import org.infobip.mobile.messaging.util.PreferenceHelper;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.runner.RunWith;
+import org.mockito.Mockito;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -147,7 +148,7 @@ public abstract class MobileMessagingTestCase extends MobileMessagingBaseTestCas
 
         PreferenceHelper.getPublicSharedPreferences(context).edit().clear().commit();
         PreferenceHelper.getPrivateMMSharedPreferences(context).edit().clear().commit();
-        PreferenceHelper.saveUsePrivateSharedPrefs(context, false);
+        PreferenceHelper.saveUsePrivateSharedPrefs(context, true);
 
         PreferenceHelper.saveString(context, MobileMessagingProperty.API_URI, "http://127.0.0.1:" + debugServer.getListeningPort() + "/");
         PreferenceHelper.saveString(context, MobileMessagingProperty.APPLICATION_CODE, "TestApplicationCode");
@@ -175,6 +176,7 @@ public abstract class MobileMessagingTestCase extends MobileMessagingBaseTestCas
 
         notificationHandler = mock(NotificationHandler.class);
         broadcaster = mock(Broadcaster.class);
+
         mobileMessagingCore = MobileMessagingTestable.create(context, broadcaster, mobileApiResourceProvider);
         mobileMessaging = mobileMessagingCore;
 

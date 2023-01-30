@@ -1,22 +1,12 @@
 package org.infobip.mobile.messaging.demo;
 
-import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.NotificationManager;
 import android.content.BroadcastReceiver;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.content.pm.PackageManager;
 import android.os.Bundle;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
-import android.support.v4.app.ActivityCompat;
-import android.support.v4.content.LocalBroadcastManager;
-import android.support.v7.app.AlertDialog;
-import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -26,20 +16,22 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.AlertDialog;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.localbroadcastmanager.content.LocalBroadcastManager;
+
 import org.infobip.mobile.messaging.Event;
 import org.infobip.mobile.messaging.Installation;
 import org.infobip.mobile.messaging.Message;
 import org.infobip.mobile.messaging.MobileMessaging;
 import org.infobip.mobile.messaging.User;
 import org.infobip.mobile.messaging.api.support.util.CollectionUtils;
-import org.infobip.mobile.messaging.geo.MobileGeo;
 import org.infobip.mobile.messaging.mobileapi.MobileMessagingError;
 import org.infobip.mobile.messaging.mobileapi.Result;
 import org.infobip.mobile.messaging.storage.MessageStore;
 
 public class MainActivity extends AppCompatActivity {
-
-    private static final int LOCATION_PERMISSION_REQUEST_CODE = 1;
 
     private MobileMessaging mobileMessaging;
     private MessageStore messageStore;
@@ -58,7 +50,7 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        setSupportActionBar(this.<Toolbar>findViewById(R.id.toolbar));
+        setSupportActionBar(this.findViewById(R.id.toolbar));
 
         totalReceivedTextView = findViewById(R.id.tv_received_messages_number);
         adapter = new ArrayAdapter<>(this, R.layout.message_row, R.id.tv_message_text);
@@ -68,7 +60,6 @@ public class MainActivity extends AppCompatActivity {
         ListView lv = findViewById(R.id.lv_messages);
         lv.setAdapter(adapter);
 
-        activateGeofencing();
         refresh();
         clearNotifications();
 
@@ -93,14 +84,6 @@ public class MainActivity extends AppCompatActivity {
         super.onResume();
         refresh();
         clearNotifications();
-    }
-
-    @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        if (requestCode == LOCATION_PERMISSION_REQUEST_CODE) {
-            activateGeofencing();
-        }
     }
 
     @Override
@@ -146,35 +129,22 @@ public class MainActivity extends AppCompatActivity {
     private void actionPhone() {
         final User user = mobileMessaging.getUser() != null ? mobileMessaging.getUser() : new User();
         String phone = user.getPhones() == null || user.getPhones().isEmpty() ? "" : user.getPhones().iterator().next();
-        showDialog(R.string.dialog_title_gsm, phone, new RunnableWithParameter<String>() {
-            @Override
-            public void run(String param) {
-                user.setPhones(CollectionUtils.setOf(param));
-                mobileMessaging.saveUser(user, new MobileMessaging.ResultListener<User>() {
-                    @Override
-                    public void onResult(Result<User, MobileMessagingError> result) {
-                        if (result.isSuccess()) {
-                            Toast.makeText(MainActivity.this, R.string.toast_user_data_saved, Toast.LENGTH_SHORT).show();
-                        }
+        showDialog(R.string.dialog_title_gsm, phone, param -> {
+            user.setPhones(CollectionUtils.setOf(param));
+            mobileMessaging.saveUser(user, new MobileMessaging.ResultListener<User>() {
+                @Override
+                public void onResult(Result<User, MobileMessagingError> result) {
+                    if (result.isSuccess()) {
+                        Toast.makeText(MainActivity.this, R.string.toast_user_data_saved, Toast.LENGTH_SHORT).show();
                     }
-                });
-            }
+                }
+            });
         });
     }
 
     private void actionErase() {
         messageStore.deleteAll(this);
         refresh();
-    }
-
-    private void activateGeofencing() {
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            String[] permissions = {Manifest.permission.ACCESS_FINE_LOCATION};
-            ActivityCompat.requestPermissions(this, permissions, LOCATION_PERMISSION_REQUEST_CODE);
-            return;
-        }
-
-        MobileGeo.getInstance(this).activateGeofencing();
     }
 
     private void clearNotifications() {
@@ -201,24 +171,15 @@ public class MainActivity extends AppCompatActivity {
         et.setText(text);
         AlertDialog.Builder builder = new AlertDialog.Builder(this)
                 .setView(v)
-                .setNegativeButton(android.R.string.cancel, new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        dialog.dismiss();
-                    }
-                })
+                .setNegativeButton(android.R.string.cancel, (dialog, which) -> dialog.dismiss())
                 .setTitle(titleResId);
 
         if (onSaved != null) {
-            builder.setPositiveButton(R.string.dialog_action_save, new DialogInterface.OnClickListener() {
-                @Override
-                public void onClick(DialogInterface dialog, int which) {
-                    onSaved.run(et.getText().toString());
-                    dialog.dismiss();
-                }
+            builder.setPositiveButton(R.string.dialog_action_save, (dialog, which) -> {
+                onSaved.run(et.getText().toString());
+                dialog.dismiss();
             });
         }
-
         builder.show();
     }
 

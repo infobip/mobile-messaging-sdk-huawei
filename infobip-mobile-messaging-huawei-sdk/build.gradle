@@ -1,19 +1,20 @@
 buildscript {
     repositories {
-        jcenter()
         google()
-        maven { url 'http://developer.huawei.com/repo/' }
+        mavenCentral()
+        // huawei maven
+        maven {url 'https://plugins.gradle.org/m2/'}
+        maven { url 'https://developer.huawei.com/repo/' }
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:3.6.2'
-        classpath 'com.github.dcendents:android-maven-gradle-plugin:2.1'
-        classpath 'com.huawei.agconnect:agcp:1.2.1.301'
+        classpath 'com.android.tools.build:gradle:7.2.2'
+        classpath 'com.huawei.agconnect:agcp:1.6.0.300'
     }
 }
 
 apply plugin: 'com.android.library'
 apply plugin: 'com.huawei.agconnect'
-apply plugin: 'com.github.dcendents.android-maven'
+apply plugin: 'maven-publish'
 apply plugin: 'idea'
 
 android {
@@ -25,7 +26,11 @@ android {
         targetSdkVersion mm_targetSdkVersion
         versionCode 1
         versionName project.version
-        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+
+        // since AGP 4.1 "VERSION_NAME" is not included anymore to BuildConfig
+        // https://issuetracker.google.com/issues/154275579
+        buildConfigField "String", "VERSION_NAME", "\"$versionName\""
+        testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'
         consumerProguardFiles 'proguard-rules.pro'
     }
 
@@ -34,22 +39,22 @@ android {
     }
 
     compileOptions {
-        sourceCompatibility JavaVersion.VERSION_1_7
-        targetCompatibility JavaVersion.VERSION_1_7
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
     }
 }
 
 dependencies {
     api "com.infobip:infobip-mobile-messaging-api-java:${mm_androidSdkVersion}"
     api "com.infobip:infobip-mobile-messaging-android-resources:${mm_androidSdkVersion}@aar"
-    api "com.android.support:support-v4:${mm_supportLibrariesVersion}"
-    api "com.android.support:appcompat-v7:${mm_supportLibrariesVersion}"
+    api 'androidx.legacy:legacy-support-v4:1.0.0'
+    api 'androidx.appcompat:appcompat:1.3.1'
 
     // push kit
-    implementation 'com.huawei.hms:push:5.0.0.300'
+    implementation 'com.huawei.hms:push:6.3.0.302'
 
     androidTestImplementation project(':infobip-mobile-messaging-huawei-test')
-    androidTestImplementation "com.android.support.test:runner:1.0.2"
+    androidTestImplementation 'androidx.test.ext:junit:1.1.3'
     androidTestImplementation "junit:junit:4.12"
     androidTestImplementation "org.mockito:mockito-core:1.10.19"
     androidTestImplementation 'com.nanohttpd:nanohttpd:2.1.0'
@@ -59,6 +64,8 @@ dependencies {
 
     testImplementation project(':infobip-mobile-messaging-huawei-test')
     testImplementation "junit:junit:4.12"
+
+    implementation('com.google.code.gson:gson:2.9.0')
 }
 
 android.libraryVariants.all { variant ->
@@ -115,23 +122,7 @@ artifacts {
     archives sourcesJar
 }
 
-task modifyPomBeforeUpload {
-    doLast {
-        def pom = "${project.buildDir}/poms/pom-default.xml"
-        if (!file(pom).exists()) { install }
-        def project = new XmlParser().parse(pom)
-        //noinspection UnnecessaryQualifiedReference
-        groovy.xml.XmlUtil.serialize(project, new FileWriter(pom))
-    }
-}
-
-// Remove this when Gradle bug is fixed.
-// https://github.com/gradle/gradle/issues/3170
-modifyPomBeforeUpload.dependsOn(install)
-
 ext {
     PUBLISH_ARTIFACT_ID = 'infobip-mobile-messaging-huawei-sdk'
 }
 apply from: "${rootProject.projectDir}/publish-mavencentral.gradle"
-
-publish.dependsOn(modifyPomBeforeUpload)

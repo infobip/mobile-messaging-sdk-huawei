@@ -8,7 +8,8 @@ Mobile Messaging SDK is designed and developed to easily enable push notificatio
 ## Requirements
 
 - Android Studio
-- API Level: 19 (Android 4.4 - KitKat)
+- API Level: 19 (Android 4.4 - KitKat) - 31 (Android 12.0)
+- HMS Core (APK) 4.0.0.300 or later
 - [AppGallery](https://huaweimobileservices.com/appgallery/)
 
 ## Quick start guide
@@ -18,7 +19,7 @@ Mobile Messaging SDK is designed and developed to easily enable push notificatio
     ```groovy
     dependencies {
         ...
-        implementation ('com.infobip:infobip-mobile-messaging-huawei-sdk:2.2.3@aar') {
+        implementation ('com.infobip:infobip-mobile-messaging-huawei-sdk:3.0.0-rc10@aar') {
             transitive = true
         }
     }
@@ -68,9 +69,9 @@ Mobile Messaging SDK is designed and developed to easily enable push notificatio
 <br>
 
 > ### Notes
-> 1. All required manifest components are merged to application manifest automatically by manifest merger. Please include <a href="https://github.com/infobip/mobile-messaging-sdk-android/wiki/Android-Manifest-components#push-notifications" target="_blank">push-related components</a> to manifest manually if manifest merger was disabled.
+> 1. All required manifest components are merged to application manifest automatically by manifest merger. Please include <a href="https://github.com/infobip/mobile-messaging-sdk-huawei/wiki/Android-Manifest-components#push-notifications" target="_blank">push-related components</a> to manifest manually if manifest merger was disabled.
 > 2. Keep in mind that some proprietary Android versions may restrict network traffic for your app. It may in turn affect delivery of push notifications.
-
+> 3. 3.0.0-rc version doesn't contain geo module, it'll be updated in the next releases.
 <br>
 
 | If you have any questions or suggestions, feel free to send an email to support@infobip.com or create an <a href="https://github.com/infobip/mobile-messaging-sdk-huawei/issues" target="_blank">issue</a>. |

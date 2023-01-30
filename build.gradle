@@ -1,18 +1,13 @@
 buildscript {
-
     repositories {
-        maven {
-            url 'https://maven.google.com/'
-            name 'Google'
-        }
-        mavenCentral()
         google()
+        mavenCentral()
+        maven {url 'https://plugins.gradle.org/m2/'} // for net.researchgate.release plugin
         // huawei maven
-        maven { url 'http://developer.huawei.com/repo/' }
-
+        maven { url 'https://developer.huawei.com/repo/' }
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:3.6.2'
+        classpath 'com.android.tools.build:gradle:7.2.2'
     }
 }
 
@@ -23,31 +18,15 @@ plugins {
 }
 
 ext {
-    mm_minSdkVersion = 17
-    mm_compileSdkVersion = 28
-    mm_targetSdkVersion = 28
-    mm_buildToolsVersion = "28.0.3"
-    mm_supportLibrariesVersion = "28.0.0"
-    mm_apiVersion = "3.0.4"
-    mm_androidSdkVersion = "5.3.5"
+    mm_minSdkVersion = 19
+    mm_compileSdkVersion = 33
+    mm_targetSdkVersion = 33
+    mm_buildToolsVersion = "33.0.0"
+    mm_androidSdkVersion = "7.4.2"
 }
 
-allprojects {
-    repositories {
-        google()
-        jcenter()
-        mavenCentral()
-        maven {
-            url 'https://maven.google.com/'
-            name 'Google'
-        }
-        // huawei maven
-        maven { url 'http://developer.huawei.com/repo/' }
-    }
-}
-
+//It's required to be applied here, to have `subprojects.publish` task available
 subprojects {
-    apply plugin: "maven"
     apply plugin: "maven-publish"
 }
 
@@ -69,8 +48,14 @@ afterReleaseBuild.dependsOn updateVersionInReadme
 
 // workaround for `net.researchgate.release` plugin issue:
 // https://github.com/researchgate/gradle-release/issues/186
+
 task build {}
-build.dependsOn subprojects.findAll {!it.name.contains("demo")}.build
+
+build.dependsOn tasks.getByPath('infobip-mobile-messaging-huawei-inbox-sdk:build')
+build.dependsOn tasks.getByPath('infobip-mobile-messaging-huawei-chat-sdk:build')
+build.dependsOn tasks.getByPath('infobip-mobile-messaging-huawei-geo-sdk:build')
+build.dependsOn tasks.getByPath('infobip-mobile-messaging-huawei-cryptor-migration:build')
+build.dependsOn tasks.getByPath(':infobip-mobile-messaging-huawei-sdk:build')
 
 nexusPublishing {
     repositories {

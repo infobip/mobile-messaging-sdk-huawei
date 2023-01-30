@@ -1,7 +1,8 @@
 package org.infobip.mobile.messaging.chat;
 
 import android.content.Context;
-import android.support.v4.app.FragmentManager;
+
+import androidx.fragment.app.FragmentManager;
 
 /**
  * Main interface for in-app chat communication
@@ -74,4 +75,25 @@ public abstract class InAppChat {
      */
     public abstract int getMessageCounter();
 
+    /**
+     * Set the language of the widget
+     *
+     * @param language in locale format e.g.: en-US
+     */
+    public abstract void setLanguage(String language);
+
+    /**
+     * Set contextual data of the widget
+     *
+     * @param data                   contextual data in the form of JSON string
+     * @param allMultiThreadStrategy multithread strategy flag, true -> ALL, false -> ACTIVE
+     */
+    public abstract void sendContextualData(String data, Boolean allMultiThreadStrategy);
+
+    /**
+     * Set contextual data of the widget with false (ACTIVE) value for multithread strategy
+     *
+     * @param data contextual data in the form of JSON string
+     */
+    public abstract void sendContextualData(String data);
 }

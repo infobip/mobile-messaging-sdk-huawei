@@ -2,9 +2,22 @@
     xmlns:tools="http://schemas.android.com/tools"
     package="org.infobip.mobile.messaging">
 
+    <queries>
+        <!-- Browser -->
+        <intent>
+            <action android:name="android.intent.action.VIEW" />
+            <data android:scheme="http" />
+        </intent>
+        <intent>
+            <action android:name="android.intent.action.VIEW" />
+            <data android:scheme="https" />
+        </intent>
+    </queries>
+
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.VIBRATE" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
     <application
         android:usesCleartextTraffic="true"
@@ -31,7 +44,6 @@
             android:permission="android.permission.BIND_JOB_SERVICE">
         </service>
 
-        <receiver android:name="org.infobip.mobile.messaging.notification.NotificationTapReceiver" />
         <receiver
             android:name="org.infobip.mobile.messaging.MobileMessagingConnectivityReceiver"
             android:enabled="false"
@@ -42,7 +54,9 @@
             </intent-filter>
         </receiver>
 
-        <receiver android:name="org.infobip.mobile.messaging.interactive.notification.NotificationActionTapReceiver" />
+        <receiver
+            android:name="org.infobip.mobile.messaging.interactive.notification.NotificationActionTapReceiver"
+            android:exported="false" />
 
         <activity
             android:name=".view.WebViewActivity"
@@ -52,6 +66,14 @@
                 <action android:name="org.infobip.mobile.messaging.NOTIFICATION_TAPPED"/>
             </intent-filter>
         </activity>
+
+        <activity
+            android:name="org.infobip.mobile.messaging.NotificationTapReceiverActivity"
+            android:noHistory="true"
+            android:excludeFromRecents="true"
+            android:taskAffinity=""
+            android:theme="@android:style/Theme.Translucent.NoTitleBar"
+            android:exported="true" />
 
     </application>
 </manifest>

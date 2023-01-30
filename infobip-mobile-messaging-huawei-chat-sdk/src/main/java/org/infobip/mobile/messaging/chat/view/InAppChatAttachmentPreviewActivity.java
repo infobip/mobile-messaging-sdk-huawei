@@ -15,13 +15,6 @@ import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
-import android.support.annotation.ColorInt;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
-import android.support.v4.graphics.drawable.DrawableCompat;
-import android.support.v7.app.ActionBar;
-import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.Toolbar;
 import android.util.TypedValue;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -33,13 +26,22 @@ import android.webkit.WebViewClient;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
+import androidx.annotation.ColorInt;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.ActionBar;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
+import androidx.core.graphics.drawable.DrawableCompat;
+
 import org.infobip.mobile.messaging.ConfigurationException;
 import org.infobip.mobile.messaging.chat.R;
 import org.infobip.mobile.messaging.chat.attachments.InAppChatWebAttachment;
-import org.infobip.mobile.messaging.chat.attachments.PermissionsRequestManager;
+import org.infobip.mobile.messaging.chat.utils.LocalizationUtils;
 import org.infobip.mobile.messaging.logging.MobileMessagingLogger;
+import org.infobip.mobile.messaging.permissions.PermissionsRequestManager;
 import org.infobip.mobile.messaging.util.ResourceLoader;
-
+import org.infobip.mobile.messaging.util.SystemInformation;
 
 public class InAppChatAttachmentPreviewActivity extends AppCompatActivity implements PermissionsRequestManager.PermissionsRequester {
 
@@ -56,6 +58,12 @@ public class InAppChatAttachmentPreviewActivity extends AppCompatActivity implem
     private Intent webViewIntent;
     private InAppChatWebAttachment attachment;
     private PermissionsRequestManager permissionsRequestManager;
+
+
+    @Override
+    protected void attachBaseContext(Context newBase) {
+        super.attachBaseContext(LocalizationUtils.getInstance(this).updateContext());
+    }
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -125,18 +133,32 @@ public class InAppChatAttachmentPreviewActivity extends AppCompatActivity implem
     @NonNull
     @Override
     public String[] requiredPermissions() {
+        if (SystemInformation.isTiramisuOrAbove()) {
+            return new String[]{Manifest.permission.READ_MEDIA_AUDIO,
+                    Manifest.permission.READ_MEDIA_IMAGES,
+                    Manifest.permission.READ_MEDIA_VIDEO};
+        }
         return new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE};
+    }
+
+    @Override
+    public boolean shouldShowPermissionsNotGrantedDialogIfShownOnce() {
+        return true;
+    }
+
+    @Override
+    public int permissionsNotGrantedDialogTitle() {
+        return R.string.ib_chat_permissions_not_granted_title;
+    }
+
+    @Override
+    public int permissionsNotGrantedDialogMessage() {
+        return R.string.ib_chat_permissions_not_granted_message;
     }
 
     @Override
     public void onPermissionGranted() {
         downloadFile();
-    }
-
-    @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        permissionsRequestManager.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
     }
 
     /* PermissionsRequester endregion */
@@ -191,7 +213,12 @@ public class InAppChatAttachmentPreviewActivity extends AppCompatActivity implem
 
     private void downloadFile() {
         if (!permissionsRequestManager.isRequiredPermissionsGranted()) {
-            MobileMessagingLogger.e("[InAppChat] Permissions required for attachments not granted", new ConfigurationException(ConfigurationException.Reason.MISSING_REQUIRED_PERMISSION, Manifest.permission.WRITE_EXTERNAL_STORAGE).getMessage());
+            if (SystemInformation.isTiramisuOrAbove()) {
+                MobileMessagingLogger.e("[InAppChat] Permissions required for attachments not granted", new ConfigurationException(ConfigurationException.Reason.MISSING_REQUIRED_PERMISSION,
+                        Manifest.permission.READ_MEDIA_IMAGES + ", " + Manifest.permission.READ_MEDIA_VIDEO + ", " + Manifest.permission.READ_MEDIA_AUDIO + ", " + Manifest.permission.WRITE_EXTERNAL_STORAGE).getMessage());
+            } else {
+                MobileMessagingLogger.e("[InAppChat] Permissions required for attachments not granted", new ConfigurationException(ConfigurationException.Reason.MISSING_REQUIRED_PERMISSION, Manifest.permission.WRITE_EXTERNAL_STORAGE).getMessage());
+            }
             return;
         }
         DownloadManager.Request request = new DownloadManager.Request(

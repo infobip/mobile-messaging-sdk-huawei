@@ -1,7 +1,7 @@
 package org.infobip.mobile.messaging.geo.mapper;
 
 
-import android.support.annotation.Nullable;
+import androidx.annotation.Nullable;
 
 import org.infobip.mobile.messaging.api.support.http.serialization.JsonSerializer;
 import org.infobip.mobile.messaging.geo.Geo;
@@ -22,7 +22,7 @@ public final class GeoDataMapper {
     }
 
     /**
-     * Serializes json data to Geo object
+     * Serializes Geo object to json data
      *
      * @param geo geo object to serialize
      * @return String - geo data as json string

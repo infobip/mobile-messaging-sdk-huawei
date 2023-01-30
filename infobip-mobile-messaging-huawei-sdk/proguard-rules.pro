@@ -99,10 +99,15 @@
 -keep class org.infobip.mobile.messaging.interactive.NotificationCategory { *; }
 -keep class org.infobip.mobile.messaging.cloud.hms.HmsMessageMapper { *; }
 -keep class org.infobip.mobile.messaging.cloud.hms.HmsMessageMapper$* { *; }
--keep class org.infobip.mobile.messaging.mobile.** { *; }
+-keep class org.infobip.mobile.messaging.mobileapi.** { *; }
 
 # Prevent proguard from stripping interface information from TypeAdapterFactory,
 # JsonSerializer, JsonDeserializer instances (so they can be used in @JsonAdapter)
 -keep class * implements com.google.gson.TypeAdapterFactory
 -keep class * implements com.google.gson.JsonSerializer
 -keep class * implements com.google.gson.JsonDeserializer
+
+# huawei
+-keep class com.huawei.hianalytics.** { *; }
+-keep class com.huawei.updatesdk.** { *; }
+-keep class com.huawei.hms.** { *; }

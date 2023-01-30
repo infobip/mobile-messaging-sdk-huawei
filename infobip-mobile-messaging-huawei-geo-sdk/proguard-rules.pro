@@ -92,3 +92,18 @@
 -keep class * implements com.google.gson.TypeAdapterFactory
 -keep class * implements com.google.gson.JsonSerializer
 -keep class * implements com.google.gson.JsonDeserializer
+
+
+#For rules below visit: https://developer.huawei.com/consumer/en/codelab/HMSLocationKit/index.html#4
+-ignorewarnings
+-keepattributes *Annotation*
+-keepattributes Exceptions
+-keepattributes InnerClasses
+-keepattributes Signature
+-keepattributes SourceFile,LineNumberTable
+-keep class com.huawei.hianalytics.**{*;}
+-keep class com.huawei.updatesdk.**{*;}
+-keep class com.huawei.hms.**{*;}
+-keep class * extends com.huawei.hms.core.aidl.IMessageEntity{ *; }
+-keep public class com.huawei.location.nlp.network.** {*; }
+-keep class com.huawei.wisesecurity.ucs.**{*;}

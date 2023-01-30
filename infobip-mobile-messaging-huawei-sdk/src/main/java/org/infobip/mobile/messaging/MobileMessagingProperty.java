@@ -2,6 +2,7 @@ package org.infobip.mobile.messaging;
 
 import android.app.PendingIntent;
 import android.content.Intent;
+import android.os.Build;
 
 import java.util.UUID;
 
@@ -9,6 +10,7 @@ import java.util.UUID;
  * @author mstipanov
  * @since 07.04.2016.
  */
+
 public enum MobileMessagingProperty {
 
     // START: prefs required for successfully connected Firebase registration with Push server
@@ -21,7 +23,7 @@ public enum MobileMessagingProperty {
     CLOUD_TOKEN_REPORTED("org.infobip.mobile.messaging.hms.HMS_REGISTRATION_ID_REPORTED", false),
     REPORTED_PUSH_SERVICE_TYPE("org.infobip.mobile.messaging.REPORTED_PUSH_SERVICE_TYPE"),
     PERFORMED_USER_DATA_MIGRATION("org.infobip.mobile.messaging.PERFORMED_USER_DATA_MIGRATION"),
-    USE_PRIVATE_SHARED_PREFS("org.infobip.mobile.messaging.infobip.USE_PRIVATE_SHARED_PREFS", false),
+    USE_PRIVATE_SHARED_PREFS("org.infobip.mobile.messaging.infobip.USE_PRIVATE_SHARED_PREFS", true),
     // END
 
     // START: prefs required for keeping up-to-date state of MM SDK
@@ -33,6 +35,8 @@ public enum MobileMessagingProperty {
 
     DEFAULT_MAX_RETRY_COUNT("org.infobip.mobile.messaging.infobip.DEFAULT_MAX_RETRY_COUNT", 3),
     DEFAULT_EXP_BACKOFF_MULTIPLIER("org.infobip.mobile.messaging.infobip.DEFAULT_EXP_BACKOFF_MULTIPLIER", 2),
+    KEY_PERMISSION_REQUESTED_FIRST_TIME("org.infobip.mobile.messaging.infobip.PERMISSION_REQUESTED_FIRST_TIME", null),
+    KEY_PERMISSIONS_SETTINGS_DIALOG_WAS_SHOWN("org.infobip.mobile.messaging.infobip.PERMISSIONS_SETTINGS_DIALOG_WAS_SHOWN", null),
     // END
 
     // START: MO/MT messages related prefs
@@ -51,7 +55,9 @@ public enum MobileMessagingProperty {
     DEFAULT_COLOR("org.infobip.mobile.messaging.notification.DEFAULT_COLOR", 0),
     DEFAULT_TITLE("org.infobip.mobile.messaging.notification.DEFAULT_TITLE", "Message"),
     INTENT_FLAGS("org.infobip.mobile.messaging.notification.INTENT_FLAGS", Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP),
-    PENDING_INTENT_FLAGS("org.infobip.mobile.messaging.notification.PENDING_INTENT_FLAGS", PendingIntent.FLAG_CANCEL_CURRENT),
+
+    PENDING_INTENT_FLAGS("org.infobip.mobile.messaging.notification.PENDING_INTENT_FLAGS", (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) ? PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE : PendingIntent.FLAG_CANCEL_CURRENT),
+
     NOTIFICATION_AUTO_CANCEL("org.infobip.mobile.messaging.notification.NOTIFICATION_AUTO_CANCEL", true),
     FOREGROUND_NOTIFICATION_ENABLED("org.infobip.mobile.messaging.notification.FOREGROUND_NOTIFICATION_ENABLED", true),
     MULTIPLE_NOTIFICATIONS_ENABLED("org.infobip.mobile.messaging.infobip.MULTIPLE_NOTIFICATIONS_ENABLED", false),
@@ -59,6 +65,7 @@ public enum MobileMessagingProperty {
     MARK_SEEN_ON_NOTIFICATION_TAP("org.infobip.mobile.messaging.infobip.MARK_SEEN_ON_NOTIFICATION_TAP", true),
     INTERACTIVE_CATEGORIES("org.infobip.mobile.messaging.infobip.INTERACTIVE_CATEGORIES"),
     MODAL_IN_APP_NOTIFICATIONS_ENABLED("org.infobip.mobile.messaging.infobip.MODAL_IN_APP_NOTIFICATIONS_ENABLED", true),
+    POST_NOTIFICATIONS_REQUEST_ENABLED("org.infobip.mobile.messaging.infobip.POST_NOTIFICATIONS_REQUEST_ENABLED", true),
 
     GEOFENCING_ACTIVATED("org.infobip.mobile.messaging.geo.GEOFENCING_ACTIVATED", false),
     // END
