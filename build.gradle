@@ -15,6 +15,7 @@ plugins {
     id 'net.researchgate.release' version '2.8.1'
     id 'maven-publish'
     id "io.github.gradle-nexus.publish-plugin" version "1.1.0"
+    id 'org.jetbrains.kotlin.android' version '1.7.20' apply false
 }
 
 ext {
@@ -22,7 +23,13 @@ ext {
     mm_compileSdkVersion = 33
     mm_targetSdkVersion = 33
     mm_buildToolsVersion = "33.0.0"
-    mm_androidSdkVersion = "7.4.2"
+    mm_androidSdkVersion = "8.0.0"
+    mm_kotlinVersion = "1.7.20"
+    mm_constraintLayoutVersion = "2.1.4"
+    mm_appCompatVersion = "1.6.1"
+    mm_materialVersion = "1.8.0"
+    mm_coreKtxVersion = "1.9.0"
+    mm_desugarJdkVersion = "1.1.8"
 }
 
 //It's required to be applied here, to have `subprojects.publish` task available
@@ -42,6 +49,7 @@ task updateVersionInReadme {
             w << text.replaceFirst('infobip-mobile-messaging-huawei-sdk:\\d+\\.\\d+\\.\\S+@aar', "infobip-mobile-messaging-huawei-sdk:$version@aar")
         }
     }
+
 }
 
 afterReleaseBuild.dependsOn updateVersionInReadme
