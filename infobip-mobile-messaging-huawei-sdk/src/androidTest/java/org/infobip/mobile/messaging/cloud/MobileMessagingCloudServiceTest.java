@@ -56,7 +56,6 @@ public class MobileMessagingCloudServiceTest extends PlatformTestCase {
         message.setMessageId("messageId");
 
         MobileMessagingCloudService.enqueueNewMessage(context, message);
-
         Mockito.verify(handler, Mockito.times(1)).handleWork(Mockito.any(Context.class), intentWith(message));
     }
 

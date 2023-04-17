@@ -493,7 +493,7 @@ public abstract class MobileMessaging {
         private final Application application;
         private String senderId = (String) MobileMessagingProperty.SENDER_ID.getDefaultValue();
         private String applicationCode = (String) MobileMessagingProperty.APPLICATION_CODE.getDefaultValue();
-        private String apiUri = (String) MobileMessagingProperty.API_URI.getDefaultValue();
+        private String apiUri;
         private NotificationSettings notificationSettings = null;
         private boolean reportCarrierInfo = true;
         private boolean reportSystemInfo = true;
@@ -642,7 +642,7 @@ public abstract class MobileMessaging {
          * <br>
          * The default is set to <a href="https://mobile.infobip.com">https://mobile.infobip.com</a>.
          * <br>
-         * It fill fail if set to null or empty string.
+         * It will fail if set to null or empty string.
          *
          * @param apiUri API endpoint
          * @return {@link Builder}

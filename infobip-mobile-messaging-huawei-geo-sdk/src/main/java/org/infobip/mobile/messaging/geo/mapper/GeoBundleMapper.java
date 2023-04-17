@@ -32,7 +32,7 @@ public class GeoBundleMapper extends BundleMapper {
      * Serializes geo message object into bundle
      *
      * @param geoMessage object to serialize
-     * @return bundle with geo contents
+     * @return bundle with geo message contents
      */
     @NonNull
     public static Bundle geoMessageToBundle(@NonNull GeoMessage geoMessage) {

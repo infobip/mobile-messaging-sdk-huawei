@@ -23,7 +23,7 @@ ext {
     mm_compileSdkVersion = 33
     mm_targetSdkVersion = 33
     mm_buildToolsVersion = "33.0.0"
-    mm_androidSdkVersion = "8.0.0"
+    mm_androidSdkVersion = "8.1.1"
     mm_kotlinVersion = "1.7.20"
     mm_constraintLayoutVersion = "2.1.4"
     mm_appCompatVersion = "1.6.1"

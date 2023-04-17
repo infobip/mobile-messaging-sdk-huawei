@@ -10,6 +10,7 @@ import org.infobip.mobile.messaging.api.chat.MobileApiChat;
 import org.infobip.mobile.messaging.api.geo.MobileApiGeo;
 import org.infobip.mobile.messaging.api.inbox.MobileApiInbox;
 import org.infobip.mobile.messaging.api.messages.MobileApiMessages;
+import org.infobip.mobile.messaging.api.rtc.MobileApiRtc;
 import org.infobip.mobile.messaging.api.support.CustomApiHeaders;
 import org.infobip.mobile.messaging.api.support.Generator;
 import org.infobip.mobile.messaging.api.support.http.client.Logger;
@@ -43,11 +44,14 @@ public class MobileApiResourceProvider {
 
         private final Context context;
 
+        private boolean isPreviousFailed = false;
+        private int badRequests = 0;
+
         public BaseUrlManager(Context context) {
             this.context = context;
         }
 
-        @Override // request interceptor
+        @Override
         public Request intercept(Request request) {
             boolean foreground = ActivityLifecycleMonitor.isForeground();
             request.getHeaders().put(CustomApiHeaders.FOREGROUND.getValue(), Collections.<Object>singletonList(foreground));
@@ -60,15 +64,38 @@ public class MobileApiResourceProvider {
             request.getHeaders().put(CustomApiHeaders.INSTALLATION_ID.getValue(), Collections.<Object>singletonList(MobileMessagingCore.getInstance(context).getUniversalInstallationId()));
             request.getHeaders().put(CustomApiHeaders.PUSH_REGISTRATION_ID.getValue(), Collections.<Object>singletonList(MobileMessagingCore.getInstance(context).getPushRegistrationId()));
             request.getHeaders().put(CustomApiHeaders.APPLICATION_CODE.getValue(), Collections.<Object>singletonList(MobileMessagingCore.getApplicationCodeHash(context)));
+
+            String baseUrl = MobileMessagingCore.getApiUri(context);
+            if (generator.getBaseUrl() == baseUrl) {
+                return request;
+            }
+
+            String newUri = request.getUri().substring(generator.getBaseUrl().length());
+            newUri = org.infobip.mobile.messaging.api.support.util.StringUtils.join("/", baseUrl, newUri);
+            request.setUri(newUri);
+            generator.setBaseUrl(baseUrl);
+
             return request;
         }
 
         @Override
         public void beforeResponse(int responseCode, Map<String, List<String>> headers) {
-            if (responseCode >= 400) {
-                MobileMessagingCore.resetApiUri(context);
-                return;
+            boolean isFailedNotThrottlingRequest = responseCode >= 400 && responseCode != 429 && responseCode != 404;
+
+            if (isFailedNotThrottlingRequest) {
+                if (isPreviousFailed) {
+                    badRequests++;
+                }
+                if (badRequests >= 1) {
+                    MobileMessagingCore.resetApiUri(context);
+                    generator.setBaseUrl((String) MobileMessagingProperty.API_URI.getDefaultValue());
+                    badRequests = 0;
+                    isPreviousFailed = false;
+                    return;
+                }
             }
+
+            isPreviousFailed = isFailedNotThrottlingRequest;
 
             List<String> values = headers.get(CustomApiHeaders.NEW_BASE_URL.getValue());
             if (values == null || values.isEmpty() || StringUtils.isBlank(values.get(0))) {
@@ -82,7 +109,6 @@ public class MobileApiResourceProvider {
 
         @Override
         public void beforeResponse(Exception error) {
-            MobileMessagingCore.resetApiUri(context);
         }
     }
 
@@ -95,6 +121,7 @@ public class MobileApiResourceProvider {
     private MobileApiChat mobileApiChat;
     private MobileApiBaseUrl mobileApiBaseUrl;
     private MobileApiInbox mobileApiInbox;
+    private MobileApiRtc mobileApiRtc;
 
     public MobileApiMessages getMobileApiMessages(Context context) {
         if (null != mobileApiMessages) {
@@ -166,6 +193,13 @@ public class MobileApiResourceProvider {
         return mobileApiInbox;
     }
 
+    public MobileApiRtc getMobileApiRtc(Context context) {
+        if (mobileApiRtc == null) {
+            mobileApiRtc = getGenerator(context).create(MobileApiRtc.class);
+        }
+        return mobileApiRtc;
+    }
+
     private String[] getUserAgentAdditions(Context context) {
         List<String> userAgentAdditions = new ArrayList<>();
         if (PreferenceHelper.findBoolean(context, MobileMessagingProperty.REPORT_SYSTEM_INFO)) {
@@ -193,7 +227,7 @@ public class MobileApiResourceProvider {
             userAgentAdditions.addAll(Arrays.asList(emptyCarrierInfoAdditions));
         }
         List<String> userAgentAdditionsCleaned = new ArrayList<>();
-        for (String addition: userAgentAdditions) {
+        for (String addition : userAgentAdditions) {
             userAgentAdditionsCleaned.add(removeNotSupportedChars(addition));
         }
         return userAgentAdditionsCleaned.toArray(new String[0]);
@@ -204,10 +238,6 @@ public class MobileApiResourceProvider {
     }
 
     private Generator getGenerator(Context context) {
-        return getGenerator(context, false);
-    }
-
-    private Generator getGenerator(Context context, boolean useDefaultBaseUrl) {
         if (null != generator) {
             return generator;
         }
@@ -218,7 +248,7 @@ public class MobileApiResourceProvider {
         properties.put("library.version", SoftwareInformation.getSDKVersionWithPostfixForUserAgent(context));
 
         generator = new Generator.Builder()
-                .withBaseUrl(MobileMessagingCore.getApiUri(context, useDefaultBaseUrl))
+                .withBaseUrl(MobileMessagingCore.getApiUri(context))
                 .withProperties(properties)
                 .withUserAgentAdditions(getUserAgentAdditions(context))
                 .withRequestInterceptors(baseUrlManager(context))
