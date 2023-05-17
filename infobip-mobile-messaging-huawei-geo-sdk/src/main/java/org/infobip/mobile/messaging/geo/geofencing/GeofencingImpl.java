@@ -256,7 +256,6 @@ public class GeofencingImpl extends Geofencing {
 
     @Override
     public void stopGeoMonitoring() {
-
         GeofencingHelper.setAllActiveGeoAreasMonitored(context, false);
 
         if (!checkRequiredPermissions()) {
@@ -319,7 +318,6 @@ public class GeofencingImpl extends Geofencing {
             MobileMessagingLogger.e("Unable to configure geofencing", new ConfigurationException(Reason.MISSING_REQUIRED_PERMISSION, Manifest.permission.ACCESS_FINE_LOCATION).getMessage());
             return false;
         }
-
         return true;
     }
 

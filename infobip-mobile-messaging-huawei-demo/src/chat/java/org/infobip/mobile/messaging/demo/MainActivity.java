@@ -1,5 +1,7 @@
 package org.infobip.mobile.messaging.demo;
 
+import static org.infobip.mobile.messaging.demo.JWTUtils.createJwt;
+
 import android.content.BroadcastReceiver;
 import android.content.ClipData;
 import android.content.ClipboardManager;
@@ -8,8 +10,6 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Bundle;
 import android.os.Parcelable;
-import android.util.Base64;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -26,6 +26,9 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.FragmentTransaction;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
+import com.google.android.material.progressindicator.LinearProgressIndicator;
+import com.google.android.material.textfield.TextInputEditText;
+
 import org.infobip.mobile.messaging.BroadcastParameter;
 import org.infobip.mobile.messaging.Event;
 import org.infobip.mobile.messaging.MobileMessaging;
@@ -37,19 +40,6 @@ import org.infobip.mobile.messaging.logging.MobileMessagingLogger;
 import org.infobip.mobile.messaging.mobileapi.MobileMessagingError;
 import org.infobip.mobile.messaging.mobileapi.Result;
 import org.infobip.mobile.messaging.util.StringUtils;
-import org.json.JSONObject;
-
-import com.google.android.material.progressindicator.LinearProgressIndicator;
-import com.google.android.material.textfield.TextInputEditText;
-import com.nimbusds.jose.JWSAlgorithm;
-import com.nimbusds.jose.JWSHeader;
-import com.nimbusds.jose.crypto.MACSigner;
-import com.nimbusds.jwt.JWTClaimsSet;
-import com.nimbusds.jwt.SignedJWT;
-
-import java.util.Date;
-import java.util.Locale;
-import java.util.UUID;
 
 /**
  * @author sslavin
@@ -406,36 +396,6 @@ public class MainActivity extends AppCompatActivity implements InAppChatFragment
                     );
                 }
         );
-    }
-
-    private String createJwt(JWTSubjectType subjectType, String subject, String widgetId, String secretKeyJson) {
-        if (subjectType != null && subject != null && widgetId != null && secretKeyJson != null) {
-            try {
-                JSONObject jsonObject = new JSONObject(secretKeyJson);
-                String keyId = jsonObject.getString("id");
-                String keySecret = jsonObject.getString("key");
-                MACSigner personalizationTokenSigner = new MACSigner(Base64.decode(keySecret, Base64.DEFAULT));
-                String uuid = UUID.randomUUID().toString();
-
-                JWTClaimsSet claimsSet = new JWTClaimsSet.Builder()
-                        .jwtID(uuid)
-                        .subject(subject)
-                        .issuer(widgetId)
-                        .issueTime(new Date())
-                        .expirationTime(new Date(System.currentTimeMillis() + 10000))
-                        .claim("ski", keyId)
-                        .claim("stp", subjectType.stp) //subjectType
-                        .claim("sid", uuid) //session id
-                        .build();
-
-                SignedJWT personalizedToken = new SignedJWT(new JWSHeader(JWSAlgorithm.HS256), claimsSet);
-                personalizedToken.sign(personalizationTokenSigner);
-                return personalizedToken.serialize();
-            } catch (Exception e) {
-                Toast.makeText(MainActivity.this, "Create JWT process failed!", Toast.LENGTH_SHORT).show();
-            }
-        }
-        return null;
     }
 
     private void showProgressBar() {

@@ -49,7 +49,6 @@ task updateVersionInReadme {
             w << text.replaceFirst('infobip-mobile-messaging-huawei-sdk:\\d+\\.\\d+\\.\\S+@aar', "infobip-mobile-messaging-huawei-sdk:$version@aar")
         }
     }
-
 }
 
 afterReleaseBuild.dependsOn updateVersionInReadme

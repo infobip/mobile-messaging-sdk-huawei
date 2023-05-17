@@ -64,7 +64,7 @@ class AuthData implements Parcelable {
         return subject;
     }
 
-    public static final Parcelable.Creator<AuthData> CREATOR = new Parcelable.Creator<AuthData>() {
+    public static final Creator<AuthData> CREATOR = new Creator<AuthData>() {
         public AuthData createFromParcel(Parcel in) {
             String name = in.readString();
             JWTSubjectType jwtSubjectType = JWTSubjectType.values()[in.readInt()];

@@ -70,6 +70,7 @@ class InAppChatView @JvmOverloads constructor(
     private var style = InAppChatStyle(context, attributes)
     private val inAppChat = InAppChat.getInstance(context)
     private val inAppChatClient: InAppChatClient = InAppChatClientImpl(binding.ibLcWebView)
+    private var inAppChatBroadcaster: InAppChatBroadcaster = InAppChatBroadcasterImpl(context)
     private val mmCore: MobileMessagingCore = MobileMessagingCore.getInstance(context)
     private val localizationUtils = LocalizationUtils.getInstance(context)
     private var isChatLoaded: Boolean = false
@@ -185,8 +186,14 @@ class InAppChatView @JvmOverloads constructor(
 
     //region Lifecycle
     private val lifecycleObserver = object : DefaultLifecycleObserver {
+
+        override fun onCreate(owner: LifecycleOwner) {
+        }
+
+        override fun onStart(owner: LifecycleOwner) {
+        }
+
         override fun onResume(owner: LifecycleOwner) {
-            super.onResume(owner)
             registerReceivers()
             updateErrors()
             binding.ibLcWebView.onResume()
@@ -195,13 +202,14 @@ class InAppChatView @JvmOverloads constructor(
         }
 
         override fun onPause(owner: LifecycleOwner) {
-            super.onPause(owner)
             unregisterReceivers()
             binding.ibLcWebView.onPause()
         }
 
+        override fun onStop(owner: LifecycleOwner) {
+        }
+
         override fun onDestroy(owner: LifecycleOwner) {
-            super.onDestroy(owner)
             binding.ibLcWebView.destroy()
         }
     }
@@ -247,6 +255,7 @@ class InAppChatView @JvmOverloads constructor(
 
         override fun onWidgetViewChanged(widgetView: InAppChatWidgetView) {
             eventsListener?.onChatViewChanged(widgetView)
+            inAppChatBroadcaster.chatViewChanged(widgetView)
         }
     }
     //endregion

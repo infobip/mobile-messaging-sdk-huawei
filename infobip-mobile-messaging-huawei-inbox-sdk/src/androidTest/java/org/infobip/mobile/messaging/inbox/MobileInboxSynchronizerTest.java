@@ -14,6 +14,7 @@ import org.infobip.mobile.messaging.api.inbox.FetchInboxResponse;
 import org.infobip.mobile.messaging.api.inbox.MobileApiInbox;
 import org.infobip.mobile.messaging.api.messages.MessageResponse;
 import org.infobip.mobile.messaging.platform.AndroidBroadcaster;
+import org.infobip.mobile.messaging.platform.Platform;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 
@@ -46,7 +47,7 @@ public class MobileInboxSynchronizerTest extends MobileMessagingTestCase {
                 mobileApiInbox
         );
 
-        given(mobileApiInbox.fetchInbox(any(), any(), any(), any(), any(), any()))
+        given(mobileApiInbox.fetchInbox(any(), any(), any(), any(), any(), any(), any()))
                 .willReturn(new FetchInboxResponse(1, 1, Collections.singletonList(new MessageResponse())));
     }
 
@@ -55,7 +56,7 @@ public class MobileInboxSynchronizerTest extends MobileMessagingTestCase {
         mobileInboxSynchronizer.fetchInbox(givenToken, givenExternalUserId, null, inboxResultListener);
         String resultToken = "Bearer " + givenToken;
 
-        verify(mobileApiInbox, after(300).times(1)).fetchInbox(givenExternalUserId, resultToken, null, null, null, null);
+        verify(mobileApiInbox, after(300).times(1)).fetchInbox(givenExternalUserId, resultToken, null, null, null, null, Platform.usedPushServiceType.name().toLowerCase());
     }
 
     @Test
@@ -64,7 +65,7 @@ public class MobileInboxSynchronizerTest extends MobileMessagingTestCase {
 
         String resultToken = "App " + mobileMessagingCore.getApplicationCode();
 
-        verify(mobileApiInbox, after(300).times(1)).fetchInbox(givenExternalUserId, resultToken, null, null, null, null);
+        verify(mobileApiInbox, after(300).times(1)).fetchInbox(givenExternalUserId, resultToken, null, null, null, null, Platform.usedPushServiceType.name().toLowerCase());
     }
 
     @Test
@@ -75,7 +76,7 @@ public class MobileInboxSynchronizerTest extends MobileMessagingTestCase {
 
         String resultToken = "App " + mobileMessagingCore.getApplicationCode();
 
-        verify(mobileApiInbox, after(300).times(1)).fetchInbox(givenExternalUserId, resultToken, null, null, "sometopic", 15);
+        verify(mobileApiInbox, after(300).times(1)).fetchInbox(givenExternalUserId, resultToken, null, null, "sometopic", 15, Platform.usedPushServiceType.name().toLowerCase());
     }
 
     @Test
@@ -89,7 +90,7 @@ public class MobileInboxSynchronizerTest extends MobileMessagingTestCase {
 
         String resultToken = "App " + mobileMessagingCore.getApplicationCode();
 
-        verify(mobileApiInbox, after(300).times(1)).fetchInbox(givenExternalUserId, resultToken, "1640984400000", "1654462800000", "sometopic", 15);
+        verify(mobileApiInbox, after(300).times(1)).fetchInbox(givenExternalUserId, resultToken, "1640984400000", "1654462800000", "sometopic", 15, Platform.usedPushServiceType.name().toLowerCase());
 
         verify(inboxBroadcaster, after(300).atLeastOnce()).inboxFetched(dataCaptor.capture());
         Inbox returnedInbox = dataCaptor.getValue();
@@ -100,7 +101,7 @@ public class MobileInboxSynchronizerTest extends MobileMessagingTestCase {
 
     @Test
     public void should_call_api_and_work_with_null_messages_response() {
-        given(mobileApiInbox.fetchInbox(any(), any(), any(), any(), any(), any()))
+        given(mobileApiInbox.fetchInbox(any(), any(), any(), any(), any(), any(), any()))
                 .willReturn(new FetchInboxResponse(0, 0, null));
 
         MobileInboxFilterOptions filterOptions = new MobileInboxFilterOptions(null, null, "sometopic", 15);

@@ -7,8 +7,6 @@ import static org.mockito.Mockito.mock;
 import android.annotation.SuppressLint;
 import android.content.Context;
 
-import com.google.firebase.FirebaseOptions;
-
 import org.infobip.mobile.messaging.Message;
 import org.infobip.mobile.messaging.MobileMessaging;
 import org.infobip.mobile.messaging.MobileMessagingCore;
@@ -16,7 +14,6 @@ import org.infobip.mobile.messaging.MobileMessagingProperty;
 import org.infobip.mobile.messaging.android.MobileMessagingBaseTestCase;
 import org.infobip.mobile.messaging.api.appinstance.MobileApiAppInstance;
 import org.infobip.mobile.messaging.api.messages.MobileApiMessages;
-import org.infobip.mobile.messaging.cloud.firebase.FirebaseAppProvider;
 import org.infobip.mobile.messaging.logging.MobileMessagingLogger;
 import org.infobip.mobile.messaging.mobileapi.MobileApiResourceProvider;
 import org.infobip.mobile.messaging.notification.NotificationHandler;
@@ -42,7 +39,6 @@ public abstract class MobileMessagingTestCase extends MobileMessagingBaseTestCas
     protected MobileApiResourceProvider mobileApiResourceProvider;
     protected MobileApiMessages mobileApiMessages;
     protected MobileApiAppInstance mobileApiAppInstance;
-    protected FirebaseAppProvider firebaseAppProvider;
 
     protected static class TestTimeProvider implements TimeProvider {
 
@@ -103,11 +99,7 @@ public abstract class MobileMessagingTestCase extends MobileMessagingBaseTestCas
         given(mobileApiResourceProvider.getMobileApiMessages(any(Context.class))).willReturn(mobileApiMessages);
         given(mobileApiResourceProvider.getMobileApiAppInstance(any(Context.class))).willReturn(mobileApiAppInstance);
 
-        firebaseAppProvider = new FirebaseAppProvider(context);
-        FirebaseOptions firebaseOptions = new FirebaseOptions.Builder().setProjectId("project_id").setApiKey("api_key").setApplicationId("application_id").build();
-        firebaseAppProvider.setFirebaseOptions(firebaseOptions);
-
-        mobileMessagingCore = MobileMessagingTestable.create(context, coreBroadcaster, mobileApiResourceProvider, firebaseAppProvider);
+        mobileMessagingCore = MobileMessagingTestable.create(context, coreBroadcaster, mobileApiResourceProvider);
         mobileMessaging = mobileMessagingCore;
 
         inboxBroadcaster = mock(MobileInboxBroadcaster.class);
