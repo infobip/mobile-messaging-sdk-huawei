@@ -16,6 +16,9 @@
     <string name="subject_type">Subject type</string>
     <string name="customer_name">Customer name</string>
     <string name="subject">Subject</string>
+    <string name="dark_mode_dark">Dark</string>
+    <string name="dark_mode_light">Light</string>
+    <string name="dark_mode_auto">Auto</string>
 
     <string name="turkish">Türkçe</string>
     <string name="korean">한국어</string>
