@@ -12,6 +12,7 @@
     <string name="mm_depersonalize">Depersonalize</string>
     <string name="action_registration_id_copy" tools:ignore="MissingTranslation">Registration ID</string>
     <string name="toast_registration_id_copy" tools:ignore="MissingTranslation">Registration ID copied to clipboard</string>
+    <string name="language_changed">Language changed to %1$s</string>
     <string name="push_registration_id">Push registration ID</string>
     <string name="subject_type">Subject type</string>
     <string name="customer_name">Customer name</string>

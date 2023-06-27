@@ -1,7 +1,5 @@
 package org.infobip.mobile.messaging.demo;
 
-import static org.infobip.mobile.messaging.demo.JWTUtils.createJwt;
-
 import android.content.BroadcastReceiver;
 import android.content.ClipData;
 import android.content.ClipboardManager;
@@ -17,14 +15,6 @@ import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
 import android.widget.Button;
 import android.widget.Toast;
-
-import androidx.annotation.IdRes;
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.appcompat.app.ActionBar;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.fragment.app.FragmentTransaction;
-import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import com.google.android.material.button.MaterialButtonToggleGroup;
 import com.google.android.material.progressindicator.LinearProgressIndicator;
@@ -43,6 +33,16 @@ import org.infobip.mobile.messaging.logging.MobileMessagingLogger;
 import org.infobip.mobile.messaging.mobileapi.MobileMessagingError;
 import org.infobip.mobile.messaging.mobileapi.Result;
 import org.infobip.mobile.messaging.util.StringUtils;
+
+import androidx.annotation.IdRes;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.ActionBar;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.fragment.app.FragmentTransaction;
+import androidx.localbroadcastmanager.content.LocalBroadcastManager;
+
+import static org.infobip.mobile.messaging.demo.JWTUtils.createJwt;
 
 /**
  * @author sslavin
@@ -160,21 +160,15 @@ public class MainActivity extends AppCompatActivity implements InAppChatFragment
         } else if (item.getGroupId() == R.id.languages) {
             String language = langMenuIdToLocale(item.getItemId());
             //change language of chat view
-            InAppChat.getInstance(MainActivity.this).setLanguage(language, new MobileMessaging.ResultListener<String>() {
-                @Override
-                public void onResult(Result<String, MobileMessagingError> result) {
-                    if (result.isSuccess()) {
-                        MobileMessagingLogger.d(TAG, "Language changed to " + result.getData());
-                    } else {
-                        MobileMessagingLogger.d(TAG, "Failed to change language, reason: " + result.getError().getMessage());
-                    }
-                }
-            });
+            if (language != null) {
+                InAppChat.getInstance(this).setLanguage(language);
+                Toast.makeText(this, getString(R.string.language_changed, item.getTitle()), Toast.LENGTH_SHORT).show();
+            }
         }
         return super.onOptionsItemSelected(item);
     }
 
-    public String langMenuIdToLocale(@IdRes int menuId) {
+    private String langMenuIdToLocale(@IdRes int menuId) {
         if (menuId == R.id.english)
             return "en-US";
         else if (menuId == R.id.turkish)
