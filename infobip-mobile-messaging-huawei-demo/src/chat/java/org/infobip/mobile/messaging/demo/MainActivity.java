@@ -93,7 +93,7 @@ public class MainActivity extends AppCompatActivity implements InAppChatFragment
 
     @Override
     public void onInAppChatBackPressed() {
-        InAppChat.getInstance(MainActivity.this).hideInAppChatFragment(getSupportFragmentManager());
+        InAppChat.getInstance(MainActivity.this).hideInAppChatFragment(getSupportFragmentManager(), true);
     }
 
     @Override
@@ -351,6 +351,8 @@ public class MainActivity extends AppCompatActivity implements InAppChatFragment
                     true,
                     resultListener
             );
+        } else {
+            hideProgressBar();
         }
     }
 

@@ -335,11 +335,19 @@ public class InAppChatImpl extends InAppChat implements MessageHandlerModule {
     }
 
     public void hideInAppChatFragment(FragmentManager fragmentManager) {
+        hideInAppChatFragment(fragmentManager, false);
+    }
+
+    @Override
+    public void hideInAppChatFragment(FragmentManager fragmentManager, Boolean disconnectChat) {
+        if (inAppChatWVFragment != null){
+            inAppChatWVFragment.setDisconnectChatWhenHidden(disconnectChat);
+        }
         FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
         fragmentTransaction.hide(inAppChatWVFragment);
         //on any configuration change activity is recreated -> new fragment manager instance -> remove "old" fragment found by tag
         Fragment fragmentByTag = fragmentManager.findFragmentByTag(IN_APP_CHAT_FRAGMENT_TAG);
-        if (fragmentByTag != null && !areFragmentsEquals(fragmentByTag, inAppChatWVFragment)){
+        if (fragmentByTag != null && !areFragmentsEquals(fragmentByTag, inAppChatWVFragment)) {
             fragmentTransaction.remove(fragmentByTag);
         }
         fragmentTransaction.commit();

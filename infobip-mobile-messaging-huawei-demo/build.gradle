@@ -123,8 +123,8 @@ dependencies {
     // push kit
     implementation 'com.huawei.hms:push:6.7.0.300'
 
-    implementation 'androidx.appcompat:appcompat:1.6.1'
-    implementation 'com.google.android.material:material:1.9.0'
+    implementation "androidx.appcompat:appcompat:$mm_appCompatVersion"
+    implementation "com.google.android.material:material:$mm_materialVersion"
     implementation 'androidx.legacy:legacy-support-v4:1.0.0'
     implementation 'androidx.localbroadcastmanager:localbroadcastmanager:1.1.0'
 

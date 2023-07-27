@@ -57,9 +57,13 @@ public class InAppChatClientImpl implements InAppChatClient {
 
     @Override
     public void setLanguage(String language) {
-        if (!language.isEmpty()) {
-            Language supportedLanguage = Language.findLanguage(language);
-            String script = buildWidgetMethodInvocation(setLanguage.name(), isOSOlderThanKitkat(), supportedLanguage != null ? supportedLanguage.getLocale() : Language.ENGLISH.getLocale());
+        if (StringUtils.isNotBlank(language)) {
+            Language widgetLanguage = Language.findLanguage(language);
+            if (widgetLanguage == null) {
+                MobileMessagingLogger.e("Language " + language + " is not supported. Used default language " + Language.ENGLISH.getLocale());
+                widgetLanguage = Language.ENGLISH;
+            }
+            String script = buildWidgetMethodInvocation(setLanguage.name(), isOSOlderThanKitkat(), widgetLanguage.getLocale());
             executeScript(script);
         }
     }
@@ -90,7 +94,7 @@ public class InAppChatClientImpl implements InAppChatClient {
         if (webView != null){
             try {
                 handler.post(() -> webView.evaluateJavascriptMethod(script, value -> {
-                    if (value != null) {
+                    if (value != null && !"null".equals(value)) {
                         MobileMessagingLogger.d(TAG, value);
                     }
                 }));
