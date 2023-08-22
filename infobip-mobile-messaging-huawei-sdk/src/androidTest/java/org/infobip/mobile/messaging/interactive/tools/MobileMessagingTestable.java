@@ -1,7 +1,6 @@
 package org.infobip.mobile.messaging.interactive.tools;
 
 import android.content.Context;
-
 import org.infobip.mobile.messaging.MobileMessagingCore;
 import org.infobip.mobile.messaging.platform.Broadcaster;
 import org.infobip.mobile.messaging.platform.Platform;

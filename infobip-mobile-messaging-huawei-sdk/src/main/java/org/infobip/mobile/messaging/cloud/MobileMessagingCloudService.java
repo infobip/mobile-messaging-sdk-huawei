@@ -6,25 +6,18 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
+import android.text.TextUtils;
 import androidx.annotation.NonNull;
 import androidx.core.app.ActivityCompat;
-import android.text.TextUtils;
-
 import org.infobip.mobile.messaging.Message;
 import org.infobip.mobile.messaging.dal.bundle.MessageBundleMapper;
 import org.infobip.mobile.messaging.logging.MobileMessagingLogger;
 import org.infobip.mobile.messaging.platform.JobIntentService;
 import org.infobip.mobile.messaging.platform.Platform;
 
+import static org.infobip.mobile.messaging.cloud.MobileMessagingCloudHandler.*;
 import static org.infobip.mobile.messaging.platform.MobileMessagingJob.CLOUD_INTENT_JOB_ID;
 import static org.infobip.mobile.messaging.platform.MobileMessagingJob.getScheduleId;
-import static org.infobip.mobile.messaging.cloud.MobileMessagingCloudHandler.ACTION_CLOUD_MESSAGE_RECEIVE;
-import static org.infobip.mobile.messaging.cloud.MobileMessagingCloudHandler.ACTION_NEW_TOKEN;
-import static org.infobip.mobile.messaging.cloud.MobileMessagingCloudHandler.ACTION_TOKEN_ACQUIRE;
-import static org.infobip.mobile.messaging.cloud.MobileMessagingCloudHandler.ACTION_TOKEN_CLEANUP;
-import static org.infobip.mobile.messaging.cloud.MobileMessagingCloudHandler.ACTION_TOKEN_RESET;
-import static org.infobip.mobile.messaging.cloud.MobileMessagingCloudHandler.EXTRA_SENDER_ID;
-import static org.infobip.mobile.messaging.cloud.MobileMessagingCloudHandler.EXTRA_TOKEN;
 import static org.infobip.mobile.messaging.platform.Platform.mobileMessagingCloudHandler;
 
 /**

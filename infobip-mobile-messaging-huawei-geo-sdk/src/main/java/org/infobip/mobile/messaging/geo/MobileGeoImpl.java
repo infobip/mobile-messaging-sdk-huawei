@@ -5,12 +5,10 @@ import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.pm.PackageManager;
 import android.os.Build;
-
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.fragment.app.Fragment;
-
 import org.infobip.mobile.messaging.Message;
 import org.infobip.mobile.messaging.MessageHandlerModule;
 import org.infobip.mobile.messaging.MobileMessagingCore;
@@ -220,7 +218,6 @@ public class MobileGeoImpl extends MobileGeo implements MessageHandlerModule, Ge
             } else {
                 permissions = new String[]{Manifest.permission.ACCESS_FINE_LOCATION};
             }
-
         } else {
             if (ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_BACKGROUND_LOCATION) != PackageManager.PERMISSION_GRANTED
                     && Build.VERSION.SDK_INT > Build.VERSION_CODES.Q) {

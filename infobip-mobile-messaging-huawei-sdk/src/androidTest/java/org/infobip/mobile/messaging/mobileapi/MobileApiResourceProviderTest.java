@@ -1,5 +1,6 @@
 package org.infobip.mobile.messaging.mobileapi;
 
+import fi.iki.elonen.NanoHTTPD;
 import org.infobip.mobile.messaging.MobileMessagingCore;
 import org.infobip.mobile.messaging.MobileMessagingProperty;
 import org.infobip.mobile.messaging.api.support.ApiIOException;
@@ -12,11 +13,7 @@ import java.net.UnknownHostException;
 import java.util.HashMap;
 import java.util.Map;
 
-import fi.iki.elonen.NanoHTTPD;
-
-import static junit.framework.Assert.assertEquals;
-import static junit.framework.Assert.assertTrue;
-import static junit.framework.Assert.fail;
+import static junit.framework.Assert.*;
 
 /**
  * @author sslavin
@@ -57,8 +54,8 @@ public class MobileApiResourceProviderTest extends MobileMessagingTestCase {
 
         // then
         assertEquals(10, applicationCodeInHeaders.length());
-        assertEquals("0690db1eb3", applicationCodeInHeaders);
-        assertEquals("0690db1eb3", MobileMessagingCore.getApplicationCodeHash(context, "TestApplicationCode"));
+        assertEquals("69a991b7f4", applicationCodeInHeaders);
+        assertEquals("69a991b7f4", MobileMessagingCore.getApplicationCodeHash(context, "TestApplicationCode"));
     }
 
     @Test
@@ -71,7 +68,7 @@ public class MobileApiResourceProviderTest extends MobileMessagingTestCase {
         }
 
         // then
-        assertEquals("0690db1eb3", debugServer.getHeader(CustomApiHeaders.APPLICATION_CODE.getValue()));
+        assertEquals("69a991b7f4", debugServer.getHeader(CustomApiHeaders.APPLICATION_CODE.getValue()));
         assertEquals("false", debugServer.getHeader(CustomApiHeaders.FOREGROUND.getValue()));
         assertEquals(myDeviceRegId, debugServer.getHeader(CustomApiHeaders.PUSH_REGISTRATION_ID.getValue()));
         assertEquals("UniversalInstallationId", debugServer.getHeader(CustomApiHeaders.INSTALLATION_ID.getValue()));

@@ -64,7 +64,6 @@ public abstract class MobileGeo {
      */
     public abstract void activateGeofencingWithAutomaticPermissionsRequest(boolean shouldShowPermissionsNotGrantedDialogIfShownOnce);
 
-
     /**
      * This method will call `registerForActivityResult()` for provided activity or fragment in order to be able to ask permissions automatically.
      * `registerForActivityResult()` is safe to call before your fragment or activity is created, so call `setContextForRequestingPermissions` before your fragment or activity is created, for example inside it's `onCreate` method.

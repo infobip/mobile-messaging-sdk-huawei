@@ -8,7 +8,7 @@
 
     <style name="IB_ChatDefaultTheme.AppBarOverlay" parent="ThemeOverlay.MaterialComponents.Dark.ActionBar">
         <!-- do not apply darkening on toolbar, forceDark auto darken custom toolbar color possibly defined in IB_AppTheme.Chat-->
-        <item name="android:forceDarkAllowed">false</item>
+       <item name="android:forceDarkAllowed">false</item>
     </style>
 
 </resources>

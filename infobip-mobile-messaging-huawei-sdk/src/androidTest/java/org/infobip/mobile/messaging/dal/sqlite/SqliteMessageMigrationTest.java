@@ -15,6 +15,7 @@ import java.util.List;
 
 import static junit.framework.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.assertNotNull;
 
 /**
  * @author sslavin
@@ -174,27 +175,29 @@ public class SqliteMessageMigrationTest extends MobileMessagingTestCase {
 
         // Check that sent timestamp was added and other fields are the same
         SQLiteMessageStore messageStore = new SQLiteMessageStore();
-        List<Message> messages = messageStore.findAll(context);
-        assertEquals(1, messages.size());
-        assertEquals("SomeMessageId", messages.get(0).getMessageId());
-        assertEquals("SomeMessageTitle", messages.get(0).getTitle());
-        assertEquals("SomeMessageBody", messages.get(0).getBody());
-        assertEquals("SomeMessageSound", messages.get(0).getSound());
-        assertEquals(true, messages.get(0).isVibrate());
-        assertEquals("SomeMessageIcon", messages.get(0).getIcon());
-        assertEquals(true, messages.get(0).isSilent());
-        assertEquals("SomeMessageCategory", messages.get(0).getCategory());
-        assertEquals("SomeMessageFrom", messages.get(0).getFrom());
-        assertEquals(1234L, messages.get(0).getReceivedTimestamp());
-        assertEquals(5678L, messages.get(0).getSeenTimestamp());
-        assertEquals(1234L, messages.get(0).getSentTimestamp());
+        Message message = messageStore.findById(context, "SomeMessageId");
+        long messagesCnt = messageStore.countAll(context);
+        assertEquals(messagesCnt, 1L);
+        assertNotNull(message);
+        assertEquals("SomeMessageId", message.getMessageId());
+        assertEquals("SomeMessageTitle", message.getTitle());
+        assertEquals("SomeMessageBody", message.getBody());
+        assertEquals("SomeMessageSound", message.getSound());
+        assertEquals(true, message.isVibrate());
+        assertEquals("SomeMessageIcon", message.getIcon());
+        assertEquals(true, message.isSilent());
+        assertEquals("SomeMessageCategory", message.getCategory());
+        assertEquals("SomeMessageFrom", message.getFrom());
+        assertEquals(1234L, message.getReceivedTimestamp());
+        assertEquals(5678L, message.getSeenTimestamp());
+        assertEquals(1234L, message.getSentTimestamp());
         JSONAssert.assertEquals("{\"key1\" : \"value1\", \"sendDateTime\":1234}",
-                messages.get(0).getInternalData(), true);
+                message.getInternalData(), true);
         JSONAssert.assertEquals("{\"key2\" : \"value2\"}",
-                messages.get(0).getCustomPayload(), true);
-        assertEquals("SomeMessageDestination", messages.get(0).getDestination());
-        assertEquals(Message.Status.ERROR, messages.get(0).getStatus());
-        assertEquals("SomeMessageStatusMessage", messages.get(0).getStatusMessage());
-        assertEquals("SomeMessageContentUrl", messages.get(0).getContentUrl());
+                message.getCustomPayload(), true);
+        assertEquals("SomeMessageDestination", message.getDestination());
+        assertEquals(Message.Status.ERROR, message.getStatus());
+        assertEquals("SomeMessageStatusMessage", message.getStatusMessage());
+        assertEquals("SomeMessageContentUrl", message.getContentUrl());
     }
 }

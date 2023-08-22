@@ -11,25 +11,17 @@ import android.content.pm.PackageManager;
 import android.location.LocationManager;
 import android.os.Build;
 import android.util.Pair;
-
 import androidx.annotation.NonNull;
 import androidx.annotation.VisibleForTesting;
 import androidx.core.content.ContextCompat;
-
 import com.huawei.hmf.tasks.Task;
 import com.huawei.hms.location.Geofence;
 import com.huawei.hms.location.GeofenceRequest;
 import com.huawei.hms.location.LocationServices;
-
 import org.infobip.mobile.messaging.ConfigurationException;
 import org.infobip.mobile.messaging.ConfigurationException.Reason;
 import org.infobip.mobile.messaging.Message;
-import org.infobip.mobile.messaging.geo.Area;
-import org.infobip.mobile.messaging.geo.BootReceiver;
-import org.infobip.mobile.messaging.geo.Geo;
-import org.infobip.mobile.messaging.geo.GeoEnabledConsistencyReceiver;
-import org.infobip.mobile.messaging.geo.GeofencingConsistencyIntentService;
-import org.infobip.mobile.messaging.geo.GeofencingConsistencyReceiver;
+import org.infobip.mobile.messaging.geo.*;
 import org.infobip.mobile.messaging.geo.mapper.GeoDataMapper;
 import org.infobip.mobile.messaging.geo.storage.GeoSQLiteMessageStore;
 import org.infobip.mobile.messaging.geo.transition.GeofenceTransitionsIntentService;
@@ -39,15 +31,9 @@ import org.infobip.mobile.messaging.platform.Time;
 import org.infobip.mobile.messaging.storage.MessageStore;
 import org.infobip.mobile.messaging.util.ComponentUtil;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 public class GeofencingImpl extends Geofencing {
-
     private static final String TAG = "GeofencingImpl";
 
     @SuppressLint("StaticFieldLeak")

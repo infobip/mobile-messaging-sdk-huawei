@@ -60,5 +60,4 @@
         <item name="colorControlNormal">@android:color/white</item>
         <item name="titleTextColor">@android:color/white</item>
     </style>
-
 </resources>

@@ -2,28 +2,20 @@ package org.infobip.mobile.messaging.chat;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
-import android.app.UiModeManager;
 import android.content.Context;
 import android.content.Intent;
-import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
-
+import android.view.View;
+import android.view.ViewGroup;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.app.AppCompatDelegate;
 import androidx.core.app.TaskStackBuilder;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
-
-import org.infobip.mobile.messaging.Event;
-import org.infobip.mobile.messaging.Message;
-import org.infobip.mobile.messaging.MessageHandlerModule;
-import org.infobip.mobile.messaging.MobileMessaging;
-import org.infobip.mobile.messaging.MobileMessagingCore;
-import org.infobip.mobile.messaging.NotificationSettings;
+import org.infobip.mobile.messaging.*;
 import org.infobip.mobile.messaging.api.chat.WidgetInfo;
 import org.infobip.mobile.messaging.app.ActivityLifecycleMonitor;
 import org.infobip.mobile.messaging.chat.core.InAppChatBroadcasterImpl;
@@ -34,6 +26,7 @@ import org.infobip.mobile.messaging.chat.properties.PropertyHelper;
 import org.infobip.mobile.messaging.chat.utils.LocalizationUtils;
 import org.infobip.mobile.messaging.chat.view.InAppChatActivity;
 import org.infobip.mobile.messaging.chat.view.InAppChatFragment;
+import org.infobip.mobile.messaging.chat.view.InAppChatView;
 import org.infobip.mobile.messaging.chat.view.InAppChatWebView;
 import org.infobip.mobile.messaging.chat.view.styles.InAppChatDarkMode;
 import org.infobip.mobile.messaging.dal.bundle.MessageBundleMapper;
@@ -43,7 +36,6 @@ import org.infobip.mobile.messaging.mobileapi.MobileMessagingError;
 import org.infobip.mobile.messaging.mobileapi.Result;
 import org.infobip.mobile.messaging.platform.AndroidBroadcaster;
 
-import java.util.Comparator;
 import java.util.Locale;
 
 
@@ -120,7 +112,37 @@ public class InAppChatImpl extends InAppChat implements MessageHandlerModule {
             Fragment inAppChatFragment = ((AppCompatActivity) activity).getSupportFragmentManager().findFragmentByTag(IN_APP_CHAT_FRAGMENT_TAG);
             return inAppChatFragment != null && inAppChatFragment.isVisible() && inAppChatFragment.isResumed();
         }
+
+        //InAppChatView is visible
+        if (isInAppChatViewPresent(activity)) return true;
+
         return false;
+    }
+
+    private boolean isInAppChatViewPresent(Activity activity) {
+        View rootView = activity.findViewById(android.R.id.content).getRootView();
+        if (rootView instanceof ViewGroup) {
+            View inAppChatView = findViewByType((ViewGroup) rootView, InAppChatView.class);
+            return inAppChatView != null && inAppChatView.getVisibility() == View.VISIBLE;
+        } else {
+            return false;
+        }
+    }
+
+    private View findViewByType(ViewGroup viewGroup, Class<?> type) {
+        for (int i = 0; i < viewGroup.getChildCount(); i++) {
+            View childView = viewGroup.getChildAt(i);
+
+            if (type.isInstance(childView)) {
+                return childView;
+            } else if (childView instanceof ViewGroup) {
+                View foundView = findViewByType((ViewGroup) childView, type);
+                if (foundView != null) {
+                    return foundView;
+                }
+            }
+        }
+        return null;
     }
 
     @Override

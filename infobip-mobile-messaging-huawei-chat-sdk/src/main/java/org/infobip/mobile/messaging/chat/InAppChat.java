@@ -1,10 +1,8 @@
 package org.infobip.mobile.messaging.chat;
 
 import android.content.Context;
-
 import androidx.annotation.Nullable;
 import androidx.fragment.app.FragmentManager;
-
 import org.infobip.mobile.messaging.MobileMessaging;
 import org.infobip.mobile.messaging.chat.view.styles.InAppChatDarkMode;
 

@@ -56,11 +56,13 @@ public class PreferenceHelperTest extends MobileMessagingTestCase {
         PreferenceHelper.saveUsePrivateSharedPrefs(context, false);
 
         MobileMessagingProperty key1 = MobileMessagingProperty.APPLICATION_CODE;
+        MobileMessagingProperty key2 = MobileMessagingProperty.SENDER_ID;
         MobileMessagingProperty key3 = MobileMessagingProperty.PUSH_REGISTRATION_ENABLED;
         String value = "some value";
 
         // saving to public storage
         PreferenceHelper.saveString(context, key1, value);
+        PreferenceHelper.saveString(context, key2, value);
         PreferenceHelper.saveBoolean(context, key3, true);
 
         assertFalse(PreferenceHelper.shouldMigrateToPrivatePrefs(context));

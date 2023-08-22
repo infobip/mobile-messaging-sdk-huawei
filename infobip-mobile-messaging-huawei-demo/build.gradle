@@ -94,11 +94,11 @@ android {
             dimension "default"
         }
 
-        inbox {
+        geofencing {
             dimension "default"
         }
 
-        geofencing {
+        inbox {
             dimension "default"
         }
     }

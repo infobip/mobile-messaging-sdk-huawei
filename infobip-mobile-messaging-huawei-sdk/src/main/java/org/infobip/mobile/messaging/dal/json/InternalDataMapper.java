@@ -2,7 +2,6 @@ package org.infobip.mobile.messaging.dal.json;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-
 import org.infobip.mobile.messaging.Message;
 import org.infobip.mobile.messaging.api.support.http.serialization.JsonSerializer;
 
@@ -290,7 +289,7 @@ public class InternalDataMapper {
     }
 
     public static Message.InAppStyle getInternalDataInAppStyle(String json) {
-       try {
+        try {
             InternalData internalData = serializer.deserialize(json, InternalData.class);
             if (internalData.inAppStyle != null) {
                 return internalData.inAppStyle;

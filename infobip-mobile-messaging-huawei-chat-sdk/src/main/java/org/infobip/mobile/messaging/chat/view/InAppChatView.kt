@@ -1,6 +1,9 @@
 package org.infobip.mobile.messaging.chat.view
 
-import android.content.*
+import android.content.BroadcastReceiver
+import android.content.Context
+import android.content.Intent
+import android.content.IntentFilter
 import android.net.ConnectivityManager
 import android.os.Build
 import android.util.AttributeSet
@@ -12,7 +15,10 @@ import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner
 import com.google.android.material.snackbar.Snackbar
-import org.infobip.mobile.messaging.*
+import org.infobip.mobile.messaging.BroadcastParameter
+import org.infobip.mobile.messaging.Event
+import org.infobip.mobile.messaging.MessageHandlerModule
+import org.infobip.mobile.messaging.MobileMessagingCore
 import org.infobip.mobile.messaging.api.chat.WidgetInfo
 import org.infobip.mobile.messaging.api.support.http.client.DefaultApiClient
 import org.infobip.mobile.messaging.chat.InAppChat
@@ -269,12 +275,12 @@ class InAppChatView @JvmOverloads constructor(
 
     //region InAppChatWebViewManager
     private val inAppChatWebViewManager = object : InAppChatWebViewManager {
-        override fun onPageStarted(url: String?) {
+        override fun onPageStarted(url: String) {
             binding.ibLcSpinner.visible()
             binding.ibLcWebView.invisible()
         }
 
-        override fun onPageFinished(url: String?) {
+        override fun onPageFinished(url: String) {
             if (InAppChatWebView.BLANK_PAGE_URI == url) return
             binding.ibLcSpinner.invisible()
             binding.ibLcWebView.visible()

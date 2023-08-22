@@ -180,6 +180,7 @@ public class MainActivity extends AppCompatActivity {
                 dialog.dismiss();
             });
         }
+
         builder.show();
     }
 

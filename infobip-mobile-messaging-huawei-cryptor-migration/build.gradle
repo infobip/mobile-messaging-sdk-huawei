@@ -112,4 +112,3 @@ ext {
     PUBLISH_ARTIFACT_ID = 'infobip-mobile-messaging-huawei-cryptor-migration'
 }
 apply from: "${rootProject.projectDir}/publish-mavencentral.gradle"
-
