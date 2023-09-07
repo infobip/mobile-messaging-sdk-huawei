@@ -232,7 +232,7 @@ class InAppChatView @JvmOverloads constructor(
      */
     @JvmOverloads
     fun sendChatMessage(message: String?, attachment: InAppChatMobileAttachment? = null) {
-        val msg = CommonUtils.escapeJsonString(message)
+        val msg = message?.let { CommonUtils.escapeJsonString(message) }
         if (attachment != null) {
             inAppChatClient.sendChatMessage(msg, attachment)
         } else {
@@ -389,8 +389,13 @@ class InAppChatView @JvmOverloads constructor(
                 DefaultApiClient.ErrorCode.API_IO_ERROR.value == error.code && error.type == MobileMessagingError.Type.SERVER_ERROR
             val isRegistrationPendingError =
                 InternalSdkError.NO_VALID_REGISTRATION.error.code == error.code && mmCore.isRegistrationIdReported
-            //connection error handled separately by broadcast receiver, sync is triggered again after registration, do not show error
-            if (!isInternetConnectionError && !isRegistrationPendingError) {
+            val isInitialRegistrationError = InternalSdkError.NO_VALID_REGISTRATION.error.code == error.code && mmCore.pushRegistrationId == null
+            /**
+             * 1. connection error handled separately by broadcast receiver
+             * 2. sync is triggered again after registration, do not show error
+             * 3. ignore registration error after initial app installation when pushRegId is not present yet
+             */
+            if (!isInternetConnectionError && !isRegistrationPendingError && !isInitialRegistrationError) {
                 inAppChatErrors.insertError(
                     InAppChatErrors.Error(
                         InAppChatErrors.CONFIG_SYNC_ERROR,
