@@ -1,13 +1,13 @@
 package org.infobip.mobile.messaging.util;
 
-import org.infobip.mobile.messaging.MobileMessagingProperty;
-import org.infobip.mobile.messaging.tools.MobileMessagingTestCase;
-import org.junit.Test;
-
 import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertFalse;
 import static junit.framework.Assert.assertNull;
 import static junit.framework.Assert.assertTrue;
+
+import org.infobip.mobile.messaging.MobileMessagingProperty;
+import org.infobip.mobile.messaging.tools.MobileMessagingTestCase;
+import org.junit.Test;
 
 /**
  * @author sslavin

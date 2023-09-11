@@ -1,7 +1,13 @@
 package org.infobip.mobile.messaging.tools;
 
+import static org.mockito.BDDMockito.given;
+import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.withSettings;
+
 import android.annotation.SuppressLint;
 import android.content.Context;
+
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 
 import org.infobip.mobile.messaging.ListCustomAttributeItem;
@@ -30,7 +36,6 @@ import org.infobip.mobile.messaging.util.PreferenceHelper;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.runner.RunWith;
-import org.mockito.Mockito;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -38,11 +43,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
-
-import static org.mockito.BDDMockito.given;
-import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.withSettings;
 
 /**
  * @author sslavin
@@ -176,6 +176,7 @@ public abstract class MobileMessagingTestCase extends MobileMessagingBaseTestCas
 
         notificationHandler = mock(NotificationHandler.class);
         broadcaster = mock(Broadcaster.class);
+
 
         mobileMessagingCore = MobileMessagingTestable.create(context, broadcaster, mobileApiResourceProvider);
         mobileMessaging = mobileMessagingCore;

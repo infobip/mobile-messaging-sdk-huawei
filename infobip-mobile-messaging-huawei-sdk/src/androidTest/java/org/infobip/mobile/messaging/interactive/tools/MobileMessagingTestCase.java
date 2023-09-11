@@ -1,8 +1,14 @@
 package org.infobip.mobile.messaging.interactive.tools;
 
+import static org.infobip.mobile.messaging.BroadcastParameter.EXTRA_MESSAGE;
+import static org.infobip.mobile.messaging.BroadcastParameter.EXTRA_NOTIFICATION_ID;
+import static org.infobip.mobile.messaging.BroadcastParameter.EXTRA_TAPPED_ACTION;
+import static org.infobip.mobile.messaging.BroadcastParameter.EXTRA_TAPPED_CATEGORY;
+
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
+
 import androidx.annotation.NonNull;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 
@@ -37,13 +43,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
-
-import static org.infobip.mobile.messaging.BroadcastParameter.EXTRA_MESSAGE;
-import static org.infobip.mobile.messaging.BroadcastParameter.EXTRA_NOTIFICATION_ID;
-import static org.infobip.mobile.messaging.BroadcastParameter.EXTRA_TAPPED_ACTION;
-import static org.infobip.mobile.messaging.BroadcastParameter.EXTRA_TAPPED_CATEGORY;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 /**
  * @author tjuric
@@ -114,6 +113,8 @@ public abstract class MobileMessagingTestCase extends MobileMessagingBaseTestCas
 
         notificationHandler = Mockito.mock(NotificationHandler.class);
         messageBroadcaster = Mockito.mock(Broadcaster.class);
+
+
         mobileMessagingCore = MobileMessagingTestable.create(context, messageBroadcaster);
         mobileMessaging = mobileMessagingCore;
 

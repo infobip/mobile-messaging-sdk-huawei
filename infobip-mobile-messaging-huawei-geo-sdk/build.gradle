@@ -6,13 +6,15 @@ buildscript {
     }
     dependencies {
         classpath "com.android.tools.build:gradle:$mm_gradlePluginVersion"
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$mm_kotlinVersion"
     }
 }
 
 plugins {
     id 'com.android.library'
     id 'maven-publish'
-    id 'idea'
+    id 'org.jetbrains.kotlin.android'
+    id 'org.jetbrains.kotlin.kapt'
 }
 
 android {
@@ -30,6 +32,12 @@ android {
         buildConfigField "String", "VERSION_NAME", "\"$versionName\""
         testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'
         consumerProguardFiles 'proguard-rules.pro'
+        vectorDrawables.useSupportLibrary = true
+        multiDexEnabled true
+    }
+
+    buildFeatures {
+        viewBinding true
     }
 
     buildTypes {
@@ -40,31 +48,56 @@ android {
     }
 
     compileOptions {
+        coreLibraryDesugaringEnabled true
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
+    }
+
+    kotlinOptions {
+        jvmTarget = '1.8'
     }
 
     lintOptions {
         abortOnError false
     }
+
 }
 
 dependencies {
-    implementation project(':infobip-mobile-messaging-huawei-sdk')
+    constraints {
+        implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.8.0") {
+            because("kotlin-stdlib-jdk7 is now a part of kotlin-stdlib")
+        }
+        implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.8.0") {
+            because("kotlin-stdlib-jdk8 is now a part of kotlin-stdlib")
+        }
+    }
+
+    implementation project(":infobip-mobile-messaging-huawei-sdk")
     implementation "com.infobip:infobip-mobile-messaging-api-java:${mm_androidSdkVersion}"
     implementation('com.huawei.hms:location:6.8.0.300')
     implementation 'androidx.legacy:legacy-support-v4:1.0.0'
 
-    androidTestImplementation project(':infobip-mobile-messaging-huawei-test')
+    implementation "org.jetbrains.kotlin:kotlin-stdlib:$mm_kotlinVersion"
+    implementation "androidx.core:core-ktx:$mm_coreKtxVersion"
+
+    implementation "androidx.constraintlayout:constraintlayout:$mm_constraintLayoutVersion"
+    implementation "androidx.appcompat:appcompat:$mm_appCompatVersion"
+    implementation "com.google.android.material:material:$mm_materialVersion"
+    implementation 'androidx.exifinterface:exifinterface:1.3.6'
+
+    androidTestImplementation project(":infobip-mobile-messaging-huawei-test")
     androidTestImplementation 'androidx.test.ext:junit:1.1.3'
     androidTestImplementation "junit:junit:4.12"
     androidTestImplementation "org.mockito:mockito-core:1.10.19"
     androidTestImplementation 'com.nanohttpd:nanohttpd:2.1.0'
-    androidTestImplementation('org.skyscreamer:jsonassert:1.5.0') {
-        exclude group: "org.json", module: "json"
-    }
 
-    testImplementation project(':infobip-mobile-messaging-huawei-test')
+    testImplementation project(":infobip-mobile-messaging-huawei-test")
+    testImplementation "junit:junit:4.12"
+    testImplementation "org.mockito:mockito-core:1.10.19"
+
+    coreLibraryDesugaring "com.android.tools:desugar_jdk_libs:$mm_desugarJdkVersion"
+    implementation 'com.android.support:multidex:2.0.1'
 }
 
 android.libraryVariants.all { variant ->

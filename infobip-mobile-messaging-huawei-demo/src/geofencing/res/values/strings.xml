@@ -1,9 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Main activity -->
-    <string name="main_activity_title">Messages</string>
-    <string name="location_permission_check">Location permission check!</string>
 
-    <string name="dialog_action_save">Save</string>
+    <string name="main_activity_title">Geofencing Example</string>
+    <string name="web_view_activity_title">MainActivity</string>
     <string name="geofencing_alert_message">This application collects location data to be able to trigger notification about entering geo region even when the app is closed or not in use.</string>
 </resources>

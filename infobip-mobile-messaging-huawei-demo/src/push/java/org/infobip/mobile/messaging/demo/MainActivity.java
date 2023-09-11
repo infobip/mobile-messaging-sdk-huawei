@@ -19,6 +19,7 @@ import android.widget.Toast;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import org.infobip.mobile.messaging.Event;
@@ -50,7 +51,7 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        setSupportActionBar(this.findViewById(R.id.toolbar));
+        setSupportActionBar(this.<Toolbar>findViewById(R.id.toolbar));
 
         totalReceivedTextView = findViewById(R.id.tv_received_messages_number);
         adapter = new ArrayAdapter<>(this, R.layout.message_row, R.id.tv_message_text);

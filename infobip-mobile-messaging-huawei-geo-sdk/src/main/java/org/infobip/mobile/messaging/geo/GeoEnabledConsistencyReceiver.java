@@ -1,20 +1,22 @@
 package org.infobip.mobile.messaging.geo;
 
+import static org.infobip.mobile.messaging.geo.GeofencingConsistencyReceiver.NETWORK_PROVIDER_ENABLED_ACTION;
+import static org.infobip.mobile.messaging.geo.GeofencingConsistencyReceiver.scheduleConsistencyAlarm;
+
 import android.app.AlarmManager;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.location.LocationManager;
+
 import androidx.annotation.VisibleForTesting;
+
 import org.infobip.mobile.messaging.geo.geofencing.GeofencingHelper;
 import org.infobip.mobile.messaging.logging.MobileMessagingLogger;
 import org.infobip.mobile.messaging.platform.Time;
 import org.infobip.mobile.messaging.util.StringUtils;
 
 import java.util.Date;
-
-import static org.infobip.mobile.messaging.geo.GeofencingConsistencyReceiver.NETWORK_PROVIDER_ENABLED_ACTION;
-import static org.infobip.mobile.messaging.geo.GeofencingConsistencyReceiver.scheduleConsistencyAlarm;
 
 /**
  * @author tjuric

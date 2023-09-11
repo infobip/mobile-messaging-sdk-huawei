@@ -17,16 +17,21 @@ import org.infobip.mobile.messaging.chat.R
 import org.infobip.mobile.messaging.chat.databinding.IbViewChatInputBinding
 import org.infobip.mobile.messaging.chat.properties.MobileMessagingChatProperty
 import org.infobip.mobile.messaging.chat.properties.PropertyHelper
-import org.infobip.mobile.messaging.chat.utils.*
+import org.infobip.mobile.messaging.chat.utils.LocalizationUtils
+import org.infobip.mobile.messaging.chat.utils.hideKeyboard
+import org.infobip.mobile.messaging.chat.utils.setImageTint
+import org.infobip.mobile.messaging.chat.utils.setThrottleFirstOnClickListener
+import org.infobip.mobile.messaging.chat.utils.setTint
+import org.infobip.mobile.messaging.chat.utils.show
 import org.infobip.mobile.messaging.chat.view.styles.InAppChatDarkMode
 import org.infobip.mobile.messaging.chat.view.styles.InAppChatInputViewStyle
-import org.infobip.mobile.messaging.chat.view.styles.InAppChatInputViewStyle.Companion.applyWidgetConfig
+import org.infobip.mobile.messaging.chat.view.styles.factory.StyleFactory
 import org.infobip.mobile.messaging.logging.MobileMessagingLogger
 import java.lang.reflect.Field
 
 class InAppChatInputView @JvmOverloads constructor(
     context: Context,
-    attributes: AttributeSet? = null,
+    private val attributes: AttributeSet? = null,
     defStyle: Int = 0,
     defStyleRes: Int = 0
 ) : ConstraintLayout(context, attributes, defStyle, defStyleRes) {
@@ -36,7 +41,7 @@ class InAppChatInputView @JvmOverloads constructor(
     }
 
     private val binding = IbViewChatInputBinding.inflate(LayoutInflater.from(context), this)
-    var style = InAppChatInputViewStyle(context, attributes)
+    private var style = StyleFactory.create(context, attributes).chatInputViewStyle()
     private val localizationUtils = LocalizationUtils.getInstance(context)
 
     init {
@@ -54,18 +59,16 @@ class InAppChatInputView @JvmOverloads constructor(
     }
 
     fun applyWidgetInfoStyle(widgetInfo: WidgetInfo) {
-        style = style.applyWidgetConfig(context, widgetInfo)
+        style = StyleFactory.create(context, attributes, widgetInfo).chatInputViewStyle()
         applyStyle(style)
     }
 
+    @Suppress("DEPRECATION")
     private fun applyStyle(style: InAppChatInputViewStyle) {
         with(binding) {
-            topSeparator.contentDescription =
-                localizationUtils.getString(R.string.ib_iv_input_border_desc)
-            attachmentButton.contentDescription =
-                localizationUtils.getString(R.string.ib_iv_btn_send_attachment_desc)
-            sendButton.contentDescription =
-                localizationUtils.getString(R.string.ib_iv_btn_send_desc)
+            topSeparator.contentDescription = localizationUtils.getString(R.string.ib_iv_input_border_desc)
+            attachmentButton.contentDescription = localizationUtils.getString(R.string.ib_iv_btn_send_attachment_desc)
+            sendButton.contentDescription = localizationUtils.getString(R.string.ib_iv_btn_send_desc)
             style.textAppearance?.let {
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                     messageInput.setTextAppearance(it)
@@ -81,10 +84,14 @@ class InAppChatInputView @JvmOverloads constructor(
                 messageInput.hint = style.hintText
             }
             messageInput.setHintTextColor(style.hintTextColor)
-            style.attachmentIcon?.let { attachmentButton.setImageResource(it) }
+            style.attachmentIcon?.let { attachmentButton.setImageDrawable(it) }
             style.attachmentIconTint?.let { attachmentButton.setImageTint(it) }
-            style.sendIcon?.let { sendButton.setImageResource(it) }
+            style.attachmentBackgroundDrawable?.let { attachmentButton.setBackgroundDrawable(it) }
+            style.attachmentBackgroundColor?.let { attachmentButton.setBackgroundColor(it) }
+            style.sendIcon?.let { sendButton.setImageDrawable(it) }
             style.sendIconTint?.let { sendButton.setImageTint(it) }
+            style.sendBackgroundDrawable?.let { sendButton.setBackgroundDrawable(it) }
+            style.sendBackgroundColor?.let { sendButton.setBackgroundColor(it) }
             topSeparator.setBackgroundColor(style.separatorLineColor)
             topSeparator.show(style.isSeparatorLineVisible)
             messageInput.setCursorDrawableColor(style.cursorColor)
@@ -100,13 +107,11 @@ class InAppChatInputView @JvmOverloads constructor(
         try {
             val editorField = TextView::class.java.getFieldByName("mEditor")
             val editor = editorField?.get(this) ?: this
-            val editorClass: Class<*> =
-                if (editorField != null) editor.javaClass else TextView::class.java
-            val cursorRes =
-                TextView::class.java.getFieldByName("mCursorDrawableRes")?.get(this) as? Int
-                    ?: return
-            val tintedCursorDrawable =
-                ContextCompat.getDrawable(context, cursorRes)?.setTint(color = color) ?: return
+            val editorClass: Class<*> = if (editorField != null) editor.javaClass else TextView::class.java
+            val cursorRes = TextView::class.java.getFieldByName("mCursorDrawableRes")?.get(this) as? Int
+                ?: return
+            val tintedCursorDrawable = ContextCompat.getDrawable(context, cursorRes)?.setTint(color = color)
+                ?: return
             val cursorField = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
                 editorClass.getFieldByName("mDrawableForCursor")
             } else {

@@ -71,7 +71,12 @@ public class GeoPermissionsRequestManager extends PermissionsRequestManager {
                 .setMessage(R.string.geofencing_update_location_settings_message)
                 .setTitle(R.string.geofencing_update_location_settings_title)
                 .setPositiveButton(org.infobip.mobile.messaging.R.string.mm_button_settings, onPositiveButtonClick)
-                .setNegativeButton(org.infobip.mobile.messaging.R.string.mm_button_cancel, (dialog, which) -> dialog.dismiss());
+                .setNegativeButton(org.infobip.mobile.messaging.R.string.mm_button_cancel, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        dialog.dismiss();
+                    }
+                });
         builder.show();
     }
 }

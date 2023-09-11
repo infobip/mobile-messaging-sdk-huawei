@@ -2,6 +2,7 @@ package org.infobip.mobile.messaging.platform;
 
 import android.content.Context;
 import android.os.Build;
+
 import androidx.annotation.VisibleForTesting;
 
 import org.infobip.mobile.messaging.Installation;
@@ -63,7 +64,6 @@ public class Platform {
     }
 
     public static void verify(Context context) {
-        ComponentUtil.verifyManifestComponentsForPush(context);
         // TODO: Check: FirebaseManifestHelper.verifyAndConfigureManifest(context);
         ComponentUtil.verifyManifestComponentsForPush(context);
     }

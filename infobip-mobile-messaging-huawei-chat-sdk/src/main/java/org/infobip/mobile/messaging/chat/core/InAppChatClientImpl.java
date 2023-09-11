@@ -1,15 +1,21 @@
 package org.infobip.mobile.messaging.chat.core;
 
+import static org.infobip.mobile.messaging.chat.core.InAppChatWidgetMethods.handleMessageDraftSend;
+import static org.infobip.mobile.messaging.chat.core.InAppChatWidgetMethods.handleMessageSend;
+import static org.infobip.mobile.messaging.chat.core.InAppChatWidgetMethods.handleMessageWithAttachmentSend;
+import static org.infobip.mobile.messaging.chat.core.InAppChatWidgetMethods.sendContextualData;
+import static org.infobip.mobile.messaging.chat.core.InAppChatWidgetMethods.setLanguage;
+import static org.infobip.mobile.messaging.chat.core.InAppChatWidgetMethods.showThreadList;
+import static org.infobip.mobile.messaging.chat.utils.CommonUtils.isOSOlderThanKitkat;
+import static org.infobip.mobile.messaging.util.StringUtils.isNotBlank;
+
 import android.os.Handler;
 import android.os.Looper;
+
 import org.infobip.mobile.messaging.chat.attachments.InAppChatMobileAttachment;
 import org.infobip.mobile.messaging.chat.view.InAppChatWebView;
 import org.infobip.mobile.messaging.logging.MobileMessagingLogger;
 import org.infobip.mobile.messaging.util.StringUtils;
-
-import static org.infobip.mobile.messaging.chat.core.InAppChatWidgetMethods.*;
-import static org.infobip.mobile.messaging.chat.utils.CommonUtils.isOSOlderThanKitkat;
-import static org.infobip.mobile.messaging.util.StringUtils.isNotBlank;
 
 public class InAppChatClientImpl implements InAppChatClient {
 

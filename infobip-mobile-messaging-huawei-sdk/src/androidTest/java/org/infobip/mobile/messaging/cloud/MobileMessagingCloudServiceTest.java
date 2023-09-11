@@ -1,7 +1,5 @@
 package org.infobip.mobile.messaging.cloud;
 
-import static org.mockito.Mockito.doReturn;
-
 import android.Manifest;
 import android.content.Context;
 import android.content.Intent;
@@ -28,8 +26,8 @@ import java.util.concurrent.Executor;
 @RunWith(AndroidJUnit4.class)
 public class MobileMessagingCloudServiceTest extends PlatformTestCase {
 
-    private MobileMessagingCloudHandler handler = Mockito.mock(MobileMessagingCloudHandler.class);
-    private Context context = Mockito.mock(Context.class);
+    private final MobileMessagingCloudHandler handler = Mockito.mock(MobileMessagingCloudHandler.class);
+    private final Context context = Mockito.mock(Context.class);
 
     @Before
     public void beforeEach() {

@@ -9,13 +9,21 @@ import android.os.Handler;
 import android.os.Looper;
 import android.view.View;
 import android.view.ViewGroup;
+
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.TaskStackBuilder;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
-import org.infobip.mobile.messaging.*;
+
+import org.infobip.mobile.messaging.Event;
+import org.infobip.mobile.messaging.Message;
+import org.infobip.mobile.messaging.MessageHandlerModule;
+import org.infobip.mobile.messaging.MobileMessaging;
+import org.infobip.mobile.messaging.MobileMessagingCore;
+import org.infobip.mobile.messaging.NotificationSettings;
 import org.infobip.mobile.messaging.api.chat.WidgetInfo;
 import org.infobip.mobile.messaging.app.ActivityLifecycleMonitor;
 import org.infobip.mobile.messaging.chat.core.InAppChatBroadcasterImpl;
@@ -29,6 +37,7 @@ import org.infobip.mobile.messaging.chat.view.InAppChatFragment;
 import org.infobip.mobile.messaging.chat.view.InAppChatView;
 import org.infobip.mobile.messaging.chat.view.InAppChatWebView;
 import org.infobip.mobile.messaging.chat.view.styles.InAppChatDarkMode;
+import org.infobip.mobile.messaging.chat.view.styles.InAppChatTheme;
 import org.infobip.mobile.messaging.dal.bundle.MessageBundleMapper;
 import org.infobip.mobile.messaging.logging.MobileMessagingLogger;
 import org.infobip.mobile.messaging.mobileapi.MobileApiResourceProvider;
@@ -55,6 +64,7 @@ public class InAppChatImpl extends InAppChat implements MessageHandlerModule {
     private static Boolean isWebViewCacheCleaned = false;
     private JwtProvider jwtProvider = null;
     private InAppChatDarkMode darkMode = null;
+    private InAppChatTheme theme = null;
 
     public static InAppChatImpl getInstance(Context context) {
         if (instance == null) {
@@ -114,9 +124,7 @@ public class InAppChatImpl extends InAppChat implements MessageHandlerModule {
         }
 
         //InAppChatView is visible
-        if (isInAppChatViewPresent(activity)) return true;
-
-        return false;
+        return isInAppChatViewPresent(activity);
     }
 
     private boolean isInAppChatViewPresent(Activity activity) {
@@ -279,6 +287,16 @@ public class InAppChatImpl extends InAppChat implements MessageHandlerModule {
             propertyHelper().remove(MobileMessagingChatProperty.IN_APP_CHAT_DARK_MODE);
         else
             propertyHelper().saveString(MobileMessagingChatProperty.IN_APP_CHAT_DARK_MODE, darkMode.name());
+    }
+
+    @Override
+    public void setTheme(InAppChatTheme theme) {
+        this.theme = theme;
+    }
+
+    @Nullable
+    public InAppChatTheme getTheme() {
+        return theme;
     }
 
     @Override

@@ -1,5 +1,7 @@
 package org.infobip.mobile.messaging.notification;
 
+import static org.infobip.mobile.messaging.BroadcastParameter.EXTRA_MESSAGE;
+
 import android.Manifest;
 import android.app.Notification;
 import android.app.NotificationManager;
@@ -11,13 +13,14 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Build;
+import android.util.Log;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.VisibleForTesting;
 import androidx.core.app.NotificationCompat;
 import androidx.core.content.ContextCompat;
 import androidx.core.graphics.BitmapCompat;
-import android.util.Log;
 
 import org.infobip.mobile.messaging.ConfigurationException;
 import org.infobip.mobile.messaging.Message;
@@ -37,9 +40,6 @@ import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.List;
-
-import static org.infobip.mobile.messaging.BroadcastParameter.EXTRA_MESSAGE;
 
 /**
  * @author sslavin
@@ -206,7 +206,7 @@ public class BaseNotificationHandler {
 
     @SuppressWarnings("WrongConstant")
     @NonNull
-    private PendingIntent createTapPendingIntent(NotificationSettings notificationSettings, Message message) {
+    private PendingIntent createTapPendingIntent(@NonNull NotificationSettings notificationSettings, Message message) {
 
         Intent callbackIntent;
         if (StringUtils.isNotBlank(message.getWebViewUrl())) {
@@ -227,13 +227,28 @@ public class BaseNotificationHandler {
 
         Intent[] intents = new Intent[intentsList.size()];
 
+        int pendingIntentFlags = notificationSettings.getPendingIntentFlags();
+
+        //if PendingIntent.FLAG_IMMUTABLE wasn't set, setting it because for Android 12 it's mandatory
+        pendingIntentFlags = setPendingIntentMutabilityFlagIfNeeded(pendingIntentFlags);
+
         return PendingIntent.getActivities(
                 context,
                 0,
                 intentsList.toArray(intents),
-                notificationSettings.getPendingIntentFlags()
+                pendingIntentFlags
         );
 
+    }
+
+    int setPendingIntentMutabilityFlagIfNeeded(int currentFlags) {
+        int resultFlags = currentFlags;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S &&
+                (currentFlags & PendingIntent.FLAG_IMMUTABLE) != PendingIntent.FLAG_IMMUTABLE &&
+                (currentFlags & PendingIntent.FLAG_MUTABLE) != PendingIntent.FLAG_MUTABLE) {
+            resultFlags |= PendingIntent.FLAG_IMMUTABLE;
+        }
+        return resultFlags;
     }
 
     private NotificationSettings notificationSettings(Message message) {

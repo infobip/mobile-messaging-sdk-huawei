@@ -1,6 +1,7 @@
 package org.infobip.mobile.messaging.geo.tools;
 
 import android.content.Context;
+
 import org.infobip.mobile.messaging.MobileMessagingCore;
 import org.infobip.mobile.messaging.mobileapi.MobileApiResourceProvider;
 import org.infobip.mobile.messaging.platform.Broadcaster;

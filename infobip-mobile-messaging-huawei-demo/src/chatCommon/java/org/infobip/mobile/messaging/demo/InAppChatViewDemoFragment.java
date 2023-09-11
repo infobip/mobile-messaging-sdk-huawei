@@ -8,19 +8,19 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 
-import com.google.android.material.textfield.TextInputEditText;
-
-import org.infobip.mobile.messaging.api.chat.WidgetInfo;
-import org.infobip.mobile.messaging.chat.core.InAppChatWidgetView;
-import org.infobip.mobile.messaging.chat.view.InAppChatView;
-import org.infobip.mobile.messaging.util.StringUtils;
-
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentTransaction;
+
+import com.google.android.material.textfield.TextInputEditText;
+
+import org.infobip.mobile.messaging.api.chat.WidgetInfo;
+import org.infobip.mobile.messaging.chat.core.InAppChatWidgetView;
+import org.infobip.mobile.messaging.chat.view.InAppChatView;
+import org.infobip.mobile.messaging.util.StringUtils;
 
 public class InAppChatViewDemoFragment extends Fragment {
 
@@ -126,6 +126,7 @@ public class InAppChatViewDemoFragment extends Fragment {
             public void onChatDisconnected() {
                 //Chat was disconnected, blank page is loaded.
             }
+
         };
         inAppChatView.setEventsListener(eventsListener);
         inAppChatView.setErrorsHandler(new InAppChatView.ErrorsHandler() {

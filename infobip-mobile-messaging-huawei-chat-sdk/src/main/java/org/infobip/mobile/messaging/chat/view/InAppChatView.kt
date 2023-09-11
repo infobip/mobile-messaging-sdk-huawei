@@ -1,9 +1,6 @@
 package org.infobip.mobile.messaging.chat.view
 
-import android.content.BroadcastReceiver
-import android.content.Context
-import android.content.Intent
-import android.content.IntentFilter
+import android.content.*
 import android.net.ConnectivityManager
 import android.os.Build
 import android.util.AttributeSet
@@ -15,10 +12,7 @@ import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner
 import com.google.android.material.snackbar.Snackbar
-import org.infobip.mobile.messaging.BroadcastParameter
-import org.infobip.mobile.messaging.Event
-import org.infobip.mobile.messaging.MessageHandlerModule
-import org.infobip.mobile.messaging.MobileMessagingCore
+import org.infobip.mobile.messaging.*
 import org.infobip.mobile.messaging.api.chat.WidgetInfo
 import org.infobip.mobile.messaging.api.support.http.client.DefaultApiClient
 import org.infobip.mobile.messaging.chat.InAppChat
@@ -32,7 +26,7 @@ import org.infobip.mobile.messaging.chat.properties.MobileMessagingChatProperty
 import org.infobip.mobile.messaging.chat.properties.PropertyHelper
 import org.infobip.mobile.messaging.chat.utils.*
 import org.infobip.mobile.messaging.chat.view.styles.InAppChatStyle
-import org.infobip.mobile.messaging.chat.view.styles.InAppChatStyle.Companion.applyWidgetConfig
+import org.infobip.mobile.messaging.chat.view.styles.factory.StyleFactory
 import org.infobip.mobile.messaging.logging.MobileMessagingLogger
 import org.infobip.mobile.messaging.mobileapi.InternalSdkError
 import org.infobip.mobile.messaging.mobileapi.MobileMessagingError
@@ -41,7 +35,7 @@ import java.util.*
 
 class InAppChatView @JvmOverloads constructor(
     context: Context,
-    attributes: AttributeSet? = null,
+    private val attributes: AttributeSet? = null,
     defStyle: Int = 0,
     defStyleRes: Int = 0
 ) : ConstraintLayout(context, attributes, defStyle, defStyleRes) {
@@ -75,7 +69,7 @@ class InAppChatView @JvmOverloads constructor(
     }
 
     private val binding = IbViewChatBinding.inflate(LayoutInflater.from(context), this)
-    private var style = InAppChatStyle(context, attributes)
+    private var style = StyleFactory.create(context, attributes).chatStyle()
     private val inAppChat = InAppChat.getInstance(context)
     private val inAppChatClient: InAppChatClient = InAppChatClientImpl(binding.ibLcWebView)
     private var inAppChatBroadcaster: InAppChatBroadcaster = InAppChatBroadcasterImpl(context)
@@ -145,7 +139,6 @@ class InAppChatView @JvmOverloads constructor(
         inAppChat.activate()
         binding.ibLcWebView.setup(inAppChatWebViewManager)
         lifecycle.addObserver(lifecycleObserver)
-        updateWidgetInfo()
     }
 
     /**
@@ -275,9 +268,8 @@ class InAppChatView @JvmOverloads constructor(
 
     //region InAppChatWebViewManager
     private val inAppChatWebViewManager = object : InAppChatWebViewManager {
+
         override fun onPageStarted(url: String) {
-            binding.ibLcSpinner.visible()
-            binding.ibLcWebView.invisible()
         }
 
         override fun onPageFinished(url: String) {
@@ -461,6 +453,7 @@ class InAppChatView @JvmOverloads constructor(
         ibLcWebView.loadChatPage(force, widgetInfo, inAppChat.jwtProvider?.provideJwt())
     }
 
+    @Suppress("DEPRECATION")
     private fun applyStyle(style: InAppChatStyle) = with(binding) {
         root.setBackgroundColor(style.backgroundColor)
         ibLcWebView.setBackgroundColor(style.backgroundColor)
@@ -485,7 +478,7 @@ class InAppChatView @JvmOverloads constructor(
         MobileMessagingLogger.d(TAG, "Update widget info")
         widgetInfo = prepareWidgetInfo()
         widgetInfo?.let {
-            style = style.applyWidgetConfig(context, it)
+            style = StyleFactory.create(context, attributes, widgetInfo).chatStyle()
             applyStyle(style)
             eventsListener?.onChatWidgetInfoUpdated(it)
         }

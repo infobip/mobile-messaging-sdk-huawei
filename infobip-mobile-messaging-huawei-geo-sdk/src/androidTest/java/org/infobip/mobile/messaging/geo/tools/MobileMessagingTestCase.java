@@ -1,7 +1,12 @@
 package org.infobip.mobile.messaging.geo.tools;
 
+import static org.mockito.BDDMockito.given;
+import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.mock;
+
 import android.annotation.SuppressLint;
 import android.content.Context;
+
 import org.infobip.mobile.messaging.Message;
 import org.infobip.mobile.messaging.MobileMessaging;
 import org.infobip.mobile.messaging.MobileMessagingCore;
@@ -13,7 +18,11 @@ import org.infobip.mobile.messaging.api.support.http.serialization.JsonSerialize
 import org.infobip.mobile.messaging.dal.json.InternalDataMapper;
 import org.infobip.mobile.messaging.dal.sqlite.DatabaseHelper;
 import org.infobip.mobile.messaging.dal.sqlite.SqliteDatabaseProvider;
-import org.infobip.mobile.messaging.geo.*;
+import org.infobip.mobile.messaging.geo.Area;
+import org.infobip.mobile.messaging.geo.Geo;
+import org.infobip.mobile.messaging.geo.GeoEventSettings;
+import org.infobip.mobile.messaging.geo.GeoEventType;
+import org.infobip.mobile.messaging.geo.GeoLatLng;
 import org.infobip.mobile.messaging.geo.geofencing.GeofencingHelper;
 import org.infobip.mobile.messaging.geo.mapper.GeoDataMapper;
 import org.infobip.mobile.messaging.geo.platform.GeoBroadcaster;
@@ -33,10 +42,6 @@ import org.junit.Before;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.concurrent.TimeUnit;
-
-import static org.mockito.BDDMockito.given;
-import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.mock;
 
 /**
  * @author sslavin

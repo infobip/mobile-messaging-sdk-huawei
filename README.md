@@ -64,6 +64,11 @@ Mobile Messaging SDK is designed and developed to easily enable push notificatio
     ```
     <img src="https://github.com/infobip/mobile-messaging-sdk-android/wiki/images/QSGActivity.png?raw=true" alt="String resources"/>
 
+> ### Notice:
+> Since Android 13+ we are using default notification permission request dialog.
+> It is possible to trigger permission request later, to learn how please follow: <a href="https://github.com/infobip/mobile-messaging-sdk-android/wiki/Android-13-Notification-Permission-Handling" target="_blank">Android 13 notification permission handling</a>.
+
+
 <br>
 <p align="center"><b>NEXT STEPS: <a href="https://github.com/infobip/mobile-messaging-sdk-android/wiki/User-profile">User profile</a></b></p>
 <br>
@@ -72,7 +77,7 @@ Mobile Messaging SDK is designed and developed to easily enable push notificatio
 > 1. All required manifest components are merged to application manifest automatically by manifest merger. Please include <a href="https://github.com/infobip/mobile-messaging-sdk-huawei/wiki/Android-Manifest-components#push-notifications" target="_blank">push-related components</a> to manifest manually if manifest merger was disabled.
 > 2. Keep in mind that some proprietary Android versions may restrict network traffic for your app. It may in turn affect delivery of push notifications.
 > 3. 3.0.0-rc version doesn't contain geo module, it'll be updated in the next releases.
-<br>
+     <br>
 
 | If you have any questions or suggestions, feel free to send an email to support@infobip.com or create an <a href="https://github.com/infobip/mobile-messaging-sdk-huawei/issues" target="_blank">issue</a>. |
 |---|

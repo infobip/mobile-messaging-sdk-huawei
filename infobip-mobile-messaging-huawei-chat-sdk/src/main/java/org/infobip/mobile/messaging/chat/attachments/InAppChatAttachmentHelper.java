@@ -31,7 +31,7 @@ public class InAppChatAttachmentHelper {
     public static final String MIME_TYPE_VIDEO_MP_4 = "video/mp4";
     public static final String MIME_TYPE_IMAGE_JPEG = "image/jpeg";
 
-    public static void makeAttachment(final FragmentActivity context, final Intent data, final Uri capturedMediaStoreUri, final InAppChatAttachmentHelper.InAppChatAttachmentHelperListener listener) {
+    public static void makeAttachment(final FragmentActivity context, final Intent data, final Uri capturedMediaStoreUri, final InAppChatAttachmentHelperListener listener) {
         AsyncTask.execute(() -> {
             try {
                 //From media store Uri we need to get real Uri of the file
