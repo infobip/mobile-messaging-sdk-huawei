@@ -341,15 +341,14 @@ public class InAppChatImpl extends InAppChat implements MessageHandlerModule {
 
     @Override
     public void setLanguage(String language) {
-        if (inAppChatWVFragment != null) {
-            inAppChatWVFragment.setLanguage(language);
-        }
-
-        propertyHelper().saveString(MobileMessagingChatProperty.IN_APP_CHAT_LANGUAGE, language);
-
         try {
-            Locale locale = LocalizationUtils.localeFromString(language);
-            LocalizationUtils.getInstance(context).setLanguage(locale);
+            LocalizationUtils localizationUtils = LocalizationUtils.getInstance(context);
+            Locale locale = localizationUtils.localeFromString(language);
+            String appliedLocale = locale.toString();
+            propertyHelper().saveString(MobileMessagingChatProperty.IN_APP_CHAT_LANGUAGE, appliedLocale);
+            if (inAppChatWVFragment != null) {
+                inAppChatWVFragment.setLanguage(locale);
+            }
         } catch (Throwable t) {
             MobileMessagingLogger.d("Not valid language set: " + language);
         }

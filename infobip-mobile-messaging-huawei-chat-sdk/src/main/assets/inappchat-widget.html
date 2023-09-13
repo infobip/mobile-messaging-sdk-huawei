@@ -61,12 +61,14 @@
             }
         })
 
-        function setLanguage(language) {
+        window.setLanguage = function(language) {
             liveChat(SET_LANGUAGE, language);
         }
 
-        function sendContextualData(data, strategy) {
-             liveChat(SEND_CONTEXTUAL_DATA, {
+        window.sendContextualData = function(data, strategy) {
+             liveChat(
+                SEND_CONTEXTUAL_DATA,
+                {
                    metadata: data,
                    multiThreadStrategy: strategy
              });

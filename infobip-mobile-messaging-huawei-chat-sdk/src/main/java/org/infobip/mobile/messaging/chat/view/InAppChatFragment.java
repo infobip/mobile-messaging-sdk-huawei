@@ -50,7 +50,6 @@ import androidx.annotation.ColorInt;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.ActionBar;
-import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.graphics.ColorUtils;
 import androidx.fragment.app.Fragment;
@@ -88,6 +87,7 @@ import org.infobip.mobile.messaging.util.SystemInformation;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Set;
 
 public class InAppChatFragment extends Fragment implements InAppChatWebViewManager, PermissionsRequestManager.PermissionsRequester {
@@ -136,6 +136,8 @@ public class InAppChatFragment extends Fragment implements InAppChatWebViewManag
         }
     };
     private InAppChatActionBarProvider inAppChatActionBarProvider;
+    private MobileMessagingCore mobileMessagingCore;
+    private LocalizationUtils localizationUtils;
 
     /**
      * Implement InAppChatActionBarProvider in your Activity, where InAppChatWebViewFragment will be added.
@@ -168,6 +170,8 @@ public class InAppChatFragment extends Fragment implements InAppChatWebViewManag
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+        localizationUtils = LocalizationUtils.getInstance(requireContext());
+        mobileMessagingCore = MobileMessagingCore.getInstance(getContext());
         containerView = view;
         FragmentActivity fragmentActivity = getFragmentActivity();
         if (fragmentActivity == null) {
@@ -189,15 +193,6 @@ public class InAppChatFragment extends Fragment implements InAppChatWebViewManag
     public void onDestroyView() {
         super.onDestroyView();
         removeBackPressHandler();
-    }
-
-    private void localisation() {
-        localization = LocalizationUtils.getInstance(requireContext());
-        containerView.findViewById(R.id.ib_lc_iv_input_top_border).setContentDescription(localization.getString(R.string.ib_iv_input_border_desc));
-        sendAttachmentButton.setContentDescription(localization.getString(R.string.ib_iv_btn_send_attachment_desc));
-        sendMessageButton.setContentDescription(localization.getString(R.string.ib_iv_btn_send_desc));
-        containerView.<TextView>findViewById(R.id.ib_lc_et_msg_input).setHint(localization.getString(R.string.ib_chat_message_hint));
-        errorToast.setText(localization.getString(R.string.ib_chat_no_connection));
     }
 
     @Override
@@ -359,6 +354,7 @@ public class InAppChatFragment extends Fragment implements InAppChatWebViewManag
     }
 
     private void navigateBack() {
+        hideKeyboard(messageInput);
         if (isMultiThread()) {
             switch (currentWidgetView) {
                 case LOADING:
@@ -479,16 +475,19 @@ public class InAppChatFragment extends Fragment implements InAppChatWebViewManag
                 inputCheckerHandler.postDelayed(inputFinishChecker, USER_INPUT_CHECKER_DELAY_MS);
             }
         });
-        messageInput.setOnFocusChangeListener(new View.OnFocusChangeListener() {
-            @Override
-            public void onFocusChange(View v, boolean hasFocus) {
-                FragmentActivity activity = getFragmentActivity();
-                if (activity != null && !hasFocus) {
-                    InputMethodManager inputManager = (InputMethodManager) activity.getSystemService(Context.INPUT_METHOD_SERVICE);
-                    inputManager.hideSoftInputFromWindow(v.getWindowToken(), InputMethodManager.HIDE_NOT_ALWAYS);
-                }
+        messageInput.setOnFocusChangeListener((v, hasFocus) -> {
+            if (!hasFocus) {
+                hideKeyboard(v);
             }
         });
+    }
+
+    private void hideKeyboard(View view) {
+        FragmentActivity activity = getFragmentActivity();
+        if (activity != null && view != null) {
+            InputMethodManager inputManager = (InputMethodManager) activity.getSystemService(Context.INPUT_METHOD_SERVICE);
+            inputManager.hideSoftInputFromWindow(view.getWindowToken(), InputMethodManager.HIDE_NOT_ALWAYS);
+        }
     }
 
     private void fillButtonByPrimaryColor(ImageView buttonToFill) {
@@ -573,26 +572,40 @@ public class InAppChatFragment extends Fragment implements InAppChatWebViewManag
     public void onPageStarted() {
         spinner.setVisibility(View.VISIBLE);
         webView.setVisibility(View.INVISIBLE);
-        applyLanguage();
-    }
-
-    private void applyLanguage() {
-        String storedLanguage = widgetInfo.getLanguage();
-        String language;
-        if (storedLanguage == null) {
-            language = MobileMessagingCore.getInstance(getContext()).getInstallation().getLanguage();
-            LocalizationUtils.getInstance(getContext()).setLanguage(LocalizationUtils.localeFromString(language));
-        } else {
-            language = storedLanguage;
-        }
-        localisation();
-        setLanguage(language);
     }
 
     @Override
     public void onPageFinished() {
         spinner.setVisibility(View.GONE);
         webView.setVisibility(View.VISIBLE);
+        applyLanguage();
+    }
+
+    private void applyLanguage() {
+        String storedLanguage = widgetInfo.getLanguage();
+        String language;
+        if (StringUtils.isNotBlank(storedLanguage)) {
+            language = storedLanguage;
+        } else {
+            language = mobileMessagingCore.getInstallation().getLanguage();
+        }
+        Locale locale = localizationUtils.localeFromString(language);
+        setLanguage(locale);
+    }
+
+    public void setLanguage(Locale locale) {
+        MobileMessagingLogger.d("InAppChat", "setLanguage(" + locale.toString() + ")");
+        inAppChatClient.setLanguage(locale.getLanguage()); //LC widget uses only language
+        localizationUtils.setLanguage(locale); //native parts use language and country code
+        localisation();
+    }
+
+    private void localisation() {
+        LocalizationUtils localization = LocalizationUtils.getInstance(requireContext());
+        containerView.findViewById(R.id.ib_lc_iv_input_top_border).setContentDescription(localization.getString(R.string.ib_iv_input_border_desc));
+        sendAttachmentButton.setContentDescription(localization.getString(R.string.ib_iv_btn_send_attachment_desc));
+        sendMessageButton.setContentDescription(localization.getString(R.string.ib_iv_btn_send_desc));
+        containerView.<TextView>findViewById(R.id.ib_lc_et_msg_input).setHint(localization.getString(R.string.ib_chat_message_hint));
     }
 
     @Override
@@ -654,11 +667,6 @@ public class InAppChatFragment extends Fragment implements InAppChatWebViewManag
     }
 
     @Override
-    public void setLanguage(String language) {
-        inAppChatClient.setLanguage(language);
-    }
-
-    @Override
     public void onWidgetViewChanged(InAppChatWidgetView widgetView) {
         this.currentWidgetView = widgetView;
         updateViewsVisibilityByMultiThreadView();
@@ -683,7 +691,6 @@ public class InAppChatFragment extends Fragment implements InAppChatWebViewManag
         }
     }
 
-    @Override
     public void sendContextualMetaData(String data, InAppChatMultiThreadFlag multiThreadFlag) {
         inAppChatClient.sendContextualData(data, multiThreadFlag);
     }
