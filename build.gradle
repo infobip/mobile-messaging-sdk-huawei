@@ -18,6 +18,9 @@ plugins {
     id 'maven-publish'
     id "io.github.gradle-nexus.publish-plugin" version "1.1.0"
     id 'org.jetbrains.kotlin.android' version "$mm_kotlinVersion" apply false
+    id "org.sonarqube" version "4.0.0.2929"
+    id "jacoco"
+    id "java"
 }
 
 ext {
@@ -38,10 +41,6 @@ subprojects {
     apply plugin: "maven-publish"
 }
 
-task clean(type: Delete) {
-    delete rootProject.buildDir
-}
-
 task updateVersionInReadme {
     doLast {
         def readmeFile = new File('README.md')
@@ -56,8 +55,6 @@ afterReleaseBuild.dependsOn updateVersionInReadme
 
 // workaround for `net.researchgate.release` plugin issue:
 // https://github.com/researchgate/gradle-release/issues/186
-
-task build {}
 
 build.dependsOn tasks.getByPath('infobip-mobile-messaging-huawei-inbox-sdk:build')
 build.dependsOn tasks.getByPath('infobip-mobile-messaging-huawei-chat-sdk:build')
@@ -86,5 +83,25 @@ release {
     git {
         requireBranch = ''
         pushToRemote = 'origin'
+    }
+}
+
+sonar {
+    properties {
+        property "sonar.host.url", "https://sonar.ib-ci.com"
+        property "sonar.sourceEncoding", "UTF-8"
+        property "sonar.branch.name", System.getenv('BRANCH_NAME_TO_BUILD')
+        property "sonar.projectVersion", project.version
+        property "sonar.projectName", "infobip-mobile-messaging-huawei"
+        property "sonar.projectKey" , "MML_infobip-mobile-messaging-huawei_AYupCFqotfOmZaEwVMOH"
+        property "sonar.exclusions", "" +
+                "infobip-mobile-messaging-huawei-demo/**/*, " +
+                "infobip-mobile-messaging-huawei-cryptor-migration/**/*, " +
+                "infobip-mobile-messaging-huawei-test/**/*, "
+        property "sonar.java.coveragePlugin", "jacoco"
+        property "sonar.coverage.jacoco.xmlReportPaths", "" +
+                "${project.projectDir}/infobip-mobile-messaging-huawei-geo-sdk/build/reports/jacoco/debugCoverage/debugCoverage.xml, " +
+                "${project.projectDir}/infobip-mobile-messaging-huawei-inbox-sdk/build/reports/jacoco/debugCoverage/debugCoverage.xml, " +
+                "${project.projectDir}/infobip-mobile-messaging-huawei-sdk/build/reports/jacoco/debugCoverage/debugCoverage.xml, "
     }
 }
