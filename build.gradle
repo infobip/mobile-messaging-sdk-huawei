@@ -93,7 +93,7 @@ sonar {
         property "sonar.branch.name", System.getenv('BRANCH_NAME_TO_BUILD')
         property "sonar.projectVersion", project.version
         property "sonar.projectName", "infobip-mobile-messaging-huawei"
-        property "sonar.projectKey" , "MML_infobip-mobile-messaging-huawei_AYupCFqotfOmZaEwVMOH"
+        property "sonar.projectKey" , "infobip-mobile-messaging-huawei"
         property "sonar.exclusions", "" +
                 "infobip-mobile-messaging-huawei-demo/**/*, " +
                 "infobip-mobile-messaging-huawei-cryptor-migration/**/*, " +
