@@ -52,6 +52,7 @@ import org.infobip.mobile.messaging.telephony.MobileNetworkStateListener;
 import org.infobip.mobile.messaging.util.*;
 
 import java.lang.reflect.Method;
+import java.security.MessageDigest;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -2064,7 +2065,7 @@ public class MobileMessagingCore
                 if (applicationCode != null) {
                     String resolvedApplicationCodeHash = MobileMessagingCore.calculateAppCodeHash(applicationCode);
                     if ((existingApplicationCode != null && !applicationCode.equals(existingApplicationCode) ||
-                            existingApplicationCodeHash != null && !resolvedApplicationCodeHash.equals(existingApplicationCodeHash))) {
+                            existingApplicationCodeHash != null && !MessageDigest.isEqual(resolvedApplicationCodeHash.getBytes(),existingApplicationCodeHash.getBytes()))) {
                         MobileMessagingLogger.d("Cleaning up push registration data because application code has changed");
                         MobileMessagingCore.cleanup(application);
                     }
@@ -2073,7 +2074,7 @@ public class MobileMessagingCore
                 String resolvedApplicationCode = MobileMessagingCore.resolveApplicationCodeFromAppCodeProvider(applicationContext, applicationCodeProvider);
                 if (existingApplicationCodeHash != null && resolvedApplicationCode != null) {
                     String resolvedApplicationCodeHash = MobileMessagingCore.calculateAppCodeHash(resolvedApplicationCode);
-                    if (!existingApplicationCodeHash.equals(resolvedApplicationCodeHash)) {
+                    if (!MessageDigest.isEqual(resolvedApplicationCodeHash.getBytes(), existingApplicationCodeHash.getBytes())) {
                         MobileMessagingLogger.d("Cleaning up push registration data because application code has changed");
                         MobileMessagingCore.cleanup(application);
                     }

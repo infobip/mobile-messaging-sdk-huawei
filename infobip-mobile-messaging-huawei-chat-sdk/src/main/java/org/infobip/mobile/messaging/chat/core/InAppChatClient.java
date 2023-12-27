@@ -16,7 +16,8 @@ public interface InAppChatClient {
 
     /**
      * Send typed message and attachment
-     * @param message user message
+     *
+     * @param message    user message
      * @param attachment IMAGE, VIDEO, DOCUMENT
      */
     void sendChatMessage(String message, InAppChatMobileAttachment attachment);
@@ -47,4 +48,14 @@ public interface InAppChatClient {
      * Change destination from thread to list in multiThread widget. For non multiThread widget it does nothing.
      */
     void showThreadList();
+
+    /**
+     * Close webSocket connection and be able to receive push notifications
+     */
+    void mobileChatPause();
+
+    /**
+     * Resume webSocket connection
+     */
+    void mobileChatResume();
 }

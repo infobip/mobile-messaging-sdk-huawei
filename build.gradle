@@ -18,7 +18,7 @@ plugins {
     id 'maven-publish'
     id "io.github.gradle-nexus.publish-plugin" version "1.1.0"
     id 'org.jetbrains.kotlin.android' version "$mm_kotlinVersion" apply false
-    id "org.sonarqube" version "4.0.0.2929"
+    id "org.sonarqube" version "4.4.1.3373"
     id "jacoco"
     id "java"
 }
@@ -28,12 +28,12 @@ ext {
     mm_compileSdkVersion = 33
     mm_targetSdkVersion = 33
     mm_buildToolsVersion = "33.0.0"
-    mm_androidSdkVersion = "10.0.0"
+    mm_androidSdkVersion = "11.1.4"
     mm_constraintLayoutVersion = "2.1.4"
     mm_appCompatVersion = "1.6.1"
     mm_materialVersion = "1.9.0"
     mm_coreKtxVersion = "1.9.0"
-    mm_desugarJdkVersion = "1.1.8"
+    mm_desugarJdkVersion = "2.0.3"
 }
 
 //It's required to be applied here, to have `subprojects.publish` task available
