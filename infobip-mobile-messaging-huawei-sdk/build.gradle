@@ -59,6 +59,8 @@ dependencies {
     // push kit
     implementation 'com.huawei.hms:push:6.3.0.302'
 
+    implementation('androidx.cardview:cardview:1.0.0')
+
     androidTestImplementation project(':infobip-mobile-messaging-huawei-test')
     androidTestImplementation 'androidx.test.ext:junit:1.1.3'
     androidTestImplementation "junit:junit:4.12"

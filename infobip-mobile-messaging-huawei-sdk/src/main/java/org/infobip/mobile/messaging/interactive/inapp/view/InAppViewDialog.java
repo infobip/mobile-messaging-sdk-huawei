@@ -10,6 +10,9 @@ import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
+
 import org.infobip.mobile.messaging.Message;
 import org.infobip.mobile.messaging.R;
 import org.infobip.mobile.messaging.interactive.NotificationAction;
@@ -23,7 +26,7 @@ import java.util.concurrent.Executor;
  * @author sslavin
  * @since 13/04/2018.
  */
-public class InAppViewDialog implements InAppView {
+public class InAppViewDialog implements InAppNativeView {
 
     private final Callback callback;
     private final View dialogView;
