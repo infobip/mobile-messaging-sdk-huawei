@@ -32,6 +32,7 @@ import org.infobip.mobile.messaging.chat.view.styles.factory.StyleFactory
 import org.infobip.mobile.messaging.logging.MobileMessagingLogger
 import org.infobip.mobile.messaging.mobileapi.InternalSdkError
 import org.infobip.mobile.messaging.mobileapi.MobileMessagingError
+import org.infobip.mobile.messaging.mobileapi.Result
 import org.infobip.mobile.messaging.util.StringUtils
 import org.infobip.mobile.messaging.util.SystemInformation
 import java.util.*
@@ -47,12 +48,40 @@ class InAppChatView @JvmOverloads constructor(
      * [InAppChatView] events listener propagates events coming from Livechat Widget
      */
     interface EventsListener {
+        /**
+         * Called once chat has been loaded and connection established. If controlsEnabled == true there was no error.
+         */
         fun onChatLoaded(controlsEnabled: Boolean)
+
+        /**
+         * Chat connection has been stopped by [stopConnection].
+         * Chat loaded and connected state is not the same. Chat can be loaded but connection can be stopped.
+         */
         fun onChatDisconnected()
+
+        /**
+         * Chat connection has been re-established by [restartConnection].
+         */
         fun onChatReconnected()
+
+        /**
+         * Chat controls visibility has changed.
+         */
         fun onChatControlsVisibilityChanged(isVisible: Boolean)
+
+        /**
+         * Attachment from chat has been interacted.
+         */
         fun onAttachmentPreviewOpened(url: String?, type: String?, caption: String?)
+
+        /**
+         * Chat view has changed.
+         */
         fun onChatViewChanged(widgetView: InAppChatWidgetView)
+
+        /**
+         * Chat [WidgetInfo] has been updated.
+         */
         fun onChatWidgetInfoUpdated(widgetInfo: WidgetInfo)
     }
 
@@ -70,7 +99,7 @@ class InAppChatView @JvmOverloads constructor(
         private const val CHAT_SERVICE_ERROR = "12"
         private const val CHAT_WIDGET_NOT_FOUND = "24"
         private const val TAG = "InAppChatView"
-        const val MESSAGE_MAX_LENGTH = 1000
+        const val MESSAGE_MAX_LENGTH = 4096
     }
 
     private val binding = IbViewChatBinding.inflate(LayoutInflater.from(context), this)
@@ -83,7 +112,7 @@ class InAppChatView @JvmOverloads constructor(
     private var widgetInfo: WidgetInfo? = null
     private var lastControlsVisibility: Boolean? = null
     private var isChatLoaded: Boolean = false
-
+    private var lifecycle: Lifecycle? = null
 
     /**
      * [InAppChatView] event listener allows you to listen to Livechat widget events.
@@ -94,7 +123,7 @@ class InAppChatView @JvmOverloads constructor(
      * Returns true if chat is synchronized and multithread feature is enabled, otherwise returns false.
      */
     val isMultiThread: Boolean
-        get() = widgetInfo?.isMultiThread() ?: false
+        get() = widgetInfo?.isMultiThread ?: false
 
     val defaultErrorsHandler: ErrorsHandler = object : ErrorsHandler {
 
@@ -153,6 +182,7 @@ class InAppChatView @JvmOverloads constructor(
      * @param lifecycle lifecycle of android Activity or Fragment
      */
     fun init(lifecycle: Lifecycle) {
+        this.lifecycle = lifecycle
         updateWidgetInfo()
         inAppChat.activate()
         binding.ibLcWebView.setup(inAppChatWebViewManager)
@@ -174,9 +204,16 @@ class InAppChatView @JvmOverloads constructor(
     fun restartConnection() {
         if (widgetInfo == null)
             updateWidgetInfo()
-        inAppChatClient.mobileChatResume()
-        eventsListener?.onChatReconnected()
-        MobileMessagingLogger.d(TAG, "Chat connection established.")
+        val listener = object : MobileMessaging.ResultListener<String>() {
+            override fun onResult(result: Result<String, MobileMessagingError>) {
+                if (result.isSuccess) {
+                    eventsListener?.onChatReconnected()
+                } else {
+                    MobileMessagingLogger.e(TAG, "Could not restart chat connections: ${result.error.message}")
+                }
+            }
+        }
+        inAppChatClient.mobileChatResume(listener)
     }
 
     /**
@@ -194,9 +231,19 @@ class InAppChatView @JvmOverloads constructor(
      * To detect if chat connection is stopped use [EventsListener.onChatDisconnected] event from [EventsListener].
      */
     fun stopConnection() {
-        inAppChatClient.mobileChatPause()
-        eventsListener?.onChatDisconnected()
-        MobileMessagingLogger.d(TAG, "Chat connection stopped.")
+        val listener = object : MobileMessaging.ResultListener<String>() {
+            override fun onResult(result: Result<String, MobileMessagingError>) {
+                if (result.isSuccess) {
+                    eventsListener?.onChatDisconnected()
+                } else {
+                    MobileMessagingLogger.e(TAG, "Could not stop chat connections: ${result.error.message}")
+                }
+                if (lifecycle?.currentState == Lifecycle.State.DESTROYED) {
+                    binding.ibLcWebView.destroy()
+                }
+            }
+        }
+        inAppChatClient.mobileChatPause(listener)
     }
 
     /**
@@ -209,8 +256,8 @@ class InAppChatView @JvmOverloads constructor(
             MobileMessagingChatProperty.IN_APP_CHAT_LANGUAGE,
             locale.toString()
         )
-        inAppChatClient.setLanguage(locale.language) //LC widget uses only language
-        localizationUtils.setLanguage(locale) //native parts use language and country code
+        inAppChatClient.setLanguage(locale)
+        localizationUtils.setLanguage(locale)
         updateWidgetInfo()
     }
 
@@ -239,7 +286,7 @@ class InAppChatView @JvmOverloads constructor(
 
     /**
      * Sends message to the chat with optional [InAppChatMobileAttachment].
-     * @param message message to be send, max length allowed is 1000 characters
+     * @param message message to be send, max length allowed is 4096 characters
      * @param attachment to create attachment use [InAppChatMobileAttachment]'s constructor where you provide attachment's mimeType, base64 and filename
      */
     @JvmOverloads
@@ -263,7 +310,9 @@ class InAppChatView @JvmOverloads constructor(
         }
 
         override fun onStart(owner: LifecycleOwner) {
-            restartConnection()
+            //do not call widget API when chat is not loaded yet - initial loading
+            if (isChatLoaded)
+                restartConnection()
         }
 
         override fun onResume(owner: LifecycleOwner) {
@@ -283,7 +332,6 @@ class InAppChatView @JvmOverloads constructor(
         }
 
         override fun onDestroy(owner: LifecycleOwner) {
-            binding.ibLcWebView.destroy()
         }
     }
     //endregion

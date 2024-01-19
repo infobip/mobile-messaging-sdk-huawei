@@ -1,6 +1,9 @@
 package org.infobip.mobile.messaging.chat.core;
 
+import org.infobip.mobile.messaging.MobileMessaging;
 import org.infobip.mobile.messaging.chat.attachments.InAppChatMobileAttachment;
+
+import java.util.Locale;
 
 /**
  * Declaration of interaction with client-side.
@@ -32,9 +35,9 @@ public interface InAppChatClient {
     /**
      * Set language of widget
      *
-     * @param language in locale format e.g.: en-US
+     * @param locale locale contains country and language
      */
-    void setLanguage(String language);
+    void setLanguage(Locale locale);
 
     /**
      * Send contextual metadata of conversation and a InAppChatMultiThreadFlag flag
@@ -52,10 +55,10 @@ public interface InAppChatClient {
     /**
      * Close webSocket connection and be able to receive push notifications
      */
-    void mobileChatPause();
+    void mobileChatPause(MobileMessaging.ResultListener<String> resultListener);
 
     /**
      * Resume webSocket connection
      */
-    void mobileChatResume();
+    void mobileChatResume(MobileMessaging.ResultListener<String> resultListener);
 }
