@@ -23,6 +23,7 @@ import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.ActivityResult
 import androidx.annotation.ColorInt
+import androidx.annotation.Nullable
 import androidx.appcompat.app.ActionBar
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.view.ContextThemeWrapper
@@ -37,13 +38,19 @@ import org.infobip.mobile.messaging.chat.attachments.InAppChatAttachmentHelper
 import org.infobip.mobile.messaging.chat.attachments.InAppChatMobileAttachment
 import org.infobip.mobile.messaging.chat.core.InAppChatWidgetView
 import org.infobip.mobile.messaging.chat.databinding.IbFragmentChatBinding
-import org.infobip.mobile.messaging.chat.utils.*
+import org.infobip.mobile.messaging.chat.utils.LocalizationUtils
+import org.infobip.mobile.messaging.chat.utils.getStatusBarColor
+import org.infobip.mobile.messaging.chat.utils.hide
+import org.infobip.mobile.messaging.chat.utils.isLightStatusBarMode
+import org.infobip.mobile.messaging.chat.utils.setLightStatusBarMode
+import org.infobip.mobile.messaging.chat.utils.setStatusBarColor
+import org.infobip.mobile.messaging.chat.utils.show
 import org.infobip.mobile.messaging.chat.view.styles.InAppChatToolbarStyle
 import org.infobip.mobile.messaging.chat.view.styles.apply
 import org.infobip.mobile.messaging.chat.view.styles.factory.StyleFactory
 import org.infobip.mobile.messaging.logging.MobileMessagingLogger
 import org.infobip.mobile.messaging.mobileapi.InternalSdkError
-import java.util.*
+import java.util.Locale
 
 class InAppChatFragment : Fragment(), InAppChatFragmentActivityResultDelegate.ResultListener {
 
@@ -69,6 +76,7 @@ class InAppChatFragment : Fragment(), InAppChatFragmentActivityResultDelegate.Re
 
     companion object {
         private const val USER_INPUT_CHECKER_DELAY_MS = 250
+        private const val TAG = "InAppChatFragment"
     }
 
     private var _binding: IbFragmentChatBinding? = null
@@ -83,6 +91,7 @@ class InAppChatFragment : Fragment(), InAppChatFragmentActivityResultDelegate.Re
     private var capturedVideoUri: Uri? = null
     private var widgetInfo: WidgetInfo? = null
     private var widgetView: InAppChatWidgetView? = null
+    private var appliedWidgetTheme: String? = null
     private val isMultiThread
         get() = binding.ibLcChat.isMultiThread
     private val backPressedCallback: OnBackPressedCallback = object : OnBackPressedCallback(true) {
@@ -212,12 +221,21 @@ class InAppChatFragment : Fragment(), InAppChatFragmentActivityResultDelegate.Re
 
     //region Public
     fun setLanguage(locale: Locale) {
-        MobileMessagingLogger.d("InAppChatFragment", "setLanguage($locale)")
+        MobileMessagingLogger.d(TAG, "setLanguage($locale)")
         binding.ibLcChat.setLanguage(locale)
     }
 
+    @Deprecated("Use new sendContextualData() instead.", replaceWith = ReplaceWith("sendContextualData(data, allMultiThreadStrategy)"), level = DeprecationLevel.WARNING)
     fun sendContextualMetaData(data: String, allMultiThreadStrategy: Boolean) {
-        binding.ibLcChat.sendContextualMetaData(data, allMultiThreadStrategy)
+        binding.ibLcChat.sendContextualData(data, allMultiThreadStrategy)
+    }
+
+    fun sendContextualData(data: String, allMultiThreadStrategy: Boolean) {
+        binding.ibLcChat.sendContextualData(data, allMultiThreadStrategy)
+    }
+
+    fun setWidgetTheme(widgetThemeName: String) {
+        binding.ibLcChat.setWidgetTheme(widgetThemeName)
     }
     //endregion
 
@@ -318,17 +336,26 @@ class InAppChatFragment : Fragment(), InAppChatFragmentActivityResultDelegate.Re
                         caption
                     )
                 }
-                startActivity(intent)
+                runCatching {
+                    startActivity(intent)
+                }.onFailure {
+                    MobileMessagingLogger.e(TAG, "Could not open attachment preview.", it)
+                }
             }
 
             override fun onChatViewChanged(widgetView: InAppChatWidgetView) {
                 this@InAppChatFragment.widgetView = widgetView
-                updateViewsVisibilityByMultiThreadView(widgetView)
+                updateInputVisibilityByMultiThreadView(widgetView)
             }
 
             override fun onChatWidgetInfoUpdated(widgetInfo: WidgetInfo) {
                 this@InAppChatFragment.widgetInfo = widgetInfo
                 updateViews(widgetInfo)
+                MobileMessagingLogger.w(TAG, "WidgetInfo updated $widgetInfo")
+            }
+
+            override fun onChatWidgetThemeChanged(widgetThemeName: String) {
+                appliedWidgetTheme = widgetThemeName
             }
         }
         init(lifecycleRegistry.lifecycle)
@@ -396,7 +423,7 @@ class InAppChatFragment : Fragment(), InAppChatFragmentActivityResultDelegate.Re
         binding.ibLcChatInput.applyWidgetInfoStyle(widgetInfo)
     }
 
-    private fun updateViewsVisibilityByMultiThreadView(widgetView: InAppChatWidgetView) {
+    private fun updateInputVisibilityByMultiThreadView(widgetView: InAppChatWidgetView) {
         if (isMultiThread) {
             when (widgetView) {
                 InAppChatWidgetView.THREAD, InAppChatWidgetView.SINGLE_MODE_THREAD -> setChatInputVisibility(
@@ -456,13 +483,10 @@ class InAppChatFragment : Fragment(), InAppChatFragmentActivityResultDelegate.Re
 
             override fun onAttachmentCreated(attachment: InAppChatMobileAttachment?) {
                 if (attachment != null) {
-                    MobileMessagingLogger.w(
-                        "InAppChatFragment",
-                        "Attachment created, will send Attachment"
-                    )
+                    MobileMessagingLogger.w(TAG, "Attachment created, will send Attachment")
                     binding.ibLcChat.sendChatMessage(null, attachment)
                 } else {
-                    MobileMessagingLogger.e("InAppChatFragment", "Can't create attachment")
+                    MobileMessagingLogger.e(TAG, "Can't create attachment")
                     Toast.makeText(
                         requireContext(),
                         localizationUtils.getString(R.string.ib_chat_cant_create_attachment),
@@ -478,7 +502,7 @@ class InAppChatFragment : Fragment(), InAppChatFragmentActivityResultDelegate.Re
             ) {
                 if (exception!!.message == InternalSdkError.ERROR_ATTACHMENT_MAX_SIZE_EXCEEDED.get()) {
                     MobileMessagingLogger.e(
-                        "InAppChatFragment",
+                        TAG,
                         "Maximum allowed attachment size exceeded" + widgetInfo?.getMaxUploadContentSize()
                     )
                     Toast.makeText(
@@ -487,7 +511,7 @@ class InAppChatFragment : Fragment(), InAppChatFragmentActivityResultDelegate.Re
                         Toast.LENGTH_SHORT
                     ).show()
                 } else {
-                    MobileMessagingLogger.e("InAppChatFragment", "Attachment content is not valid.")
+                    MobileMessagingLogger.e(TAG, "Attachment content is not valid.")
                     Toast.makeText(
                         context,
                         localizationUtils.getString(R.string.ib_chat_cant_create_attachment),
@@ -611,7 +635,7 @@ class InAppChatFragment : Fragment(), InAppChatFragmentActivityResultDelegate.Re
     }
 
     override fun onSettingsResult(result: ActivityResult) {
-        MobileMessagingLogger.d("Settings intent result ${result.resultCode}")
+        MobileMessagingLogger.d(TAG, "Settings intent result ${result.resultCode}")
     }
     //endregion
 

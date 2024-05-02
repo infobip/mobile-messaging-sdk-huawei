@@ -1,16 +1,5 @@
 package org.infobip.mobile.messaging.chat.core;
 
-import static org.infobip.mobile.messaging.chat.core.InAppChatWidgetMethods.handleMessageDraftSend;
-import static org.infobip.mobile.messaging.chat.core.InAppChatWidgetMethods.handleMessageSend;
-import static org.infobip.mobile.messaging.chat.core.InAppChatWidgetMethods.handleMessageWithAttachmentSend;
-import static org.infobip.mobile.messaging.chat.core.InAppChatWidgetMethods.mobileChatPause;
-import static org.infobip.mobile.messaging.chat.core.InAppChatWidgetMethods.mobileChatResume;
-import static org.infobip.mobile.messaging.chat.core.InAppChatWidgetMethods.sendContextualData;
-import static org.infobip.mobile.messaging.chat.core.InAppChatWidgetMethods.setLanguage;
-import static org.infobip.mobile.messaging.chat.core.InAppChatWidgetMethods.showThreadList;
-import static org.infobip.mobile.messaging.chat.utils.CommonUtils.isOSOlderThanKitkat;
-import static org.infobip.mobile.messaging.util.StringUtils.isNotBlank;
-
 import android.os.Handler;
 import android.os.Looper;
 
@@ -23,6 +12,17 @@ import org.infobip.mobile.messaging.mobileapi.Result;
 import org.infobip.mobile.messaging.util.StringUtils;
 
 import java.util.Locale;
+
+import static org.infobip.mobile.messaging.chat.core.InAppChatWidgetMethod.mobileChatPause;
+import static org.infobip.mobile.messaging.chat.core.InAppChatWidgetMethod.mobileChatResume;
+import static org.infobip.mobile.messaging.chat.core.InAppChatWidgetMethod.sendContextualData;
+import static org.infobip.mobile.messaging.chat.core.InAppChatWidgetMethod.sendDraft;
+import static org.infobip.mobile.messaging.chat.core.InAppChatWidgetMethod.sendMessage;
+import static org.infobip.mobile.messaging.chat.core.InAppChatWidgetMethod.sendMessageWithAttachment;
+import static org.infobip.mobile.messaging.chat.core.InAppChatWidgetMethod.setLanguage;
+import static org.infobip.mobile.messaging.chat.core.InAppChatWidgetMethod.setTheme;
+import static org.infobip.mobile.messaging.chat.core.InAppChatWidgetMethod.showThreadList;
+import static org.infobip.mobile.messaging.util.StringUtils.isNotBlank;
 
 public class InAppChatClientImpl implements InAppChatClient {
 
@@ -37,7 +37,7 @@ public class InAppChatClientImpl implements InAppChatClient {
     @Override
     public void sendChatMessage(String message) {
         if (canSendMessage(message)) {
-            String script = buildWidgetMethodInvocation(handleMessageSend.name(), message);
+            String script = buildWidgetMethodInvocation(sendMessage.name(), message);
             executeScript(script);
         }
     }
@@ -49,17 +49,16 @@ public class InAppChatClientImpl implements InAppChatClient {
 
         // message can be null - its OK
         if (canSendMessage(base64UrlString)) {
-            String script = buildWidgetMethodInvocation(handleMessageWithAttachmentSend.name(), isOSOlderThanKitkat(), message, base64UrlString, fileName);
+            String script = buildWidgetMethodInvocation(sendMessageWithAttachment.name(), message, base64UrlString, fileName);
             executeScript(script);
         } else {
-            MobileMessagingLogger.e("[InAppChat] can't send attachment, base64 is empty");
+            MobileMessagingLogger.e(TAG,"[InAppChat] can't send attachment, base64 is empty");
         }
     }
 
     @Override
     public void sendInputDraft(String draft) {
-        String script = buildWidgetMethodInvocation(handleMessageDraftSend.name(), isOSOlderThanKitkat(), draft);
-        executeScript(script);
+        executeScript(buildWidgetMethodInvocation(sendDraft.name(), draft));
     }
 
     @Override
@@ -67,10 +66,10 @@ public class InAppChatClientImpl implements InAppChatClient {
         if (locale != null) {
             Language widgetLanguage = Language.findLanguage(locale);
             if (widgetLanguage == null) {
-                MobileMessagingLogger.e("Language " + locale + " is not supported. Used default language " + Language.ENGLISH.getLocale());
+                MobileMessagingLogger.e(TAG,"Language " + locale + " is not supported. Used default language " + Language.ENGLISH.getLocale());
                 widgetLanguage = Language.ENGLISH;
             }
-            String script = buildWidgetMethodInvocation(setLanguage.name(), isOSOlderThanKitkat(), widgetLanguage.getLocale());
+            String script = buildWidgetMethodInvocation(setLanguage.name(), widgetLanguage.getLocale());
             executeScript(script);
         }
     }
@@ -78,29 +77,30 @@ public class InAppChatClientImpl implements InAppChatClient {
     @Override
     public void sendContextualData(String data, InAppChatMultiThreadFlag multiThreadFlag) {
         if (!data.isEmpty()) {
-            StringBuilder script = new StringBuilder();
-            if (isOSOlderThanKitkat()) {
-                script.append("javascript:");
-            }
-            script.append(sendContextualData.name()).append("(").append(data).append(", '").append(multiThreadFlag).append("')");
-            executeScript(script.toString());
+            executeScript(sendContextualData.name() + "(" + data + ", '" + multiThreadFlag + "')");
         }
     }
 
     @Override
     public void showThreadList() {
-        executeScript(buildWidgetMethodInvocation(showThreadList.name(), isOSOlderThanKitkat()));
+        executeScript(buildWidgetMethodInvocation(showThreadList.name()));
     }
 
     @Override
     public void mobileChatPause(MobileMessaging.ResultListener<String> resultListener) {
-        executeScript(buildWidgetMethodInvocation(mobileChatPause.name(), isOSOlderThanKitkat()), resultListener);
+        executeScript(buildWidgetMethodInvocation(mobileChatPause.name()), resultListener);
     }
 
     @Override
     public void mobileChatResume(MobileMessaging.ResultListener<String> resultListener) {
-        executeScript(buildWidgetMethodInvocation(mobileChatResume.name(), isOSOlderThanKitkat()), resultListener);
+        executeScript(buildWidgetMethodInvocation(mobileChatResume.name()), resultListener);
     }
+
+    @Override
+    public void setWidgetTheme(String themeName, MobileMessaging.ResultListener<String> resultListener) {
+        executeScript(buildWidgetMethodInvocation(setTheme.name(), themeName), resultListener);
+    }
+
     /**
      * Executes JS script on UI thread.
      *
@@ -119,8 +119,8 @@ public class InAppChatClientImpl implements InAppChatClient {
     private void executeScript(String script, MobileMessaging.ResultListener<String> resultListener) {
         if (webView != null) {
             try {
-                handler.post(() -> webView.evaluateJavascriptMethod(script, value -> {
-                    String valueToLog = (value != null && !"null".equals(value)) ? ":" + value : "";
+                handler.post(() -> webView.evaluateJavascript(script, value -> {
+                    String valueToLog = (value != null && !"null".equals(value)) ? " => " + value : "";
                     MobileMessagingLogger.d(TAG, "Called Widget API: " + script + valueToLog);
                     if (resultListener != null)
                         resultListener.onResult(new Result<>(valueToLog));
@@ -128,10 +128,10 @@ public class InAppChatClientImpl implements InAppChatClient {
             } catch (Exception e) {
                 if (resultListener != null)
                     resultListener.onResult(new Result<>(MobileMessagingError.createFrom(e)));
-                MobileMessagingLogger.e("Failed to execute webView JS script" + e.getMessage());
+                MobileMessagingLogger.e(TAG,"Failed to execute webView JS script " + script + " " + e.getMessage());
             }
         } else if (resultListener != null) {
-            resultListener.onResult(new Result<>(MobileMessagingError.createFrom(new IllegalStateException("InAppChatWebView is null."))));
+            resultListener.onResult(new Result<>(MobileMessagingError.createFrom(new IllegalStateException("Failed to execute webView JS script " + script + " InAppChatWebView is null."))));
         }
     }
 
@@ -140,14 +140,7 @@ public class InAppChatClientImpl implements InAppChatClient {
     }
 
     private String buildWidgetMethodInvocation(String methodName, String... params) {
-        return this.buildWidgetMethodInvocation(methodName, true, params);
-    }
-
-    private String buildWidgetMethodInvocation(String methodName, boolean withPrefix, String... params) {
         StringBuilder builder = new StringBuilder();
-        if (withPrefix) {
-            builder.append("javascript:");
-        }
         builder.append(methodName);
 
         if (params.length > 0) {

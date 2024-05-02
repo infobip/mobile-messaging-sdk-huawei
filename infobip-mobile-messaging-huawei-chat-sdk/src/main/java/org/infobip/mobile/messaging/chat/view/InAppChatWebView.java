@@ -1,20 +1,19 @@
 package org.infobip.mobile.messaging.chat.view;
 
-import static org.infobip.mobile.messaging.chat.utils.CommonUtils.isOSOlderThanKitkat;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.net.Uri;
 import android.os.Build;
 import android.util.AttributeSet;
-import android.webkit.ValueCallback;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 
-import org.infobip.mobile.messaging.MobileMessagingCore;
-import org.infobip.mobile.messaging.api.chat.WidgetInfo;
-import org.infobip.mobile.messaging.chat.InAppChatImpl;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+
 import org.infobip.mobile.messaging.chat.core.InAppChatMobileImpl;
+import org.infobip.mobile.messaging.chat.core.InAppChatWebChromeClient;
 import org.infobip.mobile.messaging.chat.core.InAppChatWebViewClient;
 import org.infobip.mobile.messaging.chat.core.InAppChatWebViewManager;
 import org.infobip.mobile.messaging.chat.properties.MobileMessagingChatProperty;
@@ -53,6 +52,7 @@ public class InAppChatWebView extends WebView {
         setClickable(true);
         setWebViewClient(new InAppChatWebViewClient(webViewManager));
         addJavascriptInterface(new InAppChatMobileImpl(webViewManager), IN_APP_CHAT_MOBILE_INTERFACE);
+        setWebChromeClient(new InAppChatWebChromeClient());
     }
 
     private void setForceDarkAllowed() {
@@ -63,34 +63,32 @@ public class InAppChatWebView extends WebView {
         }
     }
 
-    public void loadChatPage(Boolean force, WidgetInfo widgetInfo, String jwt) {
-        if (!force && !InAppChatImpl.getIsWebViewCacheCleaned()) {
-            return;
+    public void loadChatPage(
+            @NonNull String pushRegistrationId,
+            @NonNull String widgetId,
+            @Nullable String jwt,
+            @Nullable String domain,
+            @Nullable String widgetTheme
+    ) {
+        Uri.Builder builder = new Uri.Builder()
+                .encodedPath(widgetUri)
+                .appendQueryParameter("pushRegId", pushRegistrationId)
+                .appendQueryParameter("widgetId", widgetId);
+
+        if (StringUtils.isNotBlank(jwt)) {
+            builder.appendQueryParameter("jwt", jwt);
         }
-        InAppChatImpl.setIsWebViewCacheCleaned(false);
 
-        String pushRegistrationId = MobileMessagingCore.getInstance(getContext()).getPushRegistrationId();
-        if (pushRegistrationId != null && widgetInfo != null) {
-            Uri.Builder builder = new Uri.Builder()
-                    .encodedPath(widgetUri)
-                    .appendQueryParameter("pushRegId", pushRegistrationId)
-                    .appendQueryParameter("widgetId", widgetInfo.getId());
-
-            if (StringUtils.isNotBlank(jwt)) {
-                builder.appendQueryParameter("jwt", jwt);
-            }
-
-            String resultUrl = builder.build().toString();
-            loadUrl(resultUrl);
+        if (StringUtils.isNotBlank(domain)) {
+            builder.appendQueryParameter("domain", domain);
         }
+
+        if (StringUtils.isNotBlank(widgetTheme)) {
+            builder.appendQueryParameter("widgetTheme", widgetTheme);
+        }
+
+        String resultUrl = builder.build().toString();
+        loadUrl(resultUrl);
     }
 
-    public void evaluateJavascriptMethod(String script, ValueCallback<String> resultCallback) {
-        if (isOSOlderThanKitkat()) {
-            // FIXME: not safety call. Can be reason of invisible OutOfMemory error (data transfer limit). More info: [CHAT-821]
-            this.loadUrl(script);
-        } else {
-            this.evaluateJavascript(script, resultCallback);
-        }
-    }
 }

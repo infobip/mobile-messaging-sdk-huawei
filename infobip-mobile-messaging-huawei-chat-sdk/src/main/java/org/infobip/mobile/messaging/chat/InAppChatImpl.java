@@ -10,14 +10,6 @@ import android.os.Looper;
 import android.view.View;
 import android.view.ViewGroup;
 
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.app.TaskStackBuilder;
-import androidx.fragment.app.Fragment;
-import androidx.fragment.app.FragmentManager;
-import androidx.fragment.app.FragmentTransaction;
-
 import org.infobip.mobile.messaging.Event;
 import org.infobip.mobile.messaging.Message;
 import org.infobip.mobile.messaging.MessageHandlerModule;
@@ -47,11 +39,20 @@ import org.infobip.mobile.messaging.platform.AndroidBroadcaster;
 
 import java.util.Locale;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.TaskStackBuilder;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
+import androidx.fragment.app.FragmentTransaction;
+
 
 public class InAppChatImpl extends InAppChat implements MessageHandlerModule {
 
     @SuppressLint("StaticFieldLeak")
     private static InAppChatImpl instance;
+    private static MobileMessagingCore mmCore;
     private Context context;
     private AndroidBroadcaster coreBroadcaster;
     private InAppChatBroadcasterImpl inAppChatBroadcaster;
@@ -61,33 +62,21 @@ public class InAppChatImpl extends InAppChat implements MessageHandlerModule {
     private MobileApiResourceProvider mobileApiResourceProvider;
     private InAppChatSynchronizer inAppChatSynchronizer;
     private static Result<WidgetInfo, MobileMessagingError> chatWidgetConfigSyncResult = null;
-    private static Boolean isWebViewCacheCleaned = false;
     private JwtProvider jwtProvider = null;
     private InAppChatDarkMode darkMode = null;
     private InAppChatTheme theme = null;
+    private String widgetTheme = null;
+    private String domain = null;
+    private InAppChatFragment inAppChatWVFragment;
+    private final static String IN_APP_CHAT_FRAGMENT_TAG = InAppChatFragment.class.getName();
 
-    public static InAppChatImpl getInstance(Context context) {
-        if (instance == null) {
-            instance = MobileMessagingCore.getInstance(context).getMessageHandlerModule(InAppChatImpl.class);
-        }
-        return instance;
-    }
-
+    //region MessageHandlerModule
     public InAppChatImpl() {
     }
 
     @Override
     public void init(Context appContext) {
         this.context = appContext;
-    }
-
-    @Override
-    public void activate() {
-        propertyHelper().saveBoolean(MobileMessagingChatProperty.IN_APP_CHAT_ACTIVATED, true);
-    }
-
-    public boolean isActivated() {
-        return propertyHelper().findBoolean(MobileMessagingChatProperty.IN_APP_CHAT_ACTIVATED);
     }
 
     @Override
@@ -183,7 +172,7 @@ public class InAppChatImpl extends InAppChat implements MessageHandlerModule {
             }
         }
 
-        NotificationSettings notificationSettings = MobileMessagingCore.getInstance(context).getNotificationSettings();
+        NotificationSettings notificationSettings = mobileMessagingCore().getNotificationSettings();
         if (stackBuilder.getIntentCount() == 0 && notificationSettings != null && notificationSettings.getCallbackActivity() != null) {
             stackBuilder.addNextIntent(new Intent(context, notificationSettings.getCallbackActivity())
                     .setAction(Event.NOTIFICATION_TAPPED.getKey())
@@ -194,146 +183,19 @@ public class InAppChatImpl extends InAppChat implements MessageHandlerModule {
     }
 
     @Override
-    public InAppChatScreenImpl inAppChatScreen() {
-        if (inAppChatScreen == null) {
-            inAppChatScreen = new InAppChatScreenImpl(context);
-        }
-        if (!isActivated()) {
-            MobileMessagingLogger.e("In-app chat wasn't activated, call activate()");
-        }
-        inAppChatScreen.setDarkMode(this.darkMode);
-        return inAppChatScreen;
-    }
-
-    @Override
-    public void setActivitiesToStartOnMessageTap(Class... activityClasses) {
-        propertyHelper().saveClasses(MobileMessagingChatProperty.ON_MESSAGE_TAP_ACTIVITY_CLASSES, activityClasses);
-    }
-
-    public static Result<WidgetInfo, MobileMessagingError> getChatWidgetConfigSyncResult() {
-        return chatWidgetConfigSyncResult;
-    }
-
-    public static Boolean getIsWebViewCacheCleaned() {
-        return isWebViewCacheCleaned;
-    }
-
-    public static void setIsWebViewCacheCleaned(Boolean webViewCacheCleaned) {
-        isWebViewCacheCleaned = webViewCacheCleaned;
-    }
-
-    @Override
-    public void sendContextualData(String data) {
-        sendContextualData(data, false, new MobileMessaging.ResultListener<Void>() {
-            @Override
-            public void onResult(Result<Void, MobileMessagingError> result) {
-                if (!result.isSuccess()) {
-                    MobileMessagingLogger.e("Send contextual data error: " + result.getError().getMessage());
-                }
-            }
-        });
-    }
-
-    @Override
-    public void sendContextualData(String data, Boolean allMultiThreadStrategy) {
-        sendContextualData(data, allMultiThreadStrategy, new MobileMessaging.ResultListener<Void>() {
-            @Override
-            public void onResult(Result<Void, MobileMessagingError> result) {
-                if (!result.isSuccess()) {
-                    MobileMessagingLogger.e("Send contextual data error: " + result.getError().getMessage());
-                }
-            }
-        });
-    }
-
-    @Override
-    public void sendContextualData(String data, Boolean allMultiThreadStrategy, MobileMessaging.ResultListener<Void> resultListener) {
-        try {
-            if (inAppChatWVFragment != null) {
-                inAppChatWVFragment.sendContextualMetaData(data, allMultiThreadStrategy);
-            }
-            if (resultListener != null)
-                resultListener.onResult(new Result<>(null));
-        } catch (Throwable throwable) {
-            MobileMessagingLogger.e("sendContextualData() failed", throwable);
-            if (resultListener != null)
-                resultListener.onResult(new Result<>(MobileMessagingError.createFrom(throwable)));
-        }
-    }
-
-    @Override
-    public void setJwtProvider(InAppChat.JwtProvider jwtProvider) {
-        this.jwtProvider = jwtProvider;
-    }
-
-    @Override
-    public InAppChat.JwtProvider getJwtProvider() {
-        return jwtProvider;
-    }
-
-    @Override
-    public void showThreadsList() {
-        if (inAppChatWVFragment != null) {
-            inAppChatWVFragment.showThreadList();
-        } else {
-            MobileMessagingLogger.e("Function showThreadsList() skipped, InAppChatFragment has not been shown yet.");
-        }
-    }
-
-    @Override
-    public void setDarkMode(InAppChatDarkMode darkMode) {
-        this.darkMode = darkMode;
-        if (darkMode == null)
-            propertyHelper().remove(MobileMessagingChatProperty.IN_APP_CHAT_DARK_MODE);
-        else
-            propertyHelper().saveString(MobileMessagingChatProperty.IN_APP_CHAT_DARK_MODE, darkMode.name());
-    }
-
-    @Override
-    public void setTheme(InAppChatTheme theme) {
-        this.theme = theme;
-    }
-
-    @Nullable
-    public InAppChatTheme getTheme() {
-        return theme;
-    }
-
-    @Override
     public void applicationInForeground() {
         performSyncActions();
-    }
-
-    @Override
-    public void cleanup() {
-        mobileApiResourceProvider = null;
-        inAppChatSynchronizer = null;
-        jwtProvider = null;
-        darkMode = null;
-        cleanupWidgetData();
-        propertyHelper().remove(MobileMessagingChatProperty.IN_APP_CHAT_WIDGET_ID);
-        propertyHelper().remove(MobileMessagingChatProperty.IN_APP_CHAT_WIDGET_TITLE);
-        propertyHelper().remove(MobileMessagingChatProperty.IN_APP_CHAT_WIDGET_PRIMARY_COLOR);
-        propertyHelper().remove(MobileMessagingChatProperty.IN_APP_CHAT_WIDGET_BACKGROUND_COLOR);
-        propertyHelper().remove(MobileMessagingChatProperty.IN_APP_CHAT_WIDGET_MAX_UPLOAD_CONTENT_SIZE);
-        propertyHelper().remove(MobileMessagingChatProperty.IN_APP_CHAT_LANGUAGE);
-        propertyHelper().remove(MobileMessagingChatProperty.IN_APP_CHAT_DARK_MODE);
-        resetMessageCounter();
     }
 
     // must be done on separate thread if it's not invoked by UI thread
     private void cleanupWidgetData() {
         chatWidgetConfigSyncResult = null;
-        isWebViewCacheCleaned = true;
         try {
             Handler handler = new Handler(Looper.getMainLooper());
-            handler.post(new Runnable() {
-                @Override
-                public void run() {
-                    webView().clearHistory();
-                    webView().clearCache(true);
-                    MobileMessagingLogger.d("Deleted local widget history");
-                }
+            handler.post(() -> {
+                webView().clearHistory();
+                webView().clearCache(true);
+                MobileMessagingLogger.d("Deleted local widget history");
             });
         } catch (Exception e) {
             MobileMessagingLogger.w("Failed to delete local widget history due to " + e.getMessage());
@@ -357,9 +219,65 @@ public class InAppChatImpl extends InAppChat implements MessageHandlerModule {
             });
         }
     }
+    //endregion
 
-    private InAppChatFragment inAppChatWVFragment;
-    private final static String IN_APP_CHAT_FRAGMENT_TAG = InAppChatFragment.class.getName();
+    //region InAppChat public functions
+    @NonNull
+    public static InAppChatImpl getInstance(Context context) {
+        if (instance == null) {
+            mmCore = MobileMessagingCore.getInstance(context);
+            instance = mmCore.getMessageHandlerModule(InAppChatImpl.class);
+        }
+        return instance;
+    }
+
+    @Override
+    public void activate() {
+        propertyHelper().saveBoolean(MobileMessagingChatProperty.IN_APP_CHAT_ACTIVATED, true);
+    }
+
+    @Override
+    @NonNull
+    public InAppChatScreenImpl inAppChatScreen() {
+        if (inAppChatScreen == null) {
+            inAppChatScreen = new InAppChatScreenImpl(context);
+        }
+        if (!isActivated()) {
+            MobileMessagingLogger.e("In-app chat wasn't activated, call activate()");
+        }
+        inAppChatScreen.setDarkMode(this.darkMode);
+        return inAppChatScreen;
+    }
+
+    @Override
+    public void setActivitiesToStartOnMessageTap(Class... activityClasses) {
+        propertyHelper().saveClasses(MobileMessagingChatProperty.ON_MESSAGE_TAP_ACTIVITY_CLASSES, activityClasses);
+    }
+
+    @Override
+    public void cleanup() {
+        mobileApiResourceProvider = null;
+        inAppChatSynchronizer = null;
+        jwtProvider = null;
+        darkMode = null;
+        theme = null;
+        widgetTheme = null;
+        domain = null;
+        cleanupWidgetData();
+        propertyHelper().remove(MobileMessagingChatProperty.ON_MESSAGE_TAP_ACTIVITY_CLASSES);
+        propertyHelper().remove(MobileMessagingChatProperty.IN_APP_CHAT_WIDGET_ID);
+        propertyHelper().remove(MobileMessagingChatProperty.IN_APP_CHAT_WIDGET_TITLE);
+        propertyHelper().remove(MobileMessagingChatProperty.IN_APP_CHAT_WIDGET_PRIMARY_COLOR);
+        propertyHelper().remove(MobileMessagingChatProperty.IN_APP_CHAT_WIDGET_BACKGROUND_COLOR);
+        propertyHelper().remove(MobileMessagingChatProperty.IN_APP_CHAT_WIDGET_MAX_UPLOAD_CONTENT_SIZE);
+        propertyHelper().remove(MobileMessagingChatProperty.IN_APP_CHAT_WIDGET_MULTITHREAD);
+        propertyHelper().remove(MobileMessagingChatProperty.IN_APP_CHAT_WIDGET_MULTICHANNEL_CONVERSATION);
+        propertyHelper().remove(MobileMessagingChatProperty.IN_APP_CHAT_WIDGET_CALLS_ENABLED);
+        propertyHelper().remove(MobileMessagingChatProperty.IN_APP_CHAT_ACTIVATED);
+        propertyHelper().remove(MobileMessagingChatProperty.IN_APP_CHAT_LANGUAGE);
+        propertyHelper().remove(MobileMessagingChatProperty.IN_APP_CHAT_DARK_MODE);
+        resetMessageCounter();
+    }
 
     public void showInAppChatFragment(FragmentManager fragmentManager, int containerId) {
         if (inAppChatWVFragment == null) inAppChatWVFragment = new InAppChatFragment();
@@ -380,7 +298,7 @@ public class InAppChatImpl extends InAppChat implements MessageHandlerModule {
 
     @Override
     public void hideInAppChatFragment(FragmentManager fragmentManager, Boolean disconnectChat) {
-        if (inAppChatWVFragment != null){
+        if (inAppChatWVFragment != null) {
             inAppChatWVFragment.setDisconnectChatWhenHidden(disconnectChat);
         }
         FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
@@ -441,7 +359,119 @@ public class InAppChatImpl extends InAppChat implements MessageHandlerModule {
         }
     }
 
-    // region private methods
+    @Override
+    public void sendContextualData(String data) {
+        sendContextualData(data, false, new MobileMessaging.ResultListener<Void>() {
+            @Override
+            public void onResult(Result<Void, MobileMessagingError> result) {
+                if (!result.isSuccess()) {
+                    MobileMessagingLogger.e("Send contextual data error: " + result.getError().getMessage());
+                }
+            }
+        });
+    }
+
+    @Override
+    public void sendContextualData(String data, Boolean allMultiThreadStrategy) {
+        sendContextualData(data, allMultiThreadStrategy, new MobileMessaging.ResultListener<Void>() {
+            @Override
+            public void onResult(Result<Void, MobileMessagingError> result) {
+                if (!result.isSuccess()) {
+                    MobileMessagingLogger.e("Send contextual data error: " + result.getError().getMessage());
+                }
+            }
+        });
+    }
+
+    @Override
+    public void sendContextualData(String data, Boolean allMultiThreadStrategy, MobileMessaging.ResultListener<Void> resultListener) {
+        try {
+            if (inAppChatWVFragment != null) {
+                inAppChatWVFragment.sendContextualMetaData(data, allMultiThreadStrategy);
+            }
+            if (resultListener != null)
+                resultListener.onResult(new Result<>(null));
+        } catch (Throwable throwable) {
+            MobileMessagingLogger.e("sendContextualData() failed", throwable);
+            if (resultListener != null)
+                resultListener.onResult(new Result<>(MobileMessagingError.createFrom(throwable)));
+        }
+    }
+
+    @Override
+    public void setJwtProvider(InAppChat.JwtProvider jwtProvider) {
+        this.jwtProvider = jwtProvider;
+    }
+
+    @Override
+    @Nullable
+    public InAppChat.JwtProvider getJwtProvider() {
+        return jwtProvider;
+    }
+
+    @Override
+    public void showThreadsList() {
+        if (inAppChatWVFragment != null) {
+            inAppChatWVFragment.showThreadList();
+        } else {
+            MobileMessagingLogger.e("Function showThreadsList() skipped, InAppChatFragment has not been shown yet.");
+        }
+    }
+
+    @Override
+    @Deprecated(since = "12.4.0", forRemoval = true)
+    public void setDarkMode(InAppChatDarkMode darkMode) {
+        this.darkMode = darkMode;
+        if (darkMode == null)
+            propertyHelper().remove(MobileMessagingChatProperty.IN_APP_CHAT_DARK_MODE);
+        else
+            propertyHelper().saveString(MobileMessagingChatProperty.IN_APP_CHAT_DARK_MODE, darkMode.name());
+    }
+
+    @Override
+    public void setTheme(@Nullable InAppChatTheme theme) {
+        this.theme = theme;
+    }
+
+    @Override
+    @Nullable
+    public InAppChatTheme getTheme() {
+        return theme;
+    }
+
+    @Override
+    public void setWidgetTheme(@Nullable String widgetThemeName) {
+        this.widgetTheme = widgetThemeName;
+        if (inAppChatWVFragment != null && widgetThemeName != null) {
+            inAppChatWVFragment.setWidgetTheme(widgetThemeName);
+        }
+    }
+
+    @Override
+    @Nullable
+    public String getWidgetTheme() {
+        return widgetTheme;
+    }
+
+    @Override
+    public String getDomain() {
+        return domain;
+    }
+
+    @Override
+    public void setDomain(String domain) {
+        this.domain = domain;
+    }
+    //endregion
+
+    //region internal functions
+    public static Result<WidgetInfo, MobileMessagingError> getChatWidgetConfigSyncResult() {
+        return chatWidgetConfigSyncResult;
+    }
+
+    //endregion
+
+    // region private functions
     synchronized private AndroidBroadcaster coreBroadcaster() {
         if (coreBroadcaster == null) {
             coreBroadcaster = new AndroidBroadcaster(context);
@@ -487,6 +517,17 @@ public class InAppChatImpl extends InAppChat implements MessageHandlerModule {
             webView = new InAppChatWebView(context);
         }
         return webView;
+    }
+
+    synchronized private MobileMessagingCore mobileMessagingCore() {
+        if (mmCore == null) {
+            mmCore = MobileMessagingCore.getInstance(context);
+        }
+        return mmCore;
+    }
+
+    private boolean isActivated() {
+        return propertyHelper().findBoolean(MobileMessagingChatProperty.IN_APP_CHAT_ACTIVATED);
     }
     //endregion
 }
