@@ -119,7 +119,6 @@ public class MainActivity extends AppCompatActivity implements InAppChatFragment
         setUpPersonalizationButton();
         setUpDepersonalizationButton();
         setUpRuntimeCustomization();
-        setUpDarkModeToggle();
     }
 
     @Override
@@ -476,46 +475,6 @@ public class MainActivity extends AppCompatActivity implements InAppChatFragment
             );
             Toast.makeText(this, "Custom style applied", Toast.LENGTH_SHORT).show();
         });
-    }
-
-    private InAppChatDarkMode darkMode;
-
-    private void setUpDarkModeToggle() {
-        MaterialButtonToggleGroup darkModeToggle = findViewById(R.id.darkModeToggle);
-        darkModeToggle.addOnButtonCheckedListener((group, checkedId, isChecked) -> {
-            switch (group.getCheckedButtonId()) {
-                case R.id.dark:
-                    if (darkMode != InAppChatDarkMode.DARK_MODE_YES) {
-                        setInAppChatDarkMode(InAppChatDarkMode.DARK_MODE_YES);
-                    }
-                    darkMode = InAppChatDarkMode.DARK_MODE_YES;
-                    break;
-                case R.id.light:
-                    if (darkMode != InAppChatDarkMode.DARK_MODE_NO) {
-                        setInAppChatDarkMode(InAppChatDarkMode.DARK_MODE_NO);
-                    }
-                    darkMode = InAppChatDarkMode.DARK_MODE_NO;
-                    break;
-                case R.id.auto:
-                    if (darkMode != InAppChatDarkMode.DARK_MODE_FOLLOW_SYSTEM){
-                        setInAppChatDarkMode(InAppChatDarkMode.DARK_MODE_FOLLOW_SYSTEM);
-                    }
-                    darkMode = InAppChatDarkMode.DARK_MODE_FOLLOW_SYSTEM;
-                    break;
-                case View.NO_ID:
-                    if (darkMode != null){
-                        setInAppChatDarkMode(null);
-                    }
-                    darkMode = null;
-                    break;
-            }
-        });
-    }
-
-    private void setInAppChatDarkMode(InAppChatDarkMode darkMode) {
-        inAppChat.setDarkMode(darkMode);
-        //For InAppChat View and Fragment cases
-        DarkModeUtils.setActivityDarkMode(this, darkMode);
     }
 
     private void showProgressBar() {
