@@ -32,6 +32,12 @@ public class InAppChatBroadcasterImpl implements InAppChatBroadcaster {
                 .putExtra(BroadcastParameter.EXTRA_CHAT_VIEW, view.name()));
     }
 
+    @Override
+    public void chatAvailabilityUpdated(boolean isChatAvailable) {
+        send(prepare(InAppChatEvent.IN_APP_CHAT_AVAILABILITY_UPDATED)
+                .putExtra(BroadcastParameter.EXTRA_IS_CHAT_AVAILABLE, isChatAvailable));
+    }
+
     private void send(Intent intent) {
         try {
             context.sendBroadcast(intent);

@@ -74,17 +74,34 @@ public class MainActivity extends AppCompatActivity implements InAppChatFragment
     private final String WIDGET_SECRET_KEY_JSON = "your_widget_secret_key";
     private final InAppChat inAppChat = InAppChat.getInstance(this);
     private boolean pushRegIdReceiverRegistered = false;
+    private boolean inAppChatAvailabilityReceiverRegistered = false;
     private JWTSubjectType jwtSubjectType = null;
     private AuthData lastUsedAuthData = null;
     private TextInputEditText nameEditText = null;
     private TextInputEditText subjectEditText = null;
     private LinearProgressIndicator progressBar = null;
+    private Button openChatActivityButton = null;
+    private Button openChatFragmentButton = null;
+    private Button openChatViewButton = null;
     private final BroadcastReceiver pushRegIdReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
             if (intent != null) {
                 String pushRegId = intent.getStringExtra(BroadcastParameter.EXTRA_INFOBIP_ID);
                 showPushRegId(pushRegId);
+            }
+        }
+    };
+
+    private final BroadcastReceiver isInAppChatAvailableReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            if (intent != null) {
+                boolean availability = intent.getBooleanExtra(BroadcastParameter.EXTRA_IS_CHAT_AVAILABLE, false);
+                MainActivity.this.openChatActivityButton.setEnabled(availability);
+                MainActivity.this.openChatFragmentButton.setEnabled(availability);
+                MainActivity.this.openChatViewButton.setEnabled(availability);
+                Toast.makeText(context, getString(R.string.chat_availability, availability), Toast.LENGTH_SHORT).show();
             }
         }
     };
@@ -108,6 +125,9 @@ public class MainActivity extends AppCompatActivity implements InAppChatFragment
         this.nameEditText = this.findViewById(R.id.nameEditText);
         this.subjectEditText = this.findViewById(R.id.subjectEditText);
         this.progressBar = this.findViewById(R.id.progressBar);
+        this.openChatActivityButton = findViewById(R.id.openChatActivity);
+        this.openChatFragmentButton = findViewById(R.id.openChatFragment);
+        this.openChatViewButton = findViewById(R.id.openChatView);
         setSupportActionBar(this.findViewById(R.id.toolbar));
         inAppChat.activate();
         setUpPushRegIdField();
@@ -119,6 +139,7 @@ public class MainActivity extends AppCompatActivity implements InAppChatFragment
         setUpPersonalizationButton();
         setUpDepersonalizationButton();
         setUpRuntimeCustomization();
+        setUpInAppChatAvailabilityReceiver();
     }
 
     @Override
@@ -130,6 +151,7 @@ public class MainActivity extends AppCompatActivity implements InAppChatFragment
                 MobileMessagingLogger.e(TAG, "Unable to unregister pushRegIdReceiverRegistered", t);
             }
         }
+        inAppChatAvailabilityReceiverRegistered = !unregisterBroadcastReceiver(inAppChatAvailabilityReceiverRegistered, isInAppChatAvailableReceiver);
         super.onDestroy();
     }
 
@@ -251,6 +273,13 @@ public class MainActivity extends AppCompatActivity implements InAppChatFragment
         }
     }
 
+    private void setUpInAppChatAvailabilityReceiver() {
+        if (!inAppChatAvailabilityReceiverRegistered) {
+            LocalBroadcastManager.getInstance(this).registerReceiver(isInAppChatAvailableReceiver, new IntentFilter(InAppChatEvent.IN_APP_CHAT_AVAILABILITY_UPDATED.getKey()));
+            this.inAppChatAvailabilityReceiverRegistered = true;
+        }
+    }
+
     private void setPushRegIdToClipboard(String pushRegId) {
         ClipboardManager clipboard = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
         ClipData clip = ClipData.newPlainText(getString(R.string.action_registration_id_copy), pushRegId);
@@ -281,21 +310,18 @@ public class MainActivity extends AppCompatActivity implements InAppChatFragment
     }
 
     private void setUpOpenChatActivityButton() {
-        Button openChatActivityButton = findViewById(R.id.openChatActivity);
         openChatActivityButton.setOnClickListener((v) -> {
             inAppChat.inAppChatScreen().show();
         });
     }
 
     private void setUpOpenChatFragmentButton() {
-        Button openChatFragmentButton = findViewById(R.id.openChatFragment);
         openChatFragmentButton.setOnClickListener((v) -> {
             inAppChat.showInAppChatFragment(getSupportFragmentManager(), R.id.fragmentContainer);
         });
     }
 
     private void setUpOpenChatViewButton() {
-        Button openChatViewButton = findViewById(R.id.openChatView);
         openChatViewButton.setOnClickListener((v) -> {
             FragmentTransaction fragmentTransaction = getSupportFragmentManager().beginTransaction();
             fragmentTransaction.add(R.id.fragmentContainer, new InAppChatViewDemoFragment(), InAppChatViewDemoFragment.class.getSimpleName());

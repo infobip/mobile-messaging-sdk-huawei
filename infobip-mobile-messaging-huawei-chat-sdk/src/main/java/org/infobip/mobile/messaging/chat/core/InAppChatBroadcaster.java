@@ -18,4 +18,9 @@ public interface InAppChatBroadcaster {
      */
     void chatViewChanged(InAppChatWidgetView view);
 
+    /**
+     * Sends broadcast with new In-app chat's availability
+     * @param isChatAvailable true if In-app chat is ready to be presented to the user, false otherwise
+     */
+    void chatAvailabilityUpdated(boolean isChatAvailable);
 }
