@@ -1,5 +1,9 @@
 package org.infobip.mobile.messaging;
 
+import static org.infobip.mobile.messaging.UserMapper.filterOutDeletedData;
+import static org.infobip.mobile.messaging.UserMapper.toJson;
+import static org.infobip.mobile.messaging.mobileapi.events.UserSessionTracker.SESSION_BOUNDS_DELIMITER;
+
 import android.app.Application;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
@@ -7,8 +11,10 @@ import android.content.Context;
 import android.os.Build;
 import android.text.TextUtils;
 import android.util.Pair;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+
 import org.infobip.mobile.messaging.api.appinstance.AppInstanceAtts;
 import org.infobip.mobile.messaging.api.appinstance.UserAtts;
 import org.infobip.mobile.messaging.api.appinstance.UserCustomEventBody;
@@ -26,7 +32,11 @@ import org.infobip.mobile.messaging.dal.sqlite.SqliteDatabaseProvider;
 import org.infobip.mobile.messaging.interactive.MobileInteractiveImpl;
 import org.infobip.mobile.messaging.interactive.notification.InteractiveNotificationHandler;
 import org.infobip.mobile.messaging.logging.MobileMessagingLogger;
-import org.infobip.mobile.messaging.mobileapi.*;
+import org.infobip.mobile.messaging.mobileapi.BatchReporter;
+import org.infobip.mobile.messaging.mobileapi.InternalSdkError;
+import org.infobip.mobile.messaging.mobileapi.MobileApiResourceProvider;
+import org.infobip.mobile.messaging.mobileapi.MobileMessagingError;
+import org.infobip.mobile.messaging.mobileapi.Result;
 import org.infobip.mobile.messaging.mobileapi.appinstance.InstallationSynchronizer;
 import org.infobip.mobile.messaging.mobileapi.baseurl.BaseUrlChecker;
 import org.infobip.mobile.messaging.mobileapi.common.MAsyncTask;
@@ -43,25 +53,47 @@ import org.infobip.mobile.messaging.mobileapi.user.UserDataReporter;
 import org.infobip.mobile.messaging.mobileapi.version.VersionChecker;
 import org.infobip.mobile.messaging.notification.NotificationHandler;
 import org.infobip.mobile.messaging.permissions.PostNotificationsPermissionRequester;
-import org.infobip.mobile.messaging.platform.*;
+import org.infobip.mobile.messaging.platform.AndroidBroadcaster;
+import org.infobip.mobile.messaging.platform.Broadcaster;
+import org.infobip.mobile.messaging.platform.MobileMessagingJobService;
+import org.infobip.mobile.messaging.platform.Platform;
+import org.infobip.mobile.messaging.platform.Time;
 import org.infobip.mobile.messaging.stats.MobileMessagingStats;
 import org.infobip.mobile.messaging.storage.MessageStore;
 import org.infobip.mobile.messaging.storage.MessageStoreWrapper;
 import org.infobip.mobile.messaging.storage.MessageStoreWrapperImpl;
 import org.infobip.mobile.messaging.telephony.MobileNetworkStateListener;
-import org.infobip.mobile.messaging.util.*;
+import org.infobip.mobile.messaging.util.ComponentUtil;
+import org.infobip.mobile.messaging.util.Cryptor;
+import org.infobip.mobile.messaging.util.CryptorImpl;
+import org.infobip.mobile.messaging.util.DateTimeUtil;
+import org.infobip.mobile.messaging.util.DeviceInformation;
+import org.infobip.mobile.messaging.util.MobileNetworkInformation;
+import org.infobip.mobile.messaging.util.ModuleLoader;
+import org.infobip.mobile.messaging.util.PreferenceHelper;
+import org.infobip.mobile.messaging.util.ResourceLoader;
+import org.infobip.mobile.messaging.util.SHA256;
+import org.infobip.mobile.messaging.util.SoftwareInformation;
+import org.infobip.mobile.messaging.util.StringUtils;
+import org.infobip.mobile.messaging.util.SystemInformation;
 
 import java.lang.reflect.Method;
 import java.security.MessageDigest;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Calendar;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
-
-import static org.infobip.mobile.messaging.UserMapper.filterOutDeletedData;
-import static org.infobip.mobile.messaging.UserMapper.toJson;
-import static org.infobip.mobile.messaging.mobileapi.events.UserSessionTracker.SESSION_BOUNDS_DELIMITER;
 
 /**
  * @author sslavin
@@ -2069,8 +2101,7 @@ public class MobileMessagingCore
                 String existingApplicationCode = MobileMessagingCore.getStoredApplicationCode(applicationContext);
                 if (applicationCode != null) {
                     String resolvedApplicationCodeHash = MobileMessagingCore.calculateAppCodeHash(applicationCode);
-                    if ((existingApplicationCode != null && !applicationCode.equals(existingApplicationCode) ||
-                            existingApplicationCodeHash != null && !MessageDigest.isEqual(resolvedApplicationCodeHash.getBytes(),existingApplicationCodeHash.getBytes()))) {
+                    if ((existingApplicationCode != null && !applicationCode.equals(existingApplicationCode))) {
                         MobileMessagingLogger.d("Cleaning up push registration data because application code has changed");
                         MobileMessagingCore.cleanup(application);
                     }
