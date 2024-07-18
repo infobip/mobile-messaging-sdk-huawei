@@ -14,8 +14,7 @@ public enum MobileMessagingChatProperty {
     IN_APP_CHAT_WIDGET_THEMES("org.infobip.mobile.messaging.infobip.IN_APP_CHAT_WIDGET_THEMES", null),
     IN_APP_CHAT_ACTIVATED("org.infobip.mobile.messaging.infobip.IN_APP_CHAT_ACTIVATED", false),
     IN_APP_CHAT_LANGUAGE("org.infobip.mobile.messaging.infobip.IN_APP_CHAT_LANGUAGE", null),
-    UNREAD_CHAT_MESSAGES_COUNT("org.infobip.mobile.messaging.infobip.UNREAD_CHAT_MESSAGES_COUNT", 0),
-    IN_APP_CHAT_DARK_MODE("org.infobip.mobile.messaging.infobip.IN_APP_CHAT_DARK_MODE", null);
+    UNREAD_CHAT_MESSAGES_COUNT("org.infobip.mobile.messaging.infobip.UNREAD_CHAT_MESSAGES_COUNT", 0);
 
     private final String key;
     private final Object defaultValue;

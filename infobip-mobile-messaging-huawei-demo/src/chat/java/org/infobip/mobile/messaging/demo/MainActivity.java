@@ -18,16 +18,6 @@ import android.widget.AutoCompleteTextView;
 import android.widget.Button;
 import android.widget.Toast;
 
-import androidx.annotation.IdRes;
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.appcompat.app.ActionBar;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.content.res.ResourcesCompat;
-import androidx.fragment.app.FragmentTransaction;
-import androidx.localbroadcastmanager.content.LocalBroadcastManager;
-
-import com.google.android.material.button.MaterialButtonToggleGroup;
 import com.google.android.material.progressindicator.LinearProgressIndicator;
 import com.google.android.material.textfield.TextInputEditText;
 
@@ -37,9 +27,8 @@ import org.infobip.mobile.messaging.MobileMessaging;
 import org.infobip.mobile.messaging.SuccessPending;
 import org.infobip.mobile.messaging.User;
 import org.infobip.mobile.messaging.chat.InAppChat;
-import org.infobip.mobile.messaging.chat.utils.DarkModeUtils;
+import org.infobip.mobile.messaging.chat.core.InAppChatEvent;
 import org.infobip.mobile.messaging.chat.view.InAppChatFragment;
-import org.infobip.mobile.messaging.chat.view.styles.InAppChatDarkMode;
 import org.infobip.mobile.messaging.chat.view.styles.InAppChatInputViewStyle;
 import org.infobip.mobile.messaging.chat.view.styles.InAppChatStyle;
 import org.infobip.mobile.messaging.chat.view.styles.InAppChatTheme;
@@ -48,6 +37,15 @@ import org.infobip.mobile.messaging.logging.MobileMessagingLogger;
 import org.infobip.mobile.messaging.mobileapi.MobileMessagingError;
 import org.infobip.mobile.messaging.mobileapi.Result;
 import org.infobip.mobile.messaging.util.StringUtils;
+
+import androidx.annotation.IdRes;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.ActionBar;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.res.ResourcesCompat;
+import androidx.fragment.app.FragmentTransaction;
+import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 /**
  * @author sslavin
@@ -144,15 +142,21 @@ public class MainActivity extends AppCompatActivity implements InAppChatFragment
 
     @Override
     protected void onDestroy() {
-        if (this.pushRegIdReceiverRegistered) {
-            try {
-                LocalBroadcastManager.getInstance(this).unregisterReceiver(pushRegIdReceiver);
-            } catch (Throwable t) {
-                MobileMessagingLogger.e(TAG, "Unable to unregister pushRegIdReceiverRegistered", t);
-            }
-        }
+        pushRegIdReceiverRegistered = !unregisterBroadcastReceiver(pushRegIdReceiverRegistered, pushRegIdReceiver);
         inAppChatAvailabilityReceiverRegistered = !unregisterBroadcastReceiver(inAppChatAvailabilityReceiverRegistered, isInAppChatAvailableReceiver);
         super.onDestroy();
+    }
+
+    private boolean unregisterBroadcastReceiver(Boolean isRegistered, BroadcastReceiver receiver) {
+        if (isRegistered) {
+            try {
+                LocalBroadcastManager.getInstance(this).unregisterReceiver(receiver);
+                return true;
+            } catch (Throwable t) {
+                MobileMessagingLogger.e("MainActivity", "Unable to unregister broadcast receiver", t);
+            }
+        }
+        return false;
     }
 
     @Override

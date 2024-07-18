@@ -8,7 +8,6 @@ import android.util.AttributeSet
 import android.view.LayoutInflater
 import android.widget.TextView
 import androidx.constraintlayout.widget.ConstraintLayout
-import androidx.core.content.ContextCompat
 import androidx.core.view.isInvisible
 import androidx.core.view.isVisible
 import androidx.lifecycle.DefaultLifecycleObserver
@@ -35,7 +34,6 @@ import org.infobip.mobile.messaging.mobileapi.InternalSdkError
 import org.infobip.mobile.messaging.mobileapi.MobileMessagingError
 import org.infobip.mobile.messaging.mobileapi.Result
 import org.infobip.mobile.messaging.util.StringUtils
-import org.infobip.mobile.messaging.util.SystemInformation
 import java.util.*
 
 class InAppChatView @JvmOverloads constructor(
@@ -340,6 +338,12 @@ class InAppChatView @JvmOverloads constructor(
         }
     }
 
+    override fun setForceDarkAllowed(allow: Boolean) {
+        super.setForceDarkAllowed(allow)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            binding.ibLcWebView.isForceDarkAllowed = allow
+        }
+    }
     //endregion
 
     //region Lifecycle

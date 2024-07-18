@@ -28,7 +28,6 @@ import org.infobip.mobile.messaging.chat.view.InAppChatActivity;
 import org.infobip.mobile.messaging.chat.view.InAppChatFragment;
 import org.infobip.mobile.messaging.chat.view.InAppChatView;
 import org.infobip.mobile.messaging.chat.view.InAppChatWebView;
-import org.infobip.mobile.messaging.chat.view.styles.InAppChatDarkMode;
 import org.infobip.mobile.messaging.chat.view.styles.InAppChatTheme;
 import org.infobip.mobile.messaging.dal.bundle.MessageBundleMapper;
 import org.infobip.mobile.messaging.logging.MobileMessagingLogger;
@@ -63,7 +62,6 @@ public class InAppChatImpl extends InAppChat implements MessageHandlerModule {
     private InAppChatSynchronizer inAppChatSynchronizer;
     private static Result<WidgetInfo, MobileMessagingError> chatWidgetConfigSyncResult = null;
     private JwtProvider jwtProvider = null;
-    private InAppChatDarkMode darkMode = null;
     private InAppChatTheme theme = null;
     private String widgetTheme = null;
     private String domain = null;
@@ -245,7 +243,6 @@ public class InAppChatImpl extends InAppChat implements MessageHandlerModule {
         if (!isActivated()) {
             MobileMessagingLogger.e("In-app chat wasn't activated, call activate()");
         }
-        inAppChatScreen.setDarkMode(this.darkMode);
         return inAppChatScreen;
     }
 
@@ -259,7 +256,6 @@ public class InAppChatImpl extends InAppChat implements MessageHandlerModule {
         mobileApiResourceProvider = null;
         inAppChatSynchronizer = null;
         jwtProvider = null;
-        darkMode = null;
         theme = null;
         widgetTheme = null;
         domain = null;
@@ -275,7 +271,6 @@ public class InAppChatImpl extends InAppChat implements MessageHandlerModule {
         propertyHelper().remove(MobileMessagingChatProperty.IN_APP_CHAT_WIDGET_CALLS_ENABLED);
         propertyHelper().remove(MobileMessagingChatProperty.IN_APP_CHAT_ACTIVATED);
         propertyHelper().remove(MobileMessagingChatProperty.IN_APP_CHAT_LANGUAGE);
-        propertyHelper().remove(MobileMessagingChatProperty.IN_APP_CHAT_DARK_MODE);
         resetMessageCounter();
     }
 
@@ -416,16 +411,6 @@ public class InAppChatImpl extends InAppChat implements MessageHandlerModule {
         } else {
             MobileMessagingLogger.e("Function showThreadsList() skipped, InAppChatFragment has not been shown yet.");
         }
-    }
-
-    @Override
-    @Deprecated(since = "12.4.0", forRemoval = true)
-    public void setDarkMode(InAppChatDarkMode darkMode) {
-        this.darkMode = darkMode;
-        if (darkMode == null)
-            propertyHelper().remove(MobileMessagingChatProperty.IN_APP_CHAT_DARK_MODE);
-        else
-            propertyHelper().saveString(MobileMessagingChatProperty.IN_APP_CHAT_DARK_MODE, darkMode.name());
     }
 
     @Override
