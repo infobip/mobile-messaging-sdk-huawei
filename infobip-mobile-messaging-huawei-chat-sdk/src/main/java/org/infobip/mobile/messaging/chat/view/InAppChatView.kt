@@ -15,6 +15,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner
 import com.google.android.material.snackbar.Snackbar
 import org.infobip.mobile.messaging.*
+import org.infobip.mobile.messaging.MobileMessaging.ResultListener
 import org.infobip.mobile.messaging.api.chat.WidgetInfo
 import org.infobip.mobile.messaging.api.support.http.client.DefaultApiClient
 import org.infobip.mobile.messaging.chat.InAppChat
@@ -24,6 +25,7 @@ import org.infobip.mobile.messaging.chat.R
 import org.infobip.mobile.messaging.chat.attachments.InAppChatMobileAttachment
 import org.infobip.mobile.messaging.chat.core.*
 import org.infobip.mobile.messaging.chat.databinding.IbViewChatBinding
+import org.infobip.mobile.messaging.chat.models.ContextualData
 import org.infobip.mobile.messaging.chat.properties.MobileMessagingChatProperty
 import org.infobip.mobile.messaging.chat.properties.PropertyHelper
 import org.infobip.mobile.messaging.chat.utils.*
@@ -227,25 +229,33 @@ class InAppChatView @JvmOverloads constructor(
     }
 
     /**
-     * Set contextual data of the Livechat Widget
+     * Set contextual data of the Livechat Widget.
+     *
+     * If the function is called when the chat is loaded,
+     * data will be sent immediately, otherwise they will be sent to the chat once it is loaded.
+     *
+     * Every function invocation will overwrite the previous contextual data.
      *
      * @param data                   contextual data in the form of JSON string
      * @param allMultiThreadStrategy multithread strategy flag, true -> ALL, false -> ACTIVE
-     */
-    @Deprecated("Use new sendContextualData() instead.", replaceWith = ReplaceWith("sendContextualData(data, allMultiThreadStrategy)"), level = DeprecationLevel.WARNING)
-    fun sendContextualMetaData(data: String, allMultiThreadStrategy: Boolean) {
-        sendContextualData(data, allMultiThreadStrategy)
-    }
-
-    /**
-     * Set contextual data of the Livechat Widget
-     *
-     * @param data                   contextual data in the form of JSON string
-     * @param allMultiThreadStrategy multithread strategy flag, true -> ALL, false -> ACTIVE
+     * @see [InAppChatView.EventsListener.onChatLoaded] to detect if chat is loaded
      */
     fun sendContextualData(data: String, allMultiThreadStrategy: Boolean) {
-        val flag = if (allMultiThreadStrategy) InAppChatMultiThreadFlag.ALL else InAppChatMultiThreadFlag.ACTIVE
-        inAppChatClient.sendContextualData(data, flag)
+        if (isChatLoaded) {
+            val flag = if (allMultiThreadStrategy) InAppChatMultiThreadFlag.ALL else InAppChatMultiThreadFlag.ACTIVE
+            val listener = object : ResultListener<String>() {
+                override fun onResult(result: Result<String, MobileMessagingError>) {
+                    SessionStorage.contextualData = null
+                    if (result.error != null) {
+                        MobileMessagingLogger.e(TAG, "Could not send contextual data: ${result.error.message}")
+                    }
+                }
+            }
+            inAppChatClient.sendContextualData(data, flag, listener)
+        } else {
+            SessionStorage.contextualData = ContextualData(data, allMultiThreadStrategy)
+            MobileMessagingLogger.d(TAG, "Contextual data was stored, will be send once chat is loaded.")
+        }
     }
 
     /**
@@ -453,9 +463,9 @@ class InAppChatView @JvmOverloads constructor(
     //endregion
 
     private fun updateErrors() {
-        val chatWidgetConfigSyncResult = InAppChatImpl.getChatWidgetConfigSyncResult()
-        if (chatWidgetConfigSyncResult != null && !chatWidgetConfigSyncResult.isSuccess) {
-            val error = chatWidgetConfigSyncResult.error
+        val configSyncResult = SessionStorage.configSyncResult
+        if (configSyncResult != null && !configSyncResult.isSuccess) {
+            val error = configSyncResult.error
             val isInternetConnectionError = DefaultApiClient.ErrorCode.API_IO_ERROR.value == error.code && error.type == MobileMessagingError.Type.SERVER_ERROR
             val isPushRegIdMissing = mmCore.pushRegistrationId == null
             val isRegistrationPendingError = InternalSdkError.NO_VALID_REGISTRATION.error.code == error.code && mmCore.isRegistrationIdReported
@@ -533,8 +543,12 @@ class InAppChatView @JvmOverloads constructor(
     private fun onWidgetLoaded(isLoaded: Boolean) {
         eventsListener?.onChatLoaded(isLoaded)
         isChatLoaded = isLoaded
-        if (isLoaded)
+        if (isLoaded) {
             inAppChat.resetMessageCounter()
+            SessionStorage.contextualData?.let {
+                sendContextualData(it.data, it.allMultiThreadStrategy)
+            }
+        }
     }
 
     private fun onWidgetLoadError(message: String?) {

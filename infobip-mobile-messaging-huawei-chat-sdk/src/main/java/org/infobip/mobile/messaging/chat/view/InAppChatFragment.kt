@@ -37,7 +37,9 @@ import org.infobip.mobile.messaging.chat.R
 import org.infobip.mobile.messaging.chat.attachments.InAppChatAttachmentHelper
 import org.infobip.mobile.messaging.chat.attachments.InAppChatMobileAttachment
 import org.infobip.mobile.messaging.chat.core.InAppChatWidgetView
+import org.infobip.mobile.messaging.chat.core.SessionStorage
 import org.infobip.mobile.messaging.chat.databinding.IbFragmentChatBinding
+import org.infobip.mobile.messaging.chat.models.ContextualData
 import org.infobip.mobile.messaging.chat.utils.LocalizationUtils
 import org.infobip.mobile.messaging.chat.utils.getStatusBarColor
 import org.infobip.mobile.messaging.chat.utils.hide
@@ -346,13 +348,24 @@ class InAppChatFragment : Fragment(), InAppChatFragmentActivityResultDelegate.Re
     /**
      * Set contextual data of the Livechat Widget.
      *
-     * It does nothing if [InAppChatFragment] is not attached.
+     * If the function is called when [InAppChatFragment] is attached and the chat is loaded,
+     * data will be sent immediately, otherwise they will be sent to the chat once it is loaded.
+     *
+     * Every function invocation will overwrite the previous contextual data.
+     *
      *
      * @param data                   contextual data in the form of JSON string
      * @param allMultiThreadStrategy multithread strategy flag, true -> ALL, false -> ACTIVE
+     * @see [InAppChatFragment.EventsListener.onChatLoaded] to detect if chat is loaded
      */
     fun sendContextualData(data: String, allMultiThreadStrategy: Boolean) {
-        withBinding { it.ibLcChat.sendContextualData(data, allMultiThreadStrategy) }
+        withBinding(
+            action = { it.ibLcChat.sendContextualData(data, allMultiThreadStrategy) },
+            fallback = {
+                SessionStorage.contextualData = ContextualData(data, allMultiThreadStrategy)
+                MobileMessagingLogger.d(TAG, "Contextual data was stored, will be send once chat is loaded.")
+            }
+        )
     }
 
     /**
@@ -869,8 +882,11 @@ class InAppChatFragment : Fragment(), InAppChatFragmentActivityResultDelegate.Re
         backPressedCallback.remove()
     }
 
-    private fun withBinding(block: (IbFragmentChatBinding) -> Unit) {
-        _binding?.let(block) ?: MobileMessagingLogger.e(TAG, "Could not execute action, fragment is not attached yet")
+    private fun withBinding(
+        fallback: (() -> Unit)? = null,
+        action: (IbFragmentChatBinding) -> Unit,
+    ) {
+        _binding?.let(action) ?: fallback?.invoke() ?: MobileMessagingLogger.e(TAG, "Could not execute action, fragment is not attached yet")
     }
 
     private fun getLifecycleRegistry(): InAppChatFragmentLifecycleRegistry {
