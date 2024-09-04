@@ -109,15 +109,27 @@ public class BaseNotificationHandler {
         if (notificationSettings == null) return null;
 
         String title = StringUtils.isNotBlank(message.getTitle()) ? message.getTitle() : notificationSettings.getDefaultTitle();
+        String body = message.getBody();
+        if (message.isChatMessage()) {
+            String chatDefaultTitle = notificationSettings.getChatDefaultTitle();
+            String chatDefaultBody = notificationSettings.getChatDefaultBody();
+            if (StringUtils.isNotBlank(chatDefaultTitle)) {
+                title = chatDefaultTitle;
+            }
+            if (StringUtils.isNotBlank(chatDefaultBody)) {
+                body = chatDefaultBody;
+            }
+        }
+
         NotificationCompat.Builder notificationBuilder = new NotificationCompat.Builder(context, getChannelIdForNotification(notificationSettings, message))
                 .setContentTitle(title)
-                .setContentText(message.getBody())
+                .setContentText(body)
                 .setColor(notificationSettings.getColor())
                 .setAutoCancel(notificationSettings.isNotificationAutoCancel())
                 .setContentIntent(createTapPendingIntent(notificationSettings, message))
                 .setWhen(message.getReceivedTimestamp());
 
-        setNotificationStyle(notificationBuilder, message, title);
+        setNotificationStyle(notificationBuilder, message, title, body);
         setNotificationSoundAndVibrate(notificationBuilder, message);
         setNotificationIcon(notificationBuilder, message);
         setNotificationPriority(notificationBuilder, notificationSettings, message);
@@ -125,13 +137,13 @@ public class BaseNotificationHandler {
         return notificationBuilder;
     }
 
-    private void setNotificationStyle(NotificationCompat.Builder notificationBuilder, Message message, String title) {
+    private void setNotificationStyle(NotificationCompat.Builder notificationBuilder, Message message, String title, String body) {
         String contentUrl = message.getContentUrl();
         Bitmap notificationPicture = fetchNotificationPicture(contentUrl);
 
         if (notificationPicture == null) {
             notificationBuilder.setStyle(new NotificationCompat.BigTextStyle()
-                    .bigText(message.getBody())
+                    .bigText(body)
                     .setBigContentTitle(title));
             return;
         }
@@ -143,7 +155,7 @@ public class BaseNotificationHandler {
                         .bigPicture(notificationPicture)
                         .bigLargeIcon(null)
                         .setBigContentTitle(title)
-                        .setSummaryText(message.getBody()));
+                        .setSummaryText(body));
     }
 
     @Nullable
@@ -262,7 +274,7 @@ public class BaseNotificationHandler {
             return null;
         }
 
-        if (StringUtils.isBlank(message.getBody())) {
+        if (StringUtils.isBlank(message.getBody()) && StringUtils.isBlank(notificationSettings.getChatDefaultBody())) {
             return null;
         }
 
