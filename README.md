@@ -14,7 +14,7 @@ Mobile Messaging SDK is designed and developed to easily enable push notificatio
 
 ## Quick start guide
 
-1. Make sure to <a href="https://www.infobip.com/docs/mobile-app-messaging/create-mobile-application-profile" target="_blank">setup application at Infobip portal</a>, if you haven't already.
+1. Make sure to <a href="https://www.infobip.com/docs/mobile-app-messaging/getting-started#create-and-enable-a-mobile-application-profile" target="_blank">setup application at Infobip portal</a>, if you haven't already.
 2. Add dependencies to `app/build.gradle`
     ```groovy
     dependencies {
@@ -26,7 +26,7 @@ Mobile Messaging SDK is designed and developed to easily enable push notificatio
     ```
 
 3. <a href="https://developer.huawei.com/consumer/en/doc/development/HMSCore-Guides/android-config-agc-0000001050170137" target="_blank">`Configure Huawei application`</a> 
-4. Add  HMS App ID and Infobip <a href="https://www.infobip.com/docs/mobile-app-messaging/create-mobile-application-profile" target="_blank">`Application Code`</a> obtained in step 1 to `values/strings.xml`
+4. Add HMS App ID and Infobip <a href="https://www.infobip.com/docs/mobile-app-messaging/getting-started#copy-application-code-create-and-enable-a-mobile-application-profile" target="_blank">`Application Code`</a> obtained in step 1 to `values/strings.xml`
     ```groovy
     <resources>
         <string name="app_id">SENDER ID</string>
