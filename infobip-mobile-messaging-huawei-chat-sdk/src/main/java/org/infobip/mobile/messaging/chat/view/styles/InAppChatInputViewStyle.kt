@@ -20,25 +20,98 @@ import org.infobip.mobile.messaging.chat.utils.isIbDefaultTheme
 import org.infobip.mobile.messaging.chat.utils.resolveStringWithResId
 import org.infobip.mobile.messaging.chat.utils.takeIfDefined
 
-data class InAppChatInputViewStyle(
-    @StyleRes val textAppearance: Int? = null,
-    @ColorInt val textColor: Int,
-    @ColorInt val backgroundColor: Int,
+data class InAppChatInputViewStyle @JvmOverloads constructor(
+    @StyleRes val textAppearance: Int? = Defaults.textAppearance,
+    @ColorInt val textColor: Int = Defaults.textColor,
+    @ColorInt val backgroundColor: Int = Defaults.backgroundColor,
     val hintText: String? = null,
-    @StringRes val hintTextRes: Int? = null,
-    @ColorInt val hintTextColor: Int,
+    @StringRes val hintTextRes: Int? = Defaults.hintTextRes,
+    @ColorInt val hintTextColor: Int = Defaults.hintTextColor,
     val attachmentIcon: Drawable? = null,
-    val attachmentIconTint: ColorStateList? = null,
+    val attachmentIconTint: ColorStateList? = Defaults.iconTint,
     val attachmentBackgroundDrawable: Drawable? = null,
     @ColorInt val attachmentBackgroundColor: Int? = null,
     val sendIcon: Drawable? = null,
-    val sendIconTint: ColorStateList? = null,
+    val sendIconTint: ColorStateList? = Defaults.iconTint,
     val sendBackgroundDrawable: Drawable? = null,
     @ColorInt val sendBackgroundColor: Int? = null,
-    @ColorInt val separatorLineColor: Int,
-    val isSeparatorLineVisible: Boolean,
-    @ColorInt val cursorColor: Int,
+    @ColorInt val separatorLineColor: Int = Defaults.separatorLineColor,
+    val isSeparatorLineVisible: Boolean = Defaults.isSeparatorLineVisible,
+    @ColorInt val cursorColor: Int = Defaults.textColor,
 ) {
+    object Defaults {
+        @StyleRes val textAppearance: Int = R.style.IB_Chat_Input_TextAppearance
+        @ColorInt val textColor: Int = Color.parseColor("#242424")
+        @ColorInt val backgroundColor: Int = Color.WHITE
+        @StringRes val hintTextRes: Int = R.string.ib_chat_message_hint
+        @ColorInt val hintTextColor: Int = Color.parseColor("#808080")
+        val iconTint: ColorStateList = colorStateListOf(
+            intArrayOf(-android.R.attr.state_enabled) to Color.parseColor("#808080"),
+            intArrayOf(android.R.attr.state_enabled) to Color.BLACK,
+        )
+        @ColorInt val separatorLineColor: Int = Color.parseColor("#19000000")
+        val isSeparatorLineVisible: Boolean = true
+    }
+
+    class Builder {
+        private var textAppearance: Int = Defaults.textAppearance
+        private var textColor: Int = Defaults.textColor
+        private var backgroundColor: Int = Defaults.backgroundColor
+        private var hintText: String? = null
+        private var hintTextRes: Int = Defaults.hintTextRes
+        private var hintTextColor: Int = Defaults.hintTextColor
+        private var attachmentIcon: Drawable? = null
+        private var attachmentIconTint: ColorStateList? = Defaults.iconTint
+        private var attachmentBackgroundDrawable: Drawable? = null
+        private var attachmentBackgroundColor: Int? = null
+        private var sendIcon: Drawable? = null
+        private var sendIconTint: ColorStateList? = Defaults.iconTint
+        private var sendBackgroundDrawable: Drawable? = null
+        private var sendBackgroundColor: Int? = null
+        private var separatorLineColor: Int = Defaults.separatorLineColor
+        private var isSeparatorLineVisible: Boolean = Defaults.isSeparatorLineVisible
+        private var cursorColor: Int = Defaults.textColor
+
+        fun setTextAppearance(@StyleRes textAppearance: Int?) = apply { textAppearance?.let { this.textAppearance = it } }
+        fun setTextColor(@ColorInt textColor: Int?) = apply { textColor?.let { this.textColor = it } }
+        fun setBackgroundColor(@ColorInt backgroundColor: Int?) = apply { backgroundColor?.let { this.backgroundColor = it } }
+        fun setHintText(hintText: String?) = apply { hintText?.let { this.hintText = it } }
+        fun setHintTextRes(@StringRes hintTextRes: Int?) = apply { hintTextRes?.let { this.hintTextRes = it } }
+        fun setHintTextColor(@ColorInt hintTextColor: Int?) = apply { hintTextColor?.let { this.hintTextColor = it } }
+        fun setAttachmentIcon(attachmentIcon: Drawable?) = apply { attachmentIcon?.let { this.attachmentIcon = it } }
+        fun setAttachmentIconTint(attachmentIconTint: ColorStateList?) = apply { attachmentIconTint?.let { this.attachmentIconTint = it } }
+        fun setAttachmentBackgroundDrawable(attachmentBackgroundDrawable: Drawable?) = apply { attachmentBackgroundDrawable?.let { this.attachmentBackgroundDrawable = it } }
+        fun setAttachmentBackgroundColor(@ColorInt attachmentBackgroundColor: Int?) = apply { attachmentBackgroundColor?.let { this.attachmentBackgroundColor = it } }
+        fun setSendIcon(sendIcon: Drawable?) = apply { sendIcon?.let { this.sendIcon = it } }
+        fun setSendIconTint(sendIconTint: ColorStateList?) = apply { sendIconTint?.let { this.sendIconTint = it } }
+        fun setSendBackgroundDrawable(sendBackgroundDrawable: Drawable?) = apply { sendBackgroundDrawable?.let { this.sendBackgroundDrawable = it } }
+        fun setSendBackgroundColor(@ColorInt sendBackgroundColor: Int?) = apply { sendBackgroundColor?.let { this.sendBackgroundColor = it } }
+        fun setSeparatorLineColor(@ColorInt separatorLineColor: Int?) = apply { separatorLineColor?.let { this.separatorLineColor = it } }
+        fun setIsSeparatorLineVisible(isSeparatorLineVisible: Boolean?) = apply { isSeparatorLineVisible?.let { this.isSeparatorLineVisible = it } }
+        fun setCursorColor(@ColorInt cursorColor: Int?) = apply { cursorColor?.let { this.cursorColor = it } }
+
+        fun build() = InAppChatInputViewStyle(
+            textAppearance = textAppearance,
+            textColor = textColor,
+            backgroundColor = backgroundColor,
+            hintText = hintText,
+            hintTextRes = hintTextRes,
+            hintTextColor = hintTextColor,
+            attachmentIcon = attachmentIcon,
+            attachmentIconTint = attachmentIconTint,
+            attachmentBackgroundDrawable = attachmentBackgroundDrawable,
+            attachmentBackgroundColor = attachmentBackgroundColor,
+            sendIcon = sendIcon,
+            sendIconTint = sendIconTint,
+            sendBackgroundDrawable = sendBackgroundDrawable,
+            sendBackgroundColor = sendBackgroundColor,
+            separatorLineColor = separatorLineColor,
+            isSeparatorLineVisible = isSeparatorLineVisible,
+            cursorColor = cursorColor
+        )
+    }
+
+
     companion object {
 
         /**
@@ -99,31 +172,34 @@ data class InAppChatInputViewStyle(
                     ?: buttonDefaultTint
                 val sendBackgroundDrawable = getResourceId(R.styleable.InAppChatInputViewStyleable_ibChatInputSendBackgroundDrawable, 0).takeIfDefined()
                 val sendBackgroundColor = getColor(R.styleable.InAppChatInputViewStyleable_ibChatInputSendBackgroundColor, 0).takeIfDefined()
-                val separatorLineColor = getColor(R.styleable.InAppChatInputViewStyleable_ibChatInputSeparatorLineColor, context.getColorCompat(R.color.ib_chat_separator_color))
+                val separatorLineColor =
+                    getColor(R.styleable.InAppChatInputViewStyleable_ibChatInputSeparatorLineColor, context.getColorCompat(R.color.ib_chat_separator_color))
                 val isSeparatorLineVisible = getBoolean(R.styleable.InAppChatInputViewStyleable_ibChatInputSeparatorLineVisible, true)
                 val cursorColor = widgetInfo?.colorPrimary?.takeIf { isDefaultTheme }
-                    ?: getColor(R.styleable.InAppChatInputViewStyleable_ibChatInputCursorColor, widgetInfo?.colorPrimary
-                        ?: textColor)
+                    ?: getColor(
+                        R.styleable.InAppChatInputViewStyleable_ibChatInputCursorColor, widgetInfo?.colorPrimary
+                            ?: textColor
+                    )
 
                 recycle()
                 return InAppChatInputViewStyle(
-                    textAppearance,
-                    textColor,
-                    backgroundColor,
-                    hintText,
-                    hintTextRes,
-                    hintTextColor,
-                    attachmentIcon?.let(context::getDrawableCompat),
-                    attachmentIconTint,
-                    attachmentBackgroundDrawable?.let(context::getDrawableCompat),
-                    attachmentBackgroundColor,
-                    sendIcon?.let(context::getDrawableCompat),
-                    sendIconTint,
-                    sendBackgroundDrawable?.let(context::getDrawableCompat),
-                    sendBackgroundColor,
-                    separatorLineColor,
-                    isSeparatorLineVisible,
-                    cursorColor
+                    textAppearance = textAppearance,
+                    textColor = textColor,
+                    backgroundColor = backgroundColor,
+                    hintText = hintText,
+                    hintTextRes = hintTextRes,
+                    hintTextColor = hintTextColor,
+                    attachmentIcon = attachmentIcon?.let(context::getDrawableCompat),
+                    attachmentIconTint = attachmentIconTint,
+                    attachmentBackgroundDrawable = attachmentBackgroundDrawable?.let(context::getDrawableCompat),
+                    attachmentBackgroundColor = attachmentBackgroundColor,
+                    sendIcon = sendIcon?.let(context::getDrawableCompat),
+                    sendIconTint = sendIconTint,
+                    sendBackgroundDrawable = sendBackgroundDrawable?.let(context::getDrawableCompat),
+                    sendBackgroundColor = sendBackgroundColor,
+                    separatorLineColor = separatorLineColor,
+                    isSeparatorLineVisible = isSeparatorLineVisible,
+                    cursorColor = cursorColor
                 )
             }
         }
