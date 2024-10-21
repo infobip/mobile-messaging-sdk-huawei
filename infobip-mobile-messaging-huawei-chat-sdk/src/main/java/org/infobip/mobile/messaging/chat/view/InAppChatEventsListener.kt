@@ -52,4 +52,11 @@ interface InAppChatEventsListener {
      * @param widgetThemeName name of the applied theme
      */
     fun onChatWidgetThemeChanged(widgetThemeName: String)
+
+    /**
+     * Chat message has been received.
+     *
+     * @param rawMessage raw message received by the chat
+     */
+    fun onChatRawMessageReceived(rawMessage: String)
 }

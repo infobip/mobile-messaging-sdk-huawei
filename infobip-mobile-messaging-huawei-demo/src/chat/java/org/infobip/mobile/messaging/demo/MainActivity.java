@@ -19,26 +19,6 @@ import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.Toast;
 
-import com.google.android.material.progressindicator.LinearProgressIndicator;
-import com.google.android.material.textfield.TextInputEditText;
-
-import org.infobip.mobile.messaging.BroadcastParameter;
-import org.infobip.mobile.messaging.Event;
-import org.infobip.mobile.messaging.MobileMessaging;
-import org.infobip.mobile.messaging.SuccessPending;
-import org.infobip.mobile.messaging.User;
-import org.infobip.mobile.messaging.chat.InAppChat;
-import org.infobip.mobile.messaging.chat.core.InAppChatEvent;
-import org.infobip.mobile.messaging.chat.view.InAppChatFragment;
-import org.infobip.mobile.messaging.chat.view.styles.InAppChatInputViewStyle;
-import org.infobip.mobile.messaging.chat.view.styles.InAppChatStyle;
-import org.infobip.mobile.messaging.chat.view.styles.InAppChatTheme;
-import org.infobip.mobile.messaging.chat.view.styles.InAppChatToolbarStyle;
-import org.infobip.mobile.messaging.logging.MobileMessagingLogger;
-import org.infobip.mobile.messaging.mobileapi.MobileMessagingError;
-import org.infobip.mobile.messaging.mobileapi.Result;
-import org.infobip.mobile.messaging.util.StringUtils;
-
 import androidx.annotation.IdRes;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -48,6 +28,29 @@ import androidx.core.content.res.ResourcesCompat;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentTransaction;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
+
+import com.google.android.material.progressindicator.LinearProgressIndicator;
+import com.google.android.material.textfield.TextInputEditText;
+
+import org.infobip.mobile.messaging.BroadcastParameter;
+import org.infobip.mobile.messaging.Event;
+import org.infobip.mobile.messaging.MobileMessaging;
+import org.infobip.mobile.messaging.SuccessPending;
+import org.infobip.mobile.messaging.User;
+import org.infobip.mobile.messaging.api.chat.WidgetInfo;
+import org.infobip.mobile.messaging.chat.InAppChat;
+import org.infobip.mobile.messaging.chat.core.InAppChatEvent;
+import org.infobip.mobile.messaging.chat.core.InAppChatWidgetView;
+import org.infobip.mobile.messaging.chat.view.InAppChatEventsListener;
+import org.infobip.mobile.messaging.chat.view.InAppChatFragment;
+import org.infobip.mobile.messaging.chat.view.styles.InAppChatInputViewStyle;
+import org.infobip.mobile.messaging.chat.view.styles.InAppChatStyle;
+import org.infobip.mobile.messaging.chat.view.styles.InAppChatTheme;
+import org.infobip.mobile.messaging.chat.view.styles.InAppChatToolbarStyle;
+import org.infobip.mobile.messaging.logging.MobileMessagingLogger;
+import org.infobip.mobile.messaging.mobileapi.MobileMessagingError;
+import org.infobip.mobile.messaging.mobileapi.Result;
+import org.infobip.mobile.messaging.util.StringUtils;
 
 /**
  * @author sslavin
@@ -292,6 +295,50 @@ public class MainActivity extends AppCompatActivity implements InAppChatFragment
         Toast.makeText(this, getString(R.string.chat_availability, isAvailable), Toast.LENGTH_SHORT).show();
     }
 
+    private void setInAppChatEventsListener() {
+        inAppChat.setEventsListener(new InAppChatEventsListener() {
+            @Override
+            public void onChatRawMessageReceived(@NonNull String rawMessage) {
+                MobileMessagingLogger.d(TAG, "On chat raw message received: " + rawMessage);
+            }
+
+            @Override
+            public void onChatWidgetThemeChanged(@NonNull String widgetThemeName) {
+                MobileMessagingLogger.d(TAG, "On chat widget theme changed: " + widgetThemeName);
+            }
+
+            @Override
+            public void onChatWidgetInfoUpdated(@NonNull WidgetInfo widgetInfo) {
+                MobileMessagingLogger.d(TAG, "On chat widget info updated: " + widgetInfo);
+            }
+
+            @Override
+            public void onChatViewChanged(@NonNull InAppChatWidgetView widgetView) {
+                MobileMessagingLogger.d(TAG, "On chat view changed: " + widgetView);
+            }
+
+            @Override
+            public void onChatControlsVisibilityChanged(boolean isVisible) {
+                MobileMessagingLogger.d(TAG, "On chat controls visibility changed: " + isVisible);
+            }
+
+            @Override
+            public void onChatReconnected() {
+                MobileMessagingLogger.d(TAG, "On chat reconnected");
+            }
+
+            @Override
+            public void onChatDisconnected() {
+                MobileMessagingLogger.d(TAG, "On chat disconnected");
+            }
+
+            @Override
+            public void onChatLoaded(boolean controlsEnabled) {
+                MobileMessagingLogger.d(TAG, "On chat loaded: " + controlsEnabled);
+            }
+        });
+    }
+
     private void setPushRegIdToClipboard(String pushRegId) {
         ClipboardManager clipboard = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
         ClipData clip = ClipData.newPlainText(getString(R.string.action_registration_id_copy), pushRegId);
@@ -323,12 +370,16 @@ public class MainActivity extends AppCompatActivity implements InAppChatFragment
 
     private void setUpOpenChatActivityButton() {
         openChatActivityButton.setOnClickListener((v) -> {
+            setInAppChatEventsListener();
             inAppChat.inAppChatScreen().show();
         });
     }
 
     private void setUpShowChatFragmentButton() {
-        showChatFragmentButton.setOnClickListener((v) -> inAppChat.showInAppChatFragment(getSupportFragmentManager(), R.id.fragmentContainer));
+        showChatFragmentButton.setOnClickListener((v) -> {
+            setInAppChatEventsListener();
+            inAppChat.showInAppChatFragment(getSupportFragmentManager(), R.id.fragmentContainer);
+        });
     }
 
     private void setUpOpenChatFragmentButton() {

@@ -20,7 +20,6 @@ import org.infobip.mobile.messaging.api.chat.WidgetInfo
 import org.infobip.mobile.messaging.api.support.http.client.DefaultApiClient
 import org.infobip.mobile.messaging.chat.InAppChat
 import org.infobip.mobile.messaging.chat.InAppChatErrors
-import org.infobip.mobile.messaging.chat.InAppChatImpl
 import org.infobip.mobile.messaging.chat.R
 import org.infobip.mobile.messaging.chat.attachments.InAppChatMobileAttachment
 import org.infobip.mobile.messaging.chat.core.*
@@ -377,10 +376,11 @@ class InAppChatView @JvmOverloads constructor(
         }
 
         override fun onWidgetApiError(method: InAppChatWidgetApiMethod, errorPayload: String?) {
-            when(method){
+            when (method) {
                 InAppChatWidgetApiMethod.identify,
                 InAppChatWidgetApiMethod.init_chat,
                 InAppChatWidgetApiMethod.show -> onWidgetLoadError(errorPayload)
+
                 else -> {} // Do nothing, just preserve original logic, to be extended in future if needed
             }
         }
@@ -409,6 +409,11 @@ class InAppChatView @JvmOverloads constructor(
         override fun onWidgetViewChanged(widgetView: InAppChatWidgetView) {
             eventsListener?.onChatViewChanged(widgetView)
             inAppChatBroadcaster.chatViewChanged(widgetView)
+        }
+
+        override fun onWidgetRawMessageReceived(message: String?) {
+            if (message?.isNotBlank() == true)
+                eventsListener?.onChatRawMessageReceived(message)
         }
     }
     //endregion

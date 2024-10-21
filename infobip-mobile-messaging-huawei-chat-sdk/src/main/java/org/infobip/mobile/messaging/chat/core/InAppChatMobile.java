@@ -7,9 +7,8 @@ package org.infobip.mobile.messaging.chat.core;
 interface InAppChatMobile {
 
     /**
-     * Show/Hide input field
-     *
-     * @param isVisible
+     * Provides controls visibility state.
+     * @param isVisible true if input field should be visible, false otherwise
      */
     void setControlsVisibility(boolean isVisible);
 
@@ -26,6 +25,12 @@ interface InAppChatMobile {
      * @param view name of current widget destination
      */
     void onViewChanged(String view);
+
+    /**
+     * Provides Livechat widget raw message.
+     * @param message raw message
+     */
+    void onRawMessageReceived(String message);
 
     /**
      * Provides Livechat widget api call error result.

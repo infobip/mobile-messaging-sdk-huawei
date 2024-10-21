@@ -2,12 +2,13 @@ package org.infobip.mobile.messaging.chat;
 
 import android.content.Context;
 
-import org.infobip.mobile.messaging.MobileMessaging;
-import org.infobip.mobile.messaging.chat.view.styles.InAppChatTheme;
-
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.FragmentManager;
+
+import org.infobip.mobile.messaging.MobileMessaging;
+import org.infobip.mobile.messaging.chat.view.InAppChatEventsListener;
+import org.infobip.mobile.messaging.chat.view.styles.InAppChatTheme;
 
 /**
  * Main interface for in-app chat communication
@@ -251,4 +252,22 @@ public abstract class InAppChat {
      * @param body custom body to be set for notifications
      */
     public abstract void setChatPushBody(@Nullable String body);
+
+
+    /**
+     * Set {@link InAppChatEventsListener} to listen for various in-app chat events.
+     * It allows you to observer chat related events when you show in-app chat using {@code InAppChat.inAppChatScreen().show()} or
+     * {@code InAppChat.showInAppChatFragment(fragmentManager, containerId)} functions.
+     *
+     * @param inAppChatEventsListener listener to report the events on
+     */
+    public abstract void setEventsListener(InAppChatEventsListener inAppChatEventsListener);
+
+    /**
+     * Get current {@link InAppChatEventsListener}.
+     *
+     * @return {@link InAppChatEventsListener} listener to report the events on
+     * @see org.infobip.mobile.messaging.chat.view.InAppChatEventsListener
+     */
+    public abstract InAppChatEventsListener getEventsListener();
 }
