@@ -1,13 +1,13 @@
 package org.infobip.mobile.messaging;
 
+import static org.infobip.mobile.messaging.CustomAttributesMapper.customAttsFromBackend;
+
 import android.os.Bundle;
 
 import org.infobip.mobile.messaging.api.appinstance.AppInstance;
 import org.infobip.mobile.messaging.api.appinstance.PushServiceType;
 import org.infobip.mobile.messaging.api.support.http.serialization.JsonSerializer;
 import org.infobip.mobile.messaging.util.StringUtils;
-
-import static org.infobip.mobile.messaging.CustomAttributesMapper.customAttsFromBackend;
 
 public class InstallationMapper {
 
@@ -18,7 +18,6 @@ public class InstallationMapper {
                 appInstance.getPushRegId(),
                 appInstance.getRegEnabled(),
                 appInstance.getNotificationsEnabled(),
-                appInstance.getGeoEnabled(),
                 appInstance.getSdkVersion(),
                 appInstance.getAppVersion(),
                 appInstance.getOs(),
@@ -40,7 +39,6 @@ public class InstallationMapper {
         AppInstance appInstance = new AppInstance();
         appInstance.setRegEnabled(installation.isPushRegistrationEnabled());
         appInstance.setNotificationsEnabled(installation.getNotificationsEnabled());
-        appInstance.setGeoEnabled(installation.getGeoEnabled());
         appInstance.setSdkVersion(installation.getSdkVersion());
         appInstance.setAppVersion(installation.getAppVersion());
         appInstance.setOs(installation.getOs());

@@ -1,13 +1,13 @@
 package org.infobip.mobile.messaging;
 
+import static org.infobip.mobile.messaging.InstallationMapper.fromBundle;
+import static org.infobip.mobile.messaging.platform.Platform.usedPushServiceType;
+
 import android.os.Bundle;
 
 import org.infobip.mobile.messaging.api.appinstance.AppInstanceAtts;
 
 import java.util.Map;
-
-import static org.infobip.mobile.messaging.InstallationMapper.fromBundle;
-import static org.infobip.mobile.messaging.platform.Platform.*;
 
 public class Installation extends CustomAttributeHolder {
 
@@ -15,7 +15,6 @@ public class Installation extends CustomAttributeHolder {
     private Boolean isPrimaryDevice;
     private Boolean isPushRegistrationEnabled;
     private Boolean notificationsEnabled;
-    private Boolean geoEnabled;
     private String sdkVersion;
     private String appVersion;
     private String os;
@@ -47,7 +46,6 @@ public class Installation extends CustomAttributeHolder {
     public Installation(String pushRegistrationId,
                         Boolean isPushRegistrationEnabled,
                         Boolean notificationsEnabled,
-                        Boolean geoEnabled,
                         String sdkVersion,
                         String appVersion,
                         String os,
@@ -67,7 +65,6 @@ public class Installation extends CustomAttributeHolder {
         this.pushRegistrationId = pushRegistrationId;
         this.isPushRegistrationEnabled = isPushRegistrationEnabled;
         this.notificationsEnabled = notificationsEnabled;
-        this.geoEnabled = geoEnabled;
         this.sdkVersion = sdkVersion;
         this.appVersion = appVersion;
         this.os = os;
@@ -116,7 +113,7 @@ public class Installation extends CustomAttributeHolder {
 
     /**
      * Push registration status defines whether the device is allowed to receive push notifications from Infobip
-     * (regular push messages/geofencing campaign messages/messages fetched from the server).
+     * (regular push messages campaign messages/messages fetched from the server).
      * MobileMessaging SDK has the push registration enabled by default.
      *
      * @return Current push registration status.
@@ -127,10 +124,10 @@ public class Installation extends CustomAttributeHolder {
 
     /**
      * Enables or disables the push registration. Installation is able to receive push notifications
-     * through MobileMessaging SDK (regular push messages/geofencing campaign messages/messages fetched from the server).
+     * through MobileMessaging SDK (regular push messages campaign messages/messages fetched from the server).
      * MobileMessaging SDK has the push registration enabled by default.
      *
-     * @param pushRegistrationEnabled set to <i>true</i> to enable receiving of push notifications (regular push messages/geofencing
+     * @param pushRegistrationEnabled set to <i>true</i> to enable receiving of push notifications (regular push messages
      *                                campaign messages/messages fetched from the server) over Infobip, <i>false</i> to disable it
      */
     public void setPushRegistrationEnabled(Boolean pushRegistrationEnabled) {
@@ -145,15 +142,6 @@ public class Installation extends CustomAttributeHolder {
     public void setNotificationsEnabled(Boolean notificationsEnabled) {
         this.notificationsEnabled = notificationsEnabled;
         setField(AppInstanceAtts.notificationsEnabled, notificationsEnabled);
-    }
-
-    public Boolean getGeoEnabled() {
-        return geoEnabled;
-    }
-
-    public void setGeoEnabled(Boolean geoEnabled) {
-        this.geoEnabled = geoEnabled;
-        setField(AppInstanceAtts.geoEnabled, geoEnabled);
     }
 
     public String getSdkVersion() {

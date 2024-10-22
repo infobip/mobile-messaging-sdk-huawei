@@ -1027,7 +1027,6 @@ public class MobileMessagingCore
                 getPushRegistrationId(),
                 isPushRegistrationEnabled(),
                 SoftwareInformation.areNotificationsEnabled(context),
-                isGeofencingActivated(),
                 SoftwareInformation.getSDKVersion(),
                 reportEnabled ? SoftwareInformation.getAppVersion(context) : "",
                 Platform.os,
@@ -1738,10 +1737,6 @@ public class MobileMessagingCore
         moMessageSender().sendWithRetry(messages);
     }
 
-    public boolean isGeofencingActivated() {
-        return PreferenceHelper.findBoolean(context, MobileMessagingProperty.GEOFENCING_ACTIVATED.getKey(), false);
-    }
-
     public SystemData getUnreportedSystemData() {
         if (PreferenceHelper.contains(context, MobileMessagingProperty.UNREPORTED_SYSTEM_DATA)) {
             return SystemData.fromJson(PreferenceHelper.findString(context, MobileMessagingProperty.UNREPORTED_SYSTEM_DATA));
@@ -1757,7 +1752,6 @@ public class MobileMessagingCore
                 reportEnabled ? DeviceInformation.getDeviceManufacturer() : "",
                 reportEnabled ? DeviceInformation.getDeviceModel() : "",
                 reportEnabled ? SoftwareInformation.getAppVersion(context) : "",
-                isGeofencingActivated(),
                 SoftwareInformation.areNotificationsEnabled(context),
                 reportEnabled && DeviceInformation.isDeviceSecure(context),
                 reportEnabled ? SystemInformation.getAndroidSystemLanguage() : "",
@@ -1784,7 +1778,6 @@ public class MobileMessagingCore
         installation.setDeviceManufacturer(data.getDeviceManufacturer());
         installation.setDeviceModel(data.getDeviceModel());
         installation.setAppVersion(data.getApplicationVersion());
-        if (installation.getGeoEnabled() == null) installation.setGeoEnabled(data.isGeofencing());
         if (installation.getNotificationsEnabled() == null)
             installation.setNotificationsEnabled(data.areNotificationsEnabled());
         installation.setDeviceSecure(data.isDeviceSecure());

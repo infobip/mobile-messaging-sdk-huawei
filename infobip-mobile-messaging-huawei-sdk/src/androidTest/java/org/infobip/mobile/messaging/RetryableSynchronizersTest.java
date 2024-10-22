@@ -1,5 +1,14 @@
 package org.infobip.mobile.messaging;
 
+import static org.mockito.BDDMockito.given;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Mockito.after;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+
 import android.annotation.SuppressLint;
 
 import org.infobip.mobile.messaging.api.messages.MobileApiMessages;
@@ -24,15 +33,6 @@ import org.junit.Test;
 import java.util.Map;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
-
-import static org.mockito.BDDMockito.given;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Mockito.after;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
 
 /**
  * @author pandric on 08/03/2017.
@@ -99,7 +99,6 @@ public class RetryableSynchronizersTest extends MobileMessagingTestCase {
                 reportEnabled ? DeviceInformation.getDeviceManufacturer() : "",
                 reportEnabled ? DeviceInformation.getDeviceModel() : "",
                 reportEnabled ? SoftwareInformation.getAppVersion(context) : "",
-                mobileMessagingCore.isGeofencingActivated(),
                 SoftwareInformation.areNotificationsEnabled(context),
                 DeviceInformation.isDeviceSecure(context),
                 reportEnabled ? SystemInformation.getAndroidSystemLanguage() : "",

@@ -1,5 +1,14 @@
 package org.infobip.mobile.messaging.interactive.inapp.rules;
 
+import static junit.framework.Assert.assertEquals;
+import static junit.framework.Assert.assertFalse;
+import static junit.framework.Assert.assertNull;
+import static junit.framework.Assert.assertTrue;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.when;
+
 import android.app.Activity;
 
 import org.infobip.mobile.messaging.Message;
@@ -17,15 +26,6 @@ import org.junit.Before;
 import org.junit.Test;
 
 import java.util.concurrent.TimeUnit;
-
-import static junit.framework.Assert.assertEquals;
-import static junit.framework.Assert.assertFalse;
-import static junit.framework.Assert.assertNull;
-import static junit.framework.Assert.assertTrue;
-import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.reset;
-import static org.mockito.Mockito.when;
 
 /**
  * @author sslavin
@@ -105,17 +105,6 @@ public class InAppRulesTest extends MobileMessagingBaseTestCase {
 
         ShowOrNot showOrNot = inAppRules.shouldDisplayDialogFor(message);
         assertEquals(true, showOrNot.shouldShowNow());
-        assertEquals(false, showOrNot.shouldShowWhenInForeground());
-    }
-
-    @Test
-    public void shouldNotDisplayIfGeoSignaling() {
-        when(message.isSilent()).thenReturn(true);
-        when(message.getMessageType()).thenReturn(org.infobip.mobile.messaging.Message.MESSAGE_TYPE_GEO);
-        when(foregroundStateMonitor.isInForeground()).thenReturn(ForegroundState.foreground(activity));
-
-        ShowOrNot showOrNot = inAppRules.shouldDisplayDialogFor(message);
-        assertEquals(false, showOrNot.shouldShowNow());
         assertEquals(false, showOrNot.shouldShowWhenInForeground());
     }
 

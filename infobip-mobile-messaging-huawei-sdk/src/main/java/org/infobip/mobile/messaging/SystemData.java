@@ -1,6 +1,7 @@
 package org.infobip.mobile.messaging;
 
 import android.os.Bundle;
+
 import androidx.annotation.NonNull;
 
 import org.infobip.mobile.messaging.api.support.http.serialization.JsonSerializer;
@@ -19,21 +20,19 @@ public class SystemData {
     private final String deviceManufacturer;
     private final String deviceModel;
     private final String applicationVersion;
-    private final boolean geofencing;
     private final boolean notificationsEnabled;
     private final boolean deviceSecure;
     private final String language;
     private final String deviceName;
     private final String deviceTimeZoneOffset;
 
-    public SystemData(String sdkVersion, String osVersion, String deviceManufacturer, String deviceModel, String applicationVersion, boolean geofencing,
+    public SystemData(String sdkVersion, String osVersion, String deviceManufacturer, String deviceModel, String applicationVersion,
                       boolean notificationsEnabled, boolean deviceSecure, String language, String deviceName, String deviceTimeZoneOffset) {
         this.sdkVersion = sdkVersion;
         this.osVersion = osVersion;
         this.deviceManufacturer = deviceManufacturer;
         this.deviceModel = deviceModel;
         this.applicationVersion = applicationVersion;
-        this.geofencing = geofencing;
         this.notificationsEnabled = notificationsEnabled;
         this.deviceSecure = deviceSecure;
         this.language = language;
@@ -69,10 +68,6 @@ public class SystemData {
         return applicationVersion;
     }
 
-    public boolean isGeofencing() {
-        return geofencing;
-    }
-
     public boolean areNotificationsEnabled() {
         return notificationsEnabled;
     }
@@ -102,7 +97,6 @@ public class SystemData {
         result = appendToHash(result, prime, deviceManufacturer);
         result = appendToHash(result, prime, deviceModel);
         result = appendToHash(result, prime, applicationVersion);
-        result = appendToHash(result, prime, geofencing);
         result = appendToHash(result, prime, notificationsEnabled);
         result = appendToHash(result, prime, deviceSecure);
         result = appendToHash(result, prime, language);
@@ -131,7 +125,6 @@ public class SystemData {
                 StringUtils.isEqual(this.deviceManufacturer, other.deviceManufacturer) &&
                 StringUtils.isEqual(this.deviceModel, other.deviceModel) &&
                 StringUtils.isEqual(this.applicationVersion, other.applicationVersion) &&
-                (this.geofencing == other.geofencing) &&
                 (this.notificationsEnabled == other.notificationsEnabled) &&
                 (this.deviceSecure == other.deviceSecure) &&
                 StringUtils.isEqual(this.language, other.language) &&

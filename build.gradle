@@ -58,7 +58,6 @@ afterReleaseBuild.dependsOn updateVersionInReadme
 
 build.dependsOn tasks.getByPath('infobip-mobile-messaging-huawei-inbox-sdk:build')
 build.dependsOn tasks.getByPath('infobip-mobile-messaging-huawei-chat-sdk:build')
-build.dependsOn tasks.getByPath('infobip-mobile-messaging-huawei-geo-sdk:build')
 build.dependsOn tasks.getByPath('infobip-mobile-messaging-huawei-cryptor-migration:build')
 build.dependsOn tasks.getByPath(':infobip-mobile-messaging-huawei-sdk:build')
 
@@ -100,7 +99,6 @@ sonar {
                 "infobip-mobile-messaging-huawei-test/**/*, "
         property "sonar.java.coveragePlugin", "jacoco"
         property "sonar.coverage.jacoco.xmlReportPaths", "" +
-                "${project.projectDir}/infobip-mobile-messaging-huawei-geo-sdk/build/reports/jacoco/debugCoverage/debugCoverage.xml, " +
                 "${project.projectDir}/infobip-mobile-messaging-huawei-inbox-sdk/build/reports/jacoco/debugCoverage/debugCoverage.xml, " +
                 "${project.projectDir}/infobip-mobile-messaging-huawei-sdk/build/reports/jacoco/debugCoverage/debugCoverage.xml, "
     }

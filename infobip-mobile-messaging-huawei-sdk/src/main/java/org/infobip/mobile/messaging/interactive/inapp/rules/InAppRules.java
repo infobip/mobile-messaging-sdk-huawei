@@ -1,6 +1,5 @@
 package org.infobip.mobile.messaging.interactive.inapp.rules;
 
-import static org.infobip.mobile.messaging.Message.MESSAGE_TYPE_GEO;
 
 import androidx.annotation.NonNull;
 
@@ -52,7 +51,7 @@ public class InAppRules {
     @NonNull
     private ShowOrNot checkDialogConditions(Message message) {
         long inAppExpiryTimestamp = message.getInAppExpiryTimestamp();
-        if (isGeoSignaling(message) || (inAppExpiryTimestamp != 0 && inAppExpiryTimestamp < Time.now())) {
+        if ((inAppExpiryTimestamp != 0 && inAppExpiryTimestamp < Time.now())) {
                 return ShowOrNot.not();
         }
 
@@ -100,10 +99,5 @@ public class InAppRules {
 
     private static boolean hasInAppEnabled(Message message) {
         return message.getInAppStyle() == Message.InAppStyle.MODAL;
-    }
-
-    private static boolean isGeoSignaling(Message message) {
-        String messageType = message.getMessageType();
-        return StringUtils.isNotBlank(messageType) && MESSAGE_TYPE_GEO.equals(messageType) && message.isSilent();
     }
 }

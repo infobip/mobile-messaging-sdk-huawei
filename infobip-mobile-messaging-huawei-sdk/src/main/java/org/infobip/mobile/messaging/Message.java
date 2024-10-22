@@ -1,6 +1,7 @@
 package org.infobip.mobile.messaging;
 
 import android.os.Bundle;
+
 import androidx.annotation.NonNull;
 
 import com.google.gson.annotations.SerializedName;
@@ -24,7 +25,6 @@ import java.util.UUID;
 public class Message implements Comparable<Message> {
 
     public static final String MESSAGE_TYPE_CHAT = "chat";
-    public static final String MESSAGE_TYPE_GEO = "geo";
 
     private String messageId;
     private String title;

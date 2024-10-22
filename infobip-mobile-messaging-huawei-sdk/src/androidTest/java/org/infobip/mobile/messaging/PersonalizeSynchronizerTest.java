@@ -1,6 +1,20 @@
 package org.infobip.mobile.messaging;
 
 
+import static junit.framework.Assert.assertEquals;
+import static org.infobip.mobile.messaging.util.DateTimeUtil.dateFromYMDString;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyBoolean;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Mockito.after;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+
 import androidx.annotation.NonNull;
 
 import org.infobip.mobile.messaging.api.appinstance.UserPersonalizeBody;
@@ -15,27 +29,10 @@ import org.infobip.mobile.messaging.util.PreferenceHelper;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 
-import java.text.SimpleDateFormat;
-import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
-
-import static junit.framework.Assert.assertEquals;
-import static org.infobip.mobile.messaging.util.DateTimeUtil.dateFromYMDString;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyBoolean;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Mockito.after;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
 
 public class PersonalizeSynchronizerTest extends MobileMessagingTestCase {
 
@@ -290,7 +287,7 @@ public class PersonalizeSynchronizerTest extends MobileMessagingTestCase {
         user.setBirthday(givenBirthday);
         user.setCustomAttributes(givenCustomAtts);
         user.setListCustomAttribute(KEY_FOR_LIST, new ListCustomAttributeValue(getListCustomValueItems()));
-        SystemData systemData = new SystemData("SomeSdkVersion", "SomeOsVersion", "SomeDeviceManufacturer", "SomeDeviceModel", "SomeAppVersion", false, true, true, "SomeLanguage", "SomeDeviceName", "GMT+1");
+        SystemData systemData = new SystemData("SomeSdkVersion", "SomeOsVersion", "SomeDeviceManufacturer", "SomeDeviceModel", "SomeAppVersion", true, true, "SomeLanguage", "SomeDeviceName", "GMT+1");
 
         String savedUser = UserMapper.toJson(user);
         PreferenceHelper.saveString(context, MobileMessagingProperty.USER_DATA, savedUser);
