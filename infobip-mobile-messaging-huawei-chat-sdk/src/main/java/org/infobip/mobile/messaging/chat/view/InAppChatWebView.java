@@ -43,6 +43,7 @@ public class InAppChatWebView extends WebView {
         webViewSettings.setJavaScriptEnabled(true);
         webViewSettings.setDomStorageEnabled(true);
         webViewSettings.setDatabaseEnabled(true);
+        webViewSettings.setCacheMode(WebSettings.LOAD_NO_CACHE);
         setClickable(true);
         setWebViewClient(new InAppChatWebViewClient(webViewManager));
         addJavascriptInterface(new InAppChatMobileImpl(webViewManager), IN_APP_CHAT_MOBILE_INTERFACE);
