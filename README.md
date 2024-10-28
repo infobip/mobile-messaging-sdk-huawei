@@ -70,7 +70,7 @@ Mobile Messaging SDK is designed and developed to easily enable push notificatio
 
 
 <br>
-<p align="center"><b>NEXT STEPS: <a href="https://github.com/infobip/mobile-messaging-sdk-android/wiki/User-profile">User profile</a></b></p>
+<p align="center"><b>NEXT STEPS: <a href="https://github.com/infobip/mobile-messaging-sdk-android/wiki/Users-and-installations">Users and installations</a></b></p>
 <br>
 
 > ### Notes
