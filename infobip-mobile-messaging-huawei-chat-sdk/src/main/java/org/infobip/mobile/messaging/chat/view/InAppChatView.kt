@@ -119,8 +119,14 @@ class InAppChatView @JvmOverloads constructor(
             val message = if (CommonUtils.isJSON(error)) parseWidgetError(error) else error
             Snackbar.make(binding.root, message, Snackbar.LENGTH_INDEFINITE)
                 .also {
-                    val textView = it.view.findViewById<TextView>(R.id.snackbar_text)
-                    textView.maxLines = 4
+                    var textView = it.view.findViewById<TextView>(androidx.core.R.id.text)
+                    if (textView == null) {
+                        textView =
+                            it.view.findViewById(com.google.android.material.R.id.snackbar_text)
+                    }
+                    if (textView != null) {
+                        textView.maxLines = 4
+                    }
                 }
                 .setAction(R.string.ib_chat_ok) {}
                 .show()
