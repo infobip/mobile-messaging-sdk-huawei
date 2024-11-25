@@ -1,29 +1,6 @@
 package org.infobip.mobile.messaging.interactive.inapp.view;
 
-import android.app.Activity;
-import android.content.DialogInterface;
-import android.content.res.Resources;
-import android.graphics.Bitmap;
-import androidx.annotation.NonNull;
-import androidx.appcompat.app.AlertDialog;
-import android.view.View;
-import android.widget.ImageView;
-import android.widget.RelativeLayout;
-import android.widget.TextView;
-
-import org.infobip.mobile.messaging.Message;
-import org.infobip.mobile.messaging.R;
-import org.infobip.mobile.messaging.interactive.NotificationAction;
-import org.infobip.mobile.messaging.interactive.NotificationCategory;
-import org.junit.Before;
-import org.junit.Ignore;
-import org.junit.Test;
-
-import java.util.Random;
-import java.util.concurrent.Executor;
-
 import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyBoolean;
 import static org.mockito.Matchers.anyInt;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.eq;
@@ -34,6 +11,25 @@ import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import android.app.Activity;
+import android.content.DialogInterface;
+import android.content.res.Resources;
+import android.graphics.Bitmap;
+import android.view.View;
+import android.widget.ImageView;
+import android.widget.RelativeLayout;
+import android.widget.TextView;
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
+import org.infobip.mobile.messaging.Message;
+import org.infobip.mobile.messaging.R;
+import org.infobip.mobile.messaging.interactive.NotificationAction;
+import org.infobip.mobile.messaging.interactive.NotificationCategory;
+import org.junit.Before;
+import org.junit.Ignore;
+import org.junit.Test;
+import java.util.Random;
+import java.util.concurrent.Executor;
 
 /**
  * @author sslavin
@@ -78,7 +74,7 @@ public class InAppViewDialogTest {
         when(alertDialogBuilder.setNegativeButton(anyString(), any(InAppViewDialogClickListener.class))).thenReturn(alertDialogBuilder);
         when(alertDialogBuilder.setNeutralButton(anyInt(), any(InAppViewDialogClickListener.class))).thenReturn(alertDialogBuilder);
         when(alertDialogBuilder.create()).thenReturn(alertDialog);
-        when(activityWrapper.createAlertDialogBuilder(anyBoolean())).thenReturn(alertDialogBuilder);
+        when(activityWrapper.createAlertDialogBuilder()).thenReturn(alertDialogBuilder);
         when(activityWrapper.inflateView(eq(R.layout.in_app_dialog_image))).thenReturn(dialogView);
         when(activityWrapper.getActivity()).thenReturn(activity);
         when(activity.getResources()).thenReturn(resources);
@@ -92,7 +88,7 @@ public class InAppViewDialogTest {
 
         inAppViewDialog.show(message, category);
 
-        verify(activityWrapper, never()).createAlertDialogBuilder(anyBoolean());
+        verify(activityWrapper, never()).createAlertDialogBuilder();
     }
 
     @Test
@@ -108,7 +104,7 @@ public class InAppViewDialogTest {
         verify(rlDialogImage, times(1)).setVisibility(View.VISIBLE);
         verify(image, times(1)).setVisibility(View.VISIBLE);
 
-        verify(activityWrapper, times(1)).createAlertDialogBuilder(eq(true));
+        verify(activityWrapper, times(1)).createAlertDialogBuilder();
 
         verify(alertDialogBuilder, times(1)).setOnDismissListener(any(InAppViewDialogDismissListener.class));
         verify(alertDialogBuilder, times(1)).setView(eq(dialogView));
@@ -129,7 +125,7 @@ public class InAppViewDialogTest {
         verify(rlDialogImage, never()).setVisibility(View.VISIBLE);
         verify(image, never()).setVisibility(View.VISIBLE);
 
-        verify(activityWrapper, times(1)).createAlertDialogBuilder(eq(true));
+        verify(activityWrapper, times(1)).createAlertDialogBuilder();
 
         verify(alertDialogBuilder, times(1)).setOnDismissListener(any(InAppViewDialogDismissListener.class));
         verify(alertDialogBuilder, times(1)).setView(eq(dialogView));
@@ -152,7 +148,7 @@ public class InAppViewDialogTest {
         verify(rlDialogImage, never()).setVisibility(View.VISIBLE);
         verify(image, never()).setVisibility(View.VISIBLE);
 
-        verify(activityWrapper, times(1)).createAlertDialogBuilder(eq(true));
+        verify(activityWrapper, times(1)).createAlertDialogBuilder();
 
         verify(alertDialogBuilder, times(1)).setOnDismissListener(any(InAppViewDialogDismissListener.class));
         verify(alertDialogBuilder, times(1)).setView(eq(dialogView));
@@ -173,8 +169,8 @@ public class InAppViewDialogTest {
 
         inAppViewDialog.show(message, category, actions);
 
-        verify(activityWrapper, times(1)).createAlertDialogBuilder(eq(true));
-        verify(activityWrapper, times(1)).createAlertDialogBuilder(eq(false));
+        verify(activityWrapper, times(1)).createAlertDialogBuilder();
+        verify(activityWrapper, times(1)).createAlertDialogBuilder();
 
         verify(alertDialog, times(2)).show();
     }
