@@ -169,6 +169,6 @@ public class InAppChatAttachmentHelper {
     public interface InAppChatAttachmentHelperListener {
         void onAttachmentCreated(InAppChatMobileAttachment attachment);
 
-        void onError(Context context, InternalSdkError.InternalSdkException exception);
+        void onError(Context context, Exception exception);
     }
 }
