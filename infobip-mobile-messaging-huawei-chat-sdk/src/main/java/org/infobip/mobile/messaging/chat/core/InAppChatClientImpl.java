@@ -1,5 +1,16 @@
 package org.infobip.mobile.messaging.chat.core;
 
+import static org.infobip.mobile.messaging.chat.core.InAppChatWidgetMethod.mobileChatPause;
+import static org.infobip.mobile.messaging.chat.core.InAppChatWidgetMethod.mobileChatResume;
+import static org.infobip.mobile.messaging.chat.core.InAppChatWidgetMethod.sendContextualData;
+import static org.infobip.mobile.messaging.chat.core.InAppChatWidgetMethod.sendDraft;
+import static org.infobip.mobile.messaging.chat.core.InAppChatWidgetMethod.sendMessage;
+import static org.infobip.mobile.messaging.chat.core.InAppChatWidgetMethod.sendMessageWithAttachment;
+import static org.infobip.mobile.messaging.chat.core.InAppChatWidgetMethod.setLanguage;
+import static org.infobip.mobile.messaging.chat.core.InAppChatWidgetMethod.setTheme;
+import static org.infobip.mobile.messaging.chat.core.InAppChatWidgetMethod.showThreadList;
+import static org.infobip.mobile.messaging.util.StringUtils.isNotBlank;
+
 import android.os.Handler;
 import android.os.Looper;
 
@@ -12,17 +23,6 @@ import org.infobip.mobile.messaging.mobileapi.Result;
 import org.infobip.mobile.messaging.util.StringUtils;
 
 import java.util.Locale;
-
-import static org.infobip.mobile.messaging.chat.core.InAppChatWidgetMethod.mobileChatPause;
-import static org.infobip.mobile.messaging.chat.core.InAppChatWidgetMethod.mobileChatResume;
-import static org.infobip.mobile.messaging.chat.core.InAppChatWidgetMethod.sendContextualData;
-import static org.infobip.mobile.messaging.chat.core.InAppChatWidgetMethod.sendDraft;
-import static org.infobip.mobile.messaging.chat.core.InAppChatWidgetMethod.sendMessage;
-import static org.infobip.mobile.messaging.chat.core.InAppChatWidgetMethod.sendMessageWithAttachment;
-import static org.infobip.mobile.messaging.chat.core.InAppChatWidgetMethod.setLanguage;
-import static org.infobip.mobile.messaging.chat.core.InAppChatWidgetMethod.setTheme;
-import static org.infobip.mobile.messaging.chat.core.InAppChatWidgetMethod.showThreadList;
-import static org.infobip.mobile.messaging.util.StringUtils.isNotBlank;
 
 public class InAppChatClientImpl implements InAppChatClient {
 
@@ -75,7 +75,7 @@ public class InAppChatClientImpl implements InAppChatClient {
     }
 
     @Override
-    public void sendContextualData(String data, InAppChatMultiThreadFlag multiThreadFlag, MobileMessaging.ResultListener<String> resultListener) {
+    public void sendContextualData(String data, MultithreadStrategy multiThreadFlag, MobileMessaging.ResultListener<String> resultListener) {
         if (data == null || data.isEmpty()){
             resultListener.onResult(new Result<>(MobileMessagingError.createFrom(new IllegalArgumentException("Could not send contextual data. Data is null or empty."))));
             return;

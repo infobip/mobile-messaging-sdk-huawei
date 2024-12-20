@@ -29,6 +29,7 @@ import org.infobip.mobile.messaging.api.chat.WidgetInfo;
 import org.infobip.mobile.messaging.app.ActivityLifecycleMonitor;
 import org.infobip.mobile.messaging.chat.core.InAppChatBroadcasterImpl;
 import org.infobip.mobile.messaging.chat.core.InAppChatScreenImpl;
+import org.infobip.mobile.messaging.chat.core.MultithreadStrategy;
 import org.infobip.mobile.messaging.chat.core.SessionStorage;
 import org.infobip.mobile.messaging.chat.mobileapi.InAppChatSynchronizer;
 import org.infobip.mobile.messaging.chat.models.ContextualData;
@@ -361,7 +362,7 @@ public class InAppChatImpl extends InAppChat implements MessageHandlerModule {
 
     @Override
     public void sendContextualData(@Nullable String data) {
-        sendContextualData(data, false, new MobileMessaging.ResultListener<Void>() {
+        sendContextualData(data, MultithreadStrategy.ACTIVE, new MobileMessaging.ResultListener<Void>() {
             @Override
             public void onResult(Result<Void, MobileMessagingError> result) {
                 if (!result.isSuccess()) {
@@ -384,21 +385,39 @@ public class InAppChatImpl extends InAppChat implements MessageHandlerModule {
     }
 
     @Override
+    public void sendContextualData(@Nullable String data, @Nullable MultithreadStrategy flag) {
+        sendContextualData(data, flag, new MobileMessaging.ResultListener<Void>() {
+            @Override
+            public void onResult(Result<Void, MobileMessagingError> result) {
+                if (!result.isSuccess()) {
+                    MobileMessagingLogger.e(TAG,"Send contextual data error: " + result.getError().getMessage());
+                }
+            }
+        });
+    }
+
+    @Override
     public void sendContextualData(@Nullable String data, @Nullable Boolean allMultiThreadStrategy, @Nullable MobileMessaging.ResultListener<Void> resultListener) {
+        MultithreadStrategy flag = Boolean.TRUE.equals(allMultiThreadStrategy) ? MultithreadStrategy.ALL : MultithreadStrategy.ACTIVE;
+        sendContextualData(data, flag, resultListener);
+    }
+
+    @Override
+    public void sendContextualData(@Nullable String data, @Nullable MultithreadStrategy flag, @Nullable MobileMessaging.ResultListener<Void> resultListener) {
         Result<Void, MobileMessagingError> result = null;
         try {
             if (data == null || data.isEmpty()) {
                 sessionStorage().setContextualData(null);
                 result = new Result<>(MobileMessagingError.createFrom(new IllegalArgumentException("Could not send contextual data. Data is null or empty.")));
-            } else if (allMultiThreadStrategy == null) {
+            } else if (flag == null) {
                 sessionStorage().setContextualData(null);
                 result = new Result<>(MobileMessagingError.createFrom(new IllegalArgumentException("Could not send contextual data. Strategy flag is null.")));
             } else if (inAppChatWVFragment != null) {
-                inAppChatWVFragment.sendContextualData(data, allMultiThreadStrategy);
+                inAppChatWVFragment.sendContextualData(data, flag);
                 result = new Result<>(null);
             } else {
-                sessionStorage().setContextualData(new ContextualData(data, allMultiThreadStrategy));
-                MobileMessagingLogger.d(TAG,"Contextual data was stored, will be send once chat is loaded.");
+                sessionStorage().setContextualData(new ContextualData(data, flag));
+                MobileMessagingLogger.d(TAG,"Contextual data is stored, will be sent once chat is loaded.");
                 result = new Result<>(null);
             }
         } catch (Throwable throwable) {
