@@ -6,7 +6,6 @@ import org.infobip.mobile.messaging.interactive.NotificationCategory;
 import org.infobip.mobile.messaging.interactive.inapp.view.InAppCtxVisitor;
 import org.infobip.mobile.messaging.interactive.inapp.view.InAppNativeView;
 
-
 public class InAppNativeCtx implements InAppCtx {
     private final InAppNativeView inAppView;
     private final Message message;
@@ -32,7 +31,6 @@ public class InAppNativeCtx implements InAppCtx {
         return actions;
     }
 
-
     public InAppNativeView getInAppView() {
         return inAppView;
     }
@@ -45,3 +43,4 @@ public class InAppNativeCtx implements InAppCtx {
         visitor.visit(this);
     }
 }
+

@@ -35,7 +35,6 @@ import org.infobip.mobile.messaging.interactive.inapp.view.ctx.InAppWebCtx;
 import org.infobip.mobile.messaging.interactive.platform.InteractiveBroadcaster;
 import org.junit.Before;
 import org.junit.Test;
-
 import org.mockito.Mockito;
 
 /**
@@ -114,6 +113,7 @@ public class InAppNotificationHandlerImplTest {
         when(inAppRules.shouldDisplayDialogFor(eq(message))).thenReturn(showOrNot);
         when(inAppRules.areModalInAppNotificationsEnabled()).thenReturn(true);
         when(inAppViewFactory.create(eq(activity), any(InAppView.Callback.class), eq(message))).thenReturn(inAppNativeView);
+
 
         inAppNotificationHandler.handleMessage(message);
 

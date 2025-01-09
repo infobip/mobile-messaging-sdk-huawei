@@ -3,6 +3,7 @@ package org.infobip.mobile.messaging.interactive.inapp.view;
 import android.app.Activity;
 import android.os.Handler;
 import android.os.Looper;
+
 import androidx.annotation.NonNull;
 
 import org.infobip.mobile.messaging.Message;

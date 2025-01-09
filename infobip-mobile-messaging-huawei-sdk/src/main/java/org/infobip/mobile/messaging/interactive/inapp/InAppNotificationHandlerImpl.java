@@ -2,9 +2,10 @@ package org.infobip.mobile.messaging.interactive.inapp;
 
 import android.content.Context;
 import android.content.Intent;
+import android.text.TextUtils;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.VisibleForTesting;
-import android.text.TextUtils;
 
 import org.infobip.mobile.messaging.Message;
 import org.infobip.mobile.messaging.MobileMessagingCore;
@@ -38,7 +39,6 @@ import org.infobip.mobile.messaging.util.StringUtils;
  */
 
 public class InAppNotificationHandlerImpl implements InAppNotificationHandler, InAppView.Callback {
-
     private final MobileInteractive mobileInteractive;
     private final InAppViewFactory inAppViewFactory;
     private final InAppRules inAppRules;
@@ -80,7 +80,6 @@ public class InAppNotificationHandlerImpl implements InAppNotificationHandler, I
     public void handleMessage(Message message) {
         ShowOrNot showOrNot = inAppRules.shouldDisplayDialogFor(message);
 
-
         if (!showOrNot.shouldShowNow() && showOrNot.shouldShowWhenInForeground()) {
             oneMessageCache.save(message);
             return;
@@ -91,6 +90,7 @@ public class InAppNotificationHandlerImpl implements InAppNotificationHandler, I
     @Override
     public void handleMessage(InAppWebViewMessage message) {
         ShowOrNot showOrNot = inAppRules.shouldDisplayDialogFor(message);
+
         if (!showOrNot.shouldShowNow() && showOrNot.shouldShowWhenInForeground()) {
             oneMessageCache.save(message);
             return;
@@ -126,6 +126,7 @@ public class InAppNotificationHandlerImpl implements InAppNotificationHandler, I
 
     private void displayDialogFor(Message message, Boolean displayingEnabled) {
         ShowOrNot showOrNot = inAppRules.shouldDisplayDialogFor(message);
+
         if (!showOrNot.shouldShowNow()) {
             return;
         }
@@ -177,7 +178,6 @@ public class InAppNotificationHandlerImpl implements InAppNotificationHandler, I
     public void buttonPressedFor(@NonNull InAppNativeView inAppView, @NonNull Message message, NotificationCategory category, @NonNull NotificationAction action) {
         mobileInteractive.triggerSdkActionsFor(action, message);
         Intent callbackIntent = interactiveBroadcaster.notificationActionTapped(message, category, action);
-
         handleButtonPress(message, action, callbackIntent);
     }
 
@@ -201,7 +201,6 @@ public class InAppNotificationHandlerImpl implements InAppNotificationHandler, I
     }
 
     private void handleButtonPress(@NonNull Message message, @NonNull NotificationAction action, Intent callbackIntent) {
-
         if (PredefinedActionsProvider.isOpenAction(action.getId()) || action.bringsAppToForeground()) {
             if (StringUtils.isNotBlank(message.getWebViewUrl())) {
                 activityStarterWrapper.startWebViewActivity(callbackIntent, message.getWebViewUrl());

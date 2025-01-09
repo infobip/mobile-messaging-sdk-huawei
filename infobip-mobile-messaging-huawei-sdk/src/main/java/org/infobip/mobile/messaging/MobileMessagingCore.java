@@ -48,6 +48,7 @@ import org.infobip.mobile.messaging.mobileapi.common.MAsyncTask;
 import org.infobip.mobile.messaging.mobileapi.common.RetryPolicyProvider;
 import org.infobip.mobile.messaging.mobileapi.events.UserEventsRequestMapper;
 import org.infobip.mobile.messaging.mobileapi.events.UserEventsSynchronizer;
+import org.infobip.mobile.messaging.mobileapi.inapp.InAppClickReporter;
 import org.infobip.mobile.messaging.mobileapi.messages.MessagesSynchronizer;
 import org.infobip.mobile.messaging.mobileapi.messages.MoMessageSender;
 import org.infobip.mobile.messaging.mobileapi.seen.SeenStatusReporter;
@@ -154,6 +155,7 @@ public class MobileMessagingCore
     private volatile Long lastSyncTimeMillis;
     private volatile Long lastForegroundSyncMillis;
     private PostNotificationsPermissionRequester postNotificationsPermissionRequester;
+    private InAppClickReporter inAppClickReporter;
 
     protected MobileMessagingCore(Context context) {
         this(context, new AndroidBroadcaster(context), Executors.newSingleThreadExecutor(), new ModuleLoader(context));
@@ -291,7 +293,7 @@ public class MobileMessagingCore
 
         CharSequence appName = SoftwareInformation.getAppName(context);
         if (channelName != null)
-            appName = appName +" "+ channelName;
+            appName = appName + " " + channelName;
 
 
         NotificationChannelCompat.Builder notificationChannelBuilder = new NotificationChannelCompat.Builder(channelId, NotificationManagerCompat.IMPORTANCE_DEFAULT)
@@ -457,6 +459,7 @@ public class MobileMessagingCore
         messagesSynchronizer().sync();
         moMessageSender().sync();
         seenStatusReporter().sync();
+        inAppClickReporter().sync();
     }
 
     protected void syncInstallation() {
@@ -979,6 +982,44 @@ public class MobileMessagingCore
         }
     }
 
+    public void reportInAppClick(String... clickUrls) {
+        if (clickUrls != null) {
+            addUnreportedInAppClicks(clickUrls);
+        }
+        lazySync();
+    }
+
+    public void addUnreportedInAppClicks(final String... clickUrls) {
+        PreferenceHelper.appendToStringArray(context, MobileMessagingProperty.INFOBIP_UNREPORTED_IN_APP_CLICK_URLS, clickUrls);
+    }
+
+    public String[] getUnreportedInAppClickActions() {
+        return PreferenceHelper.findStringArray(context, MobileMessagingProperty.INFOBIP_UNREPORTED_IN_APP_CLICK_URLS);
+    }
+
+    public void removeReportedInAppClickActions(final String... clickUrls) {
+        PreferenceHelper.deleteFromStringArray(context, MobileMessagingProperty.INFOBIP_UNREPORTED_IN_APP_CLICK_URLS, clickUrls);
+    }
+
+    /**
+     * Returns list of clickUrls from action click buttons
+     *
+     * @param reports concatenated click urls
+     * @return reports
+     */
+    public List<String> getInAppClickUrlsFromReports(String[] reports) {
+        List<String> ids = new ArrayList<>();
+        for (String report : reports) {
+            ids.add(getInAppClickActionUrlFromReport(report));
+        }
+        return ids;
+    }
+
+    private String getInAppClickActionUrlFromReport(String report) {
+        String[] reportContents = report.split(StringUtils.COMMA_WITH_SPACE);
+        return reportContents.length > 0 ? reportContents[0] : null;
+    }
+
     @Nullable
     public NotificationSettings getNotificationSettings() {
         if (!isDisplayNotificationEnabled()) {
@@ -1401,6 +1442,7 @@ public class MobileMessagingCore
         mmCore.seenStatusReporter = null;
         mmCore.versionChecker = null;
         mmCore.baseUrlChecker = null;
+        mmCore.inAppClickReporter = null;
         resetApiUri(context);
 
         mmCore.didSyncAtLeastOnce = false;
@@ -1983,6 +2025,14 @@ public class MobileMessagingCore
                     mobileApiResourceProvider().getMobileApiMessages(context), new BatchReporter(PreferenceHelper.findLong(context, MobileMessagingProperty.BATCH_REPORTING_DELAY)));
         }
         return seenStatusReporter;
+    }
+
+    @NonNull
+    private InAppClickReporter inAppClickReporter() {
+        if (inAppClickReporter == null) {
+            inAppClickReporter = new InAppClickReporter(this, context, stats, registrationAlignedExecutor, broadcaster, new BatchReporter(PreferenceHelper.findLong(context, MobileMessagingProperty.BATCH_REPORTING_DELAY)), retryPolicyProvider.DEFAULT());
+        }
+        return inAppClickReporter;
     }
 
     @NonNull

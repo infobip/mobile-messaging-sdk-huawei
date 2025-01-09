@@ -25,7 +25,6 @@ import java.util.concurrent.Executor;
  * @since 13/04/2018.
  */
 public class InAppViewDialog implements InAppNativeView {
-
     private final Callback callback;
     private final View dialogView;
     private final TextView tvMessageText;

@@ -1,6 +1,5 @@
 package org.infobip.mobile.messaging.interactive.inapp.rules;
 
-
 import androidx.annotation.NonNull;
 
 import org.infobip.mobile.messaging.Message;
@@ -51,9 +50,9 @@ public class InAppRules {
     @NonNull
     private ShowOrNot checkDialogConditions(Message message) {
         long inAppExpiryTimestamp = message.getInAppExpiryTimestamp();
-        if ((inAppExpiryTimestamp != 0 && inAppExpiryTimestamp < Time.now())) {
-                return ShowOrNot.not();
-        }
+
+        if ((inAppExpiryTimestamp != 0 && inAppExpiryTimestamp < Time.now()))
+            return ShowOrNot.not();
 
         ForegroundState state = foregroundStateMonitor.isInForeground();
         if (state.isForeground() && state.getForegroundActivity() != null && !state.getForegroundActivity().isFinishing()) {

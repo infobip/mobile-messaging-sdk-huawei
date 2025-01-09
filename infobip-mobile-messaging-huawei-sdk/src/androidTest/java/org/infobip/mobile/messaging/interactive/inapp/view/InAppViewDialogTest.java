@@ -1,6 +1,29 @@
 package org.infobip.mobile.messaging.interactive.inapp.view;
 
+import android.app.Activity;
+import android.content.DialogInterface;
+import android.content.res.Resources;
+import android.graphics.Bitmap;
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
+import android.view.View;
+import android.widget.ImageView;
+import android.widget.RelativeLayout;
+import android.widget.TextView;
+
+import org.infobip.mobile.messaging.Message;
+import org.infobip.mobile.messaging.R;
+import org.infobip.mobile.messaging.interactive.NotificationAction;
+import org.infobip.mobile.messaging.interactive.NotificationCategory;
+import org.junit.Before;
+import org.junit.Ignore;
+import org.junit.Test;
+
+import java.util.Random;
+import java.util.concurrent.Executor;
+
 import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyBoolean;
 import static org.mockito.Matchers.anyInt;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.eq;
@@ -11,31 +34,12 @@ import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import android.app.Activity;
-import android.content.DialogInterface;
-import android.content.res.Resources;
-import android.graphics.Bitmap;
-import android.view.View;
-import android.widget.ImageView;
-import android.widget.RelativeLayout;
-import android.widget.TextView;
-import androidx.annotation.NonNull;
-import androidx.appcompat.app.AlertDialog;
-import org.infobip.mobile.messaging.Message;
-import org.infobip.mobile.messaging.R;
-import org.infobip.mobile.messaging.interactive.NotificationAction;
-import org.infobip.mobile.messaging.interactive.NotificationCategory;
-import org.junit.Before;
-import org.junit.Ignore;
-import org.junit.Test;
-import java.util.Random;
-import java.util.concurrent.Executor;
 
 /**
  * @author sslavin
  * @since 24/04/2018.
  */
-@Ignore("mock issues")
+@Ignore("mock issues") //fix within MM-5769
 public class InAppViewDialogTest {
 
     private InAppViewDialog inAppViewDialog;
