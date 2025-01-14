@@ -10,21 +10,12 @@ import android.os.Looper;
 import android.view.View;
 import android.view.ViewGroup;
 
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.app.TaskStackBuilder;
-import androidx.fragment.app.Fragment;
-import androidx.fragment.app.FragmentManager;
-import androidx.fragment.app.FragmentTransaction;
-
 import org.infobip.mobile.messaging.Event;
 import org.infobip.mobile.messaging.Message;
 import org.infobip.mobile.messaging.MessageHandlerModule;
 import org.infobip.mobile.messaging.MobileMessaging;
 import org.infobip.mobile.messaging.MobileMessagingCore;
 import org.infobip.mobile.messaging.MobileMessagingProperty;
-import org.infobip.mobile.messaging.NotificationSettings;
 import org.infobip.mobile.messaging.api.chat.WidgetInfo;
 import org.infobip.mobile.messaging.app.ActivityLifecycleMonitor;
 import org.infobip.mobile.messaging.chat.core.InAppChatBroadcasterImpl;
@@ -51,6 +42,14 @@ import org.infobip.mobile.messaging.platform.AndroidBroadcaster;
 import org.infobip.mobile.messaging.util.PreferenceHelper;
 
 import java.util.Locale;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.TaskStackBuilder;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
+import androidx.fragment.app.FragmentTransaction;
 
 
 public class InAppChatImpl extends InAppChat implements MessageHandlerModule {
@@ -154,32 +153,27 @@ public class InAppChatImpl extends InAppChat implements MessageHandlerModule {
 
     private void doCoreTappedActions(Message chatMessage) {
         TaskStackBuilder stackBuilder = stackBuilderForNotificationTap(chatMessage);
-        if (stackBuilder.getIntentCount() != 0) {
+        if (stackBuilder != null && stackBuilder.getIntentCount() > 0) {
             stackBuilder.startActivities();
         }
     }
 
-    @NonNull
+    @Nullable
     private TaskStackBuilder stackBuilderForNotificationTap(Message message) {
-        TaskStackBuilder stackBuilder = TaskStackBuilder.create(context);
-        Bundle messageBundle = MessageBundleMapper.messageToBundle(message);
-        Class[] classes = propertyHelper().findClasses(MobileMessagingChatProperty.ON_MESSAGE_TAP_ACTIVITY_CLASSES);
+        Class<?>[] classes = propertyHelper().findClasses(MobileMessagingChatProperty.ON_MESSAGE_TAP_ACTIVITY_CLASSES);
         if (classes != null) {
-            for (Class cls : classes) {
-                stackBuilder.addNextIntent(new Intent(context, cls)
-                        .setAction(Event.NOTIFICATION_TAPPED.getKey())
-                        .putExtras(messageBundle));
+            TaskStackBuilder stackBuilder = TaskStackBuilder.create(context);
+            Bundle messageBundle = MessageBundleMapper.messageToBundle(message);
+            for (Class<?> cls : classes) {
+                stackBuilder.addNextIntent(
+                        new Intent(context, cls)
+                                .setAction(Event.NOTIFICATION_TAPPED.getKey())
+                                .putExtras(messageBundle)
+                );
             }
+            return stackBuilder;
         }
-
-        NotificationSettings notificationSettings = mobileMessagingCore().getNotificationSettings();
-        if (stackBuilder.getIntentCount() == 0 && notificationSettings != null && notificationSettings.getCallbackActivity() != null) {
-            stackBuilder.addNextIntent(new Intent(context, notificationSettings.getCallbackActivity())
-                    .setAction(Event.NOTIFICATION_TAPPED.getKey())
-                    .putExtras(messageBundle));
-        }
-
-        return stackBuilder;
+        return null;
     }
 
     @Override
@@ -250,7 +244,7 @@ public class InAppChatImpl extends InAppChat implements MessageHandlerModule {
     }
 
     @Override
-    public void setActivitiesToStartOnMessageTap(Class... activityClasses) {
+    public void setActivitiesToStartOnMessageTap(Class<?>... activityClasses) {
         propertyHelper().saveClasses(MobileMessagingChatProperty.ON_MESSAGE_TAP_ACTIVITY_CLASSES, activityClasses);
     }
 
