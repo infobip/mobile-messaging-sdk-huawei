@@ -6,9 +6,6 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Build;
 
-import androidx.annotation.NonNull;
-import androidx.test.ext.junit.runners.AndroidJUnit4;
-
 import org.infobip.mobile.messaging.Message;
 import org.infobip.mobile.messaging.platform.PlatformTestCase;
 import org.junit.Before;
@@ -18,6 +15,9 @@ import org.mockito.ArgumentMatcher;
 import org.mockito.Mockito;
 
 import java.util.concurrent.Executor;
+
+import androidx.annotation.NonNull;
+import androidx.test.ext.junit.runners.AndroidJUnit4;
 
 /**
  * @author sslavin

@@ -1,7 +1,5 @@
 package org.infobip.mobile.messaging.mobileapi.common;
 
-import androidx.annotation.NonNull;
-
 import org.infobip.mobile.messaging.api.support.ApiBackendExceptionWithContent;
 import org.infobip.mobile.messaging.api.support.ApiErrorCode;
 import org.infobip.mobile.messaging.api.support.ApiIOException;
@@ -15,6 +13,8 @@ import org.mockito.ArgumentMatcher;
 import org.mockito.Mockito;
 
 import java.util.concurrent.Executor;
+
+import androidx.annotation.NonNull;
 
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.argThat;
@@ -300,6 +300,6 @@ public class MAsyncTaskTest extends MobileMessagingTestCase {
                 return isIoExceptionTheSameAsInnerException && exceptionWithContent.getContent().equals(content);
             }
         });
+        // endregion
     }
-    // endregion
 }

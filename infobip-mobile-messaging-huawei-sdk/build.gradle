@@ -18,8 +18,9 @@ apply plugin: 'maven-publish'
 apply plugin: 'idea'
 
 android {
-    compileSdkVersion mm_compileSdkVersion
-    buildToolsVersion mm_buildToolsVersion
+    namespace = "org.infobip.mobile.messaging"
+    buildToolsVersion = mm_buildToolsVersion
+    compileSdk = mm_compileSdkVersion
 
     defaultConfig {
         minSdkVersion mm_minSdkVersion
@@ -62,16 +63,16 @@ dependencies {
     implementation('androidx.cardview:cardview:1.0.0')
 
     androidTestImplementation project(':infobip-mobile-messaging-huawei-test')
-    androidTestImplementation 'androidx.test.ext:junit:1.1.3'
-    androidTestImplementation "junit:junit:4.12"
-    androidTestImplementation "org.mockito:mockito-core:1.10.19"
+    androidTestImplementation "androidx.test.ext:junit:$mm_androidXjUnitVersion"
+    androidTestImplementation "junit:junit:$mm_jUnitVersion"
+    androidTestImplementation "org.mockito:mockito-core:$mm_mockitoCoreVersion"
     androidTestImplementation 'com.nanohttpd:nanohttpd:2.1.0'
     androidTestImplementation('org.skyscreamer:jsonassert:1.5.0') {
         exclude group: "org.json", module: "json"
     }
 
     testImplementation project(':infobip-mobile-messaging-huawei-test')
-    testImplementation "junit:junit:4.12"
+    testImplementation "junit:junit:$mm_jUnitVersion"
 
     implementation('com.google.code.gson:gson:2.9.0')
 }
@@ -109,18 +110,19 @@ android.libraryVariants.all { variant ->
     }
 }
 
-task sourcesJar(type: Jar) {
+tasks.register('sourcesJar', Jar) {
     from android.sourceSets.main.java.srcDirs
     archiveClassifier.set('sources')
 }
 
-task javadoc(type: Javadoc) {
+tasks.register('javadoc', Javadoc) {
     failOnError false
     source = android.sourceSets.main.java.srcDirs
     classpath += project.files(android.getBootClasspath().join(File.pathSeparator))
 }
 
-task javadocJar(type: Jar, dependsOn: javadoc) {
+tasks.register('javadocJar', Jar) {
+    dependsOn javadoc
     archiveClassifier.set('javadoc')
     from javadoc.destinationDir
 }

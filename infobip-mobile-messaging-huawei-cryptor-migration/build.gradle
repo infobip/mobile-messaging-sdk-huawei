@@ -15,8 +15,9 @@ plugins {
 }
 
 android {
-    compileSdkVersion mm_compileSdkVersion
-    buildToolsVersion mm_buildToolsVersion
+    namespace = "org.infobip.mobile.messaging.cryptor"
+    buildToolsVersion = mm_buildToolsVersion
+    compileSdk = mm_compileSdkVersion
 
     defaultConfig {
         minSdkVersion mm_minSdkVersion
@@ -88,18 +89,19 @@ android.libraryVariants.all { variant ->
     }
 }
 
-task sourcesJar(type: Jar) {
+tasks.register('sourcesJar', Jar) {
     from android.sourceSets.main.java.srcDirs
     archiveClassifier.set('sources')
 }
 
-task javadoc(type: Javadoc) {
+tasks.register('javadoc', Javadoc) {
     failOnError false
     source = android.sourceSets.main.java.srcDirs
     classpath += project.files(android.getBootClasspath().join(File.pathSeparator))
 }
 
-task javadocJar(type: Jar, dependsOn: javadoc) {
+tasks.register('javadocJar', Jar) {
+    dependsOn javadoc
     archiveClassifier.set('javadoc')
     from javadoc.destinationDir
 }

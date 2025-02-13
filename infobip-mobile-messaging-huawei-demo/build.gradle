@@ -14,8 +14,9 @@ apply plugin: 'com.android.application'
 apply plugin: 'com.huawei.agconnect'
 
 android {
-    compileSdkVersion mm_compileSdkVersion
-    buildToolsVersion mm_buildToolsVersion
+    namespace = "org.infobip.mobile.messaging.demo"
+    buildToolsVersion = mm_buildToolsVersion
+    compileSdk = mm_compileSdkVersion
 
     defaultConfig {
         minSdkVersion mm_minSdkVersion
@@ -49,10 +50,11 @@ android {
     }
 
     buildTypes {
-        all {
+        configureEach {
             property(project, 'app_id', 'APP_ID')?.with { resValue "string", "app_id", delegate }
             property(project, 'infobip_application_code', 'INFOBIP_APPLICATION_CODE')?.with { resValue "string", "infobip_application_code", delegate }
             property(project, 'infobip_api_uri', 'INFOBIP_API_URI')?.with { resValue "string", "infobip_api_uri", delegate }
+            property(project, 'infobip_inappchat_widget_uri', 'INFOBIP_INAPPCHAT_WIDGET_URI')?.with { resValue "string", "ib_inappchat_widget_uri", delegate }
         }
 
         release {
@@ -67,7 +69,7 @@ android {
         abortOnError false
     }
 
-    flavorDimensions "default"
+    flavorDimensions = ["default"]
 
     productFlavors {
         push {
@@ -110,8 +112,8 @@ android {
 
 dependencies {
     implementation "androidx.constraintlayout:constraintlayout:$mm_constraintLayoutVersion"
-    testImplementation "junit:junit:4.12"
-    androidTestImplementation 'androidx.test.ext:junit:1.1.3'
+    testImplementation "junit:junit:$mm_jUnitVersion"
+    androidTestImplementation "androidx.test.ext:junit:$mm_androidXjUnitVersion"
 
     implementation project(':infobip-mobile-messaging-huawei-chat-sdk')
     implementation project(':infobip-mobile-messaging-huawei-sdk')

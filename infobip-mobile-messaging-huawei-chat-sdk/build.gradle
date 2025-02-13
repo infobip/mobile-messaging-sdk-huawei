@@ -16,8 +16,9 @@ plugins {
 }
 
 android {
-    compileSdkVersion mm_compileSdkVersion
-    buildToolsVersion mm_buildToolsVersion
+    namespace = "org.infobip.mobile.messaging.chat"
+    buildToolsVersion = mm_buildToolsVersion
+    compileSdk = mm_compileSdkVersion
 
     defaultConfig {
         minSdkVersion mm_minSdkVersion
@@ -77,15 +78,15 @@ dependencies {
     implementation 'androidx.exifinterface:exifinterface:1.3.6'
 
     androidTestImplementation project(":infobip-mobile-messaging-huawei-test")
-    androidTestImplementation 'androidx.test.ext:junit:1.1.3'
-    androidTestImplementation "junit:junit:4.12"
-    androidTestImplementation "org.mockito:mockito-core:1.10.19"
+    androidTestImplementation "androidx.test.ext:junit:$mm_androidXjUnitVersion"
+    androidTestImplementation "junit:junit:$mm_jUnitVersion"
+    androidTestImplementation "org.mockito:mockito-core:$mm_mockitoCoreVersion"
     androidTestImplementation 'com.nanohttpd:nanohttpd:2.1.0'
     androidTestImplementation 'com.android.support:multidex:2.0.1'
 
     testImplementation project(":infobip-mobile-messaging-huawei-test")
-    testImplementation "junit:junit:4.12"
-    testImplementation "org.mockito:mockito-core:1.10.19"
+    testImplementation "junit:junit:$mm_jUnitVersion"
+    testImplementation "org.mockito:mockito-core:$mm_mockitoCoreVersion"
 
 }
 
@@ -122,18 +123,19 @@ android.libraryVariants.all { variant ->
     }
 }
 
-task sourcesJar(type: Jar) {
+tasks.register('sourcesJar', Jar) {
     from android.sourceSets.main.java.srcDirs
     archiveClassifier.set('sources')
 }
 
-task javadoc(type: Javadoc) {
+tasks.register('javadoc', Javadoc) {
     failOnError false
     source = android.sourceSets.main.java.srcDirs
     classpath += project.files(android.getBootClasspath().join(File.pathSeparator))
 }
 
-task javadocJar(type: Jar, dependsOn: javadoc) {
+tasks.register('javadocJar', Jar) {
+    dependsOn javadoc
     archiveClassifier.set('javadoc')
     from javadoc.destinationDir
 }
