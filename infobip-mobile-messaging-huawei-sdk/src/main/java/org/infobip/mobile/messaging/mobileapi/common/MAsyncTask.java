@@ -1,7 +1,6 @@
 package org.infobip.mobile.messaging.mobileapi.common;
 
 import android.annotation.SuppressLint;
-import android.os.AsyncTask;
 import androidx.annotation.NonNull;
 
 import org.infobip.mobile.messaging.api.support.ApiBackendExceptionWithContent;
@@ -40,7 +39,7 @@ public abstract class MAsyncTask<IN, OUT> extends IMAsyncTask<IN, OUT> {
     }};
 
     @SuppressLint("StaticFieldLeak")
-    private final AsyncTask<IN, Void, ResultWrapper<IN, OUT>> asyncTask = new AsyncTask<IN, Void, ResultWrapper<IN, OUT>>() {
+    private final MMAsyncTask<IN, Void, ResultWrapper<IN, OUT>> asyncTask = new MMAsyncTask<IN, Void, ResultWrapper<IN, OUT>>() {
         @Override
         protected void onPreExecute() {
             before();
