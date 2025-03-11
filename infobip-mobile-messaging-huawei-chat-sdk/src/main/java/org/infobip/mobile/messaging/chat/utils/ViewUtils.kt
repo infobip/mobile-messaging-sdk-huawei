@@ -15,7 +15,11 @@ import android.view.WindowManager
 import android.view.inputmethod.InputMethodManager
 import android.widget.ImageButton
 import android.widget.ProgressBar
-import androidx.annotation.*
+import androidx.annotation.AttrRes
+import androidx.annotation.ColorInt
+import androidx.annotation.ColorRes
+import androidx.annotation.DrawableRes
+import androidx.annotation.StyleableRes
 import androidx.appcompat.content.res.AppCompatResources
 import androidx.core.content.ContextCompat
 import androidx.core.graphics.ColorUtils
@@ -128,10 +132,10 @@ internal fun Theme?.isThemeAttributePresent(attr: Int): Boolean {
 internal fun Theme?.isMMBaseTheme(): Boolean {
     return this?.let {
         listOf(
-            resolveThemeColor(R.attr.colorPrimary),
-            resolveThemeColor(R.attr.colorPrimaryDark),
-            resolveThemeColor(R.attr.colorControlNormal),
-            resolveThemeColor(R.attr.titleTextColor),
+            resolveThemeColor(androidx.appcompat.R.attr.colorPrimary),
+            resolveThemeColor(androidx.appcompat.R.attr.colorPrimaryDark),
+            resolveThemeColor(androidx.appcompat.R.attr.colorControlNormal),
+            resolveThemeColor(androidx.appcompat.R.attr.titleTextColor),
         ).all { it == Color.BLACK }
     } ?: false
 }

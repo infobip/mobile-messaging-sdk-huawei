@@ -1,23 +1,25 @@
 buildscript {
-    ext.mm_kotlinVersion = "1.7.20"
-    ext.mm_gradlePluginVersion = "7.2.2"
+    ext.mm_kotlinVersion = "2.0.21"
+    ext.mm_gradlePluginVersion = "8.5.2"
+    ext.mm_agcpVersion = "1.9.1.303"
+
     repositories {
         google()
         mavenCentral()
-        maven { url 'https://plugins.gradle.org/m2/' } // for net.researchgate.release plugin
-        // huawei maven
-        maven { url 'https://developer.huawei.com/repo/' }
     }
     dependencies {
         classpath "com.android.tools.build:gradle:$mm_gradlePluginVersion"
+        classpath "com.huawei.agconnect:agcp:$mm_agcpVersion"
     }
 }
 
 plugins {
-    id 'net.researchgate.release' version '2.8.1'
+    id 'com.android.application' version "$mm_gradlePluginVersion" apply false
+    id 'com.android.library' version "$mm_gradlePluginVersion" apply false
+    id 'net.researchgate.release' version '3.0.2'
     id 'maven-publish'
     id "io.github.gradle-nexus.publish-plugin" version "1.1.0"
-    id 'org.jetbrains.kotlin.android' version "$mm_kotlinVersion" apply false
+    id "org.jetbrains.kotlin.android" version "$mm_kotlinVersion" apply false
     id "org.sonarqube" version "4.4.1.3373"
     id "jacoco"
     id "java"
@@ -25,23 +27,43 @@ plugins {
 
 ext {
     mm_minSdkVersion = 21
-    mm_compileSdkVersion = 33
-    mm_targetSdkVersion = 33
-    mm_buildToolsVersion = "33.0.0"
-    mm_androidSdkVersion = "13.2.3"
+    mm_compileSdkVersion = 35
+    mm_targetSdkVersion = 35
+    mm_buildToolsVersion = "35.0.0"
+    mm_androidSdkVersion = "13.5.0"
     mm_constraintLayoutVersion = "2.1.4"
     mm_appCompatVersion = "1.6.1"
-    mm_materialVersion = "1.9.0"
-    mm_coreKtxVersion = "1.9.0"
+    mm_materialVersion = "1.12.0"
+    mm_coreKtxVersion = "1.10.1"
     mm_desugarJdkVersion = "2.0.3"
     mm_jUnitVersion = "4.12"
     mm_androidXjUnitVersion = "1.1.3"
     mm_mockitoCoreVersion = "1.10.19"
+    mm_coroutinesVersion = "1.9.0"
+    mm_hmsPushVersion = "6.7.0.300"
 }
 
 //It's required to be applied here, to have `subprojects.publish` task available
 subprojects {
     apply plugin: "maven-publish"
+    tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile) {
+        kotlinOptions {
+            jvmTarget = "1.8"
+        }
+    }
+    afterEvaluate { project ->
+        if (project.hasProperty('android')) {
+            project.android {
+                if (namespace == null) {
+                    namespace project.group
+                }
+            }
+        }
+    }
+}
+
+tasks.register('publishAllPublicationsToMavenRepository') {
+    dependsOn subprojects.collect { it.tasks.named('publishReleasePublicationToSonatypeRepository') }
 }
 
 tasks.register('updateVersionInReadme') {
@@ -83,8 +105,8 @@ afterReleaseBuild.dependsOn subprojects.publish, closeAndReleaseSonatypeStagingR
 release {
     buildTasks = ['clean', 'build']
     git {
-        requireBranch = ''
-        pushToRemote = 'origin'
+        requireBranch.set('')
+        pushToRemote.set('origin')
     }
 }
 

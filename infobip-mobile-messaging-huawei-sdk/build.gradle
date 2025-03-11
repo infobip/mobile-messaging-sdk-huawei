@@ -1,23 +1,20 @@
-buildscript {
-    repositories {
-        google()
-        mavenCentral()
-        // huawei maven
-        maven {url 'https://plugins.gradle.org/m2/'}
-        maven { url 'https://developer.huawei.com/repo/' }
-    }
-    dependencies {
-        classpath "com.android.tools.build:gradle:$mm_gradlePluginVersion"
-        classpath 'com.huawei.agconnect:agcp:1.6.0.300'
-    }
+plugins {
+    id 'com.android.library'
+    id 'com.huawei.agconnect'
+    id 'maven-publish'
+    id 'idea'
+    id 'org.jetbrains.kotlin.android'
+    id 'org.jetbrains.kotlin.kapt'
 }
 
-apply plugin: 'com.android.library'
-apply plugin: 'com.huawei.agconnect'
-apply plugin: 'maven-publish'
-apply plugin: 'idea'
-
 android {
+    publishing {
+        multipleVariants {
+            allVariants()
+            withJavadocJar()
+            withSourcesJar()
+        }
+    }
     namespace = "org.infobip.mobile.messaging"
     buildToolsVersion = mm_buildToolsVersion
     compileSdk = mm_compileSdkVersion
@@ -25,8 +22,6 @@ android {
     defaultConfig {
         minSdkVersion mm_minSdkVersion
         targetSdkVersion mm_targetSdkVersion
-        versionCode 1
-        versionName project.version
 
         // since AGP 4.1 "VERSION_NAME" is not included anymore to BuildConfig
         // https://issuetracker.google.com/issues/154275579
@@ -35,13 +30,18 @@ android {
         consumerProguardFiles 'proguard-rules.pro'
     }
 
+    buildFeatures {
+        buildConfig true
+    }
+
     buildTypes {
         debug {
-            testCoverageEnabled true
+            enableUnitTestCoverage true
+            enableAndroidTestCoverage true
         }
     }
 
-    lintOptions {
+    lint {
         abortOnError false
     }
 
@@ -55,10 +55,10 @@ dependencies {
     api "com.infobip:infobip-mobile-messaging-api-java:${mm_androidSdkVersion}"
     api "com.infobip:infobip-mobile-messaging-android-resources:${mm_androidSdkVersion}@aar"
     api 'androidx.legacy:legacy-support-v4:1.0.0'
-    api 'androidx.appcompat:appcompat:1.3.1'
+    api "androidx.appcompat:appcompat:$mm_appCompatVersion"
 
     // push kit
-    implementation 'com.huawei.hms:push:6.3.0.302'
+    implementation "com.huawei.hms:push:$mm_hmsPushVersion"
 
     implementation('androidx.cardview:cardview:1.0.0')
 
@@ -89,7 +89,7 @@ android.libraryVariants.all { variant ->
         }
 
         dependsOn javaCompileTask
-        from javaCompileTask.destinationDir
+        from javaCompileTask.destinationDirectory
 
         manifest {
             attributes(
@@ -108,28 +108,6 @@ android.libraryVariants.all { variant ->
     artifacts {
         archives jar
     }
-}
-
-tasks.register('sourcesJar', Jar) {
-    from android.sourceSets.main.java.srcDirs
-    archiveClassifier.set('sources')
-}
-
-tasks.register('javadoc', Javadoc) {
-    failOnError false
-    source = android.sourceSets.main.java.srcDirs
-    classpath += project.files(android.getBootClasspath().join(File.pathSeparator))
-}
-
-tasks.register('javadocJar', Jar) {
-    dependsOn javadoc
-    archiveClassifier.set('javadoc')
-    from javadoc.destinationDir
-}
-
-artifacts {
-    archives javadocJar
-    archives sourcesJar
 }
 
 ext {

@@ -1,21 +1,19 @@
-buildscript {
-    repositories {
-        google()
-        mavenCentral()
-        maven { url 'https://developer.huawei.com/repo/' }
-    }
-    dependencies {
-        classpath "com.android.tools.build:gradle:$mm_gradlePluginVersion"
-    }
-}
-
 plugins {
     id 'com.android.library'
     id 'maven-publish'
     id 'idea'
+    id 'org.jetbrains.kotlin.android'
+    id 'org.jetbrains.kotlin.kapt'
 }
 
 android {
+    publishing {
+        multipleVariants {
+            allVariants()
+            withJavadocJar()
+            withSourcesJar()
+        }
+    }
     namespace = "org.infobip.mobile.messaging.inbox"
     buildToolsVersion = mm_buildToolsVersion
     compileSdk = mm_compileSdkVersion
@@ -23,8 +21,6 @@ android {
     defaultConfig {
         minSdkVersion mm_minSdkVersion
         targetSdkVersion mm_targetSdkVersion
-        versionCode 1
-        versionName project.version
 
         // since AGP 4.1 "VERSION_NAME" is not included anymore to BuildConfig
         // https://issuetracker.google.com/issues/154275579
@@ -34,9 +30,14 @@ android {
         multiDexEnabled false
     }
 
+    buildFeatures {
+        buildConfig true
+    }
+
     buildTypes {
         debug {
-            testCoverageEnabled true
+            enableUnitTestCoverage true
+            enableAndroidTestCoverage true
         }
         release {
             minifyEnabled false
@@ -49,7 +50,7 @@ android {
         targetCompatibility JavaVersion.VERSION_1_8
     }
 
-    lintOptions {
+    lint {
         abortOnError false
     }
 }
@@ -77,7 +78,7 @@ android.libraryVariants.all { variant ->
         }
 
         dependsOn javaCompileTask
-        from javaCompileTask.destinationDir
+        from javaCompileTask.destinationDirectory
 
         manifest {
             attributes(
@@ -96,28 +97,6 @@ android.libraryVariants.all { variant ->
     artifacts {
         archives jar
     }
-}
-
-tasks.register('sourcesJar', Jar) {
-    from android.sourceSets.main.java.srcDirs
-    archiveClassifier.set('sources')
-}
-
-tasks.register('javadoc', Javadoc) {
-    failOnError false
-    source = android.sourceSets.main.java.srcDirs
-    classpath += project.files(android.getBootClasspath().join(File.pathSeparator))
-}
-
-tasks.register('javadocJar', Jar) {
-    dependsOn javadoc
-    archiveClassifier.set('javadoc')
-    from javadoc.destinationDir
-}
-
-artifacts {
-    archives javadocJar
-    archives sourcesJar
 }
 
 ext {

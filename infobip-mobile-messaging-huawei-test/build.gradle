@@ -3,6 +3,13 @@ plugins {
 }
 
 android {
+    publishing {
+        multipleVariants {
+            allVariants()
+            withJavadocJar()
+            withSourcesJar()
+        }
+    }
     namespace = "org.infobip.mobile.messaging.android"
     buildToolsVersion = mm_buildToolsVersion
     compileSdk = mm_compileSdkVersion
@@ -10,8 +17,6 @@ android {
     defaultConfig {
         minSdkVersion mm_minSdkVersion
         targetSdkVersion mm_targetSdkVersion
-        versionCode 1
-        versionName project.version
 
         // since AGP 4.1 "VERSION_NAME" is not included anymore to BuildConfig
         // https://issuetracker.google.com/issues/154275579
@@ -19,13 +24,19 @@ android {
         testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'
 
     }
+
+    buildFeatures {
+        buildConfig true
+    }
+
     buildTypes {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
-    lintOptions {
+
+    lint {
         abortOnError false
     }
 }
@@ -36,7 +47,7 @@ dependencies {
     implementation 'com.google.code.gson:gson:2.9.0'
 
     implementation "androidx.test.ext:junit:$mm_androidXjUnitVersion"
-    implementation 'androidx.test:runner:1.2.0'
+    implementation 'androidx.test:runner:1.6.2'
     implementation "com.crittercism.dexmaker:dexmaker-dx:1.4"
     implementation "com.crittercism.dexmaker:dexmaker:1.4"
     implementation "com.crittercism.dexmaker:dexmaker-mockito:1.4"
@@ -59,7 +70,7 @@ android.libraryVariants.all { variant ->
         }
 
         dependsOn javaCompileTask
-        from javaCompileTask.destinationDir
+        from javaCompileTask.destinationDirectory
 
         manifest {
             attributes(
@@ -78,26 +89,4 @@ android.libraryVariants.all { variant ->
     artifacts {
         archives jar
     }
-}
-
-tasks.register('sourcesJar', Jar) {
-    from android.sourceSets.main.java.srcDirs
-    archiveClassifier.set('sources')
-}
-
-tasks.register('javadoc', Javadoc) {
-    failOnError false
-    source = android.sourceSets.main.java.srcDirs
-    classpath += project.files(android.getBootClasspath().join(File.pathSeparator))
-}
-
-tasks.register('javadocJar', Jar) {
-    dependsOn javadoc
-    archiveClassifier.set('javadoc')
-    from javadoc.destinationDir
-}
-
-artifacts {
-    archives javadocJar
-    archives sourcesJar
 }

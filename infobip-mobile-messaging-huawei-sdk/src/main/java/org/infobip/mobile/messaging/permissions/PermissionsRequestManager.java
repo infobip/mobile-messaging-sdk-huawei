@@ -6,6 +6,12 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.net.Uri;
 
+import org.infobip.mobile.messaging.logging.MobileMessagingLogger;
+import org.infobip.mobile.messaging.resources.R;
+
+import java.util.Map;
+import java.util.Set;
+
 import androidx.activity.ComponentActivity;
 import androidx.activity.result.ActivityResult;
 import androidx.activity.result.ActivityResultLauncher;
@@ -14,12 +20,6 @@ import androidx.annotation.NonNull;
 import androidx.annotation.StringRes;
 import androidx.collection.ArraySet;
 import androidx.fragment.app.Fragment;
-
-import org.infobip.mobile.messaging.R;
-import org.infobip.mobile.messaging.logging.MobileMessagingLogger;
-
-import java.util.Map;
-import java.util.Set;
 
 public class PermissionsRequestManager {
     public interface PermissionsRequester {

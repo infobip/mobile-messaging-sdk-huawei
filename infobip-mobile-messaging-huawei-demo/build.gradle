@@ -1,17 +1,7 @@
-buildscript {
-    repositories {
-        google()
-        mavenCentral()
-        // huawei maven
-        maven {url 'https://plugins.gradle.org/m2/'}
-        maven { url 'https://developer.huawei.com/repo/' }
-    }
-    dependencies {
-        classpath 'com.huawei.agconnect:agcp:1.8.0.300'
-    }
+plugins {
+    id 'com.android.application'
+    id 'com.huawei.agconnect'
 }
-apply plugin: 'com.android.application'
-apply plugin: 'com.huawei.agconnect'
 
 android {
     namespace = "org.infobip.mobile.messaging.demo"
@@ -65,7 +55,7 @@ android {
         }
     }
 
-    lintOptions {
+    lint {
         abortOnError false
     }
 
@@ -126,7 +116,7 @@ dependencies {
     chatImplementation 'com.nimbusds:nimbus-jose-jwt:9.0.1'
 
     // push kit
-    implementation 'com.huawei.hms:push:6.7.0.300'
+    implementation "com.huawei.hms:push:$mm_hmsPushVersion"
 
     implementation "androidx.appcompat:appcompat:$mm_appCompatVersion"
     implementation "com.google.android.material:material:$mm_materialVersion"
