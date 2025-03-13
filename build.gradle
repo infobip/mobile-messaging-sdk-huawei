@@ -78,14 +78,6 @@ tasks.register('updateVersionInReadme') {
 
 afterReleaseBuild.dependsOn updateVersionInReadme
 
-// workaround for `net.researchgate.release` plugin issue:
-// https://github.com/researchgate/gradle-release/issues/186
-
-build.dependsOn tasks.getByPath('infobip-mobile-messaging-huawei-inbox-sdk:build')
-build.dependsOn tasks.getByPath('infobip-mobile-messaging-huawei-chat-sdk:build')
-build.dependsOn tasks.getByPath('infobip-mobile-messaging-huawei-cryptor-migration:build')
-build.dependsOn tasks.getByPath(':infobip-mobile-messaging-huawei-sdk:build')
-
 nexusPublishing {
     repositories {
         sonatype {
@@ -110,6 +102,11 @@ release {
     }
 }
 
+project.tasks.named("sonarqube").configure {
+    dependsOn 'lint'
+    dependsOn 'lintReportRelease'
+}
+
 sonar {
     properties {
         property "sonar.host.url", "https://sonar.ib-ci.com"
@@ -118,11 +115,13 @@ sonar {
         property "sonar.projectVersion", project.version
         property "sonar.projectName", "infobip-mobile-messaging-huawei"
         property "sonar.projectKey" , "infobip-mobile-messaging-huawei"
+        property "sonar.androidLint.reportPaths", "${layout.buildDirectory}/reports/lint-results.xml"
         property "sonar.exclusions", "" +
                 "infobip-mobile-messaging-huawei-demo/**/*, " +
                 "infobip-mobile-messaging-huawei-cryptor-migration/**/*, " +
                 "infobip-mobile-messaging-huawei-test/**/*, "
         property "sonar.java.coveragePlugin", "jacoco"
+        property "sonar.junit.reportsPath", "${layout.buildDirectory}/test-results/test/"
         property "sonar.coverage.jacoco.xmlReportPaths", "" +
                 "${project.projectDir}/infobip-mobile-messaging-huawei-inbox-sdk/build/reports/jacoco/debugCoverage/debugCoverage.xml, " +
                 "${project.projectDir}/infobip-mobile-messaging-huawei-sdk/build/reports/jacoco/debugCoverage/debugCoverage.xml, "

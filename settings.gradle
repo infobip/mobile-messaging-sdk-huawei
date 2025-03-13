@@ -17,3 +17,4 @@ dependencyResolutionManagement {
     }
 }
 include ':infobip-mobile-messaging-huawei-sdk', ':infobip-mobile-messaging-huawei-demo', ':infobip-mobile-messaging-huawei-test', ':infobip-mobile-messaging-huawei-chat-sdk', ':infobip-mobile-messaging-huawei-cryptor-migration', 'infobip-mobile-messaging-huawei-inbox-sdk'
+System.setProperty("sonar.gradle.skipCompile", "true")
