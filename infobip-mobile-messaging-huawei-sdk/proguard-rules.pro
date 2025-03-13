@@ -113,3 +113,6 @@
 -keep class com.huawei.hianalytics.** { *; }
 -keep class com.huawei.updatesdk.** { *; }
 -keep class com.huawei.hms.** { *; }
+-keep class com.huawei.android.** { *; }
+-keep class com.huawei.agconnect.** { *; }
+-keep class com.huawei.libcore.** { *; }
