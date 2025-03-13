@@ -16,11 +16,26 @@
 #   public *;
 #}
 
+-ignorewarnings
+-keepattributes *Annotation*
+-keepattributes Exceptions
+-keepattributes InnerClasses
+-keepattributes Signature
+-keepattributes SourceFile,LineNumberTable
+
+# Keep Huawei classes
+-keep class com.huawei.** { *; }
+-keep interface com.huawei.** { *; }
+-keep class android.telephony.HwTelephonyManager { *; }
+-keep class com.huawei.android.os.BuildEx$VERSION { *; }
+-keep class com.huawei.android.telephony.ServiceStateEx { *; }
 -keep class com.huawei.hianalytics.** { *; }
+-keep class com.huawei.libcore.io.ExternalStorageFile { *; }
+-keep class com.huawei.secure.android.** { *; }
 -keep class com.huawei.updatesdk.** { *; }
+-keep class com.huawei.agconnect.** { *; }
 -keep class com.huawei.hms.** { *; }
 -keep class com.huawei.android.** { *; }
--keep class com.huawei.agconnect.** { *; }
 -keep class com.huawei.libcore.** { *; }
 
 -dontwarn com.google.crypto.tink.subtle.Ed25519Sign$KeyPair
@@ -45,3 +60,5 @@
 -dontwarn org.bouncycastle.openssl.PEMKeyPair
 -dontwarn org.bouncycastle.openssl.PEMParser
 -dontwarn org.bouncycastle.openssl.jcajce.JcaPEMKeyConverter
+-dontwarn org.bouncycastle.crypto.prng.SP800SecureRandom
+-dontwarn org.bouncycastle.crypto.prng.SP800SecureRandomBuilder
