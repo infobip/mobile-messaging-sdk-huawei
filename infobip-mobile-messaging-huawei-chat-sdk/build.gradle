@@ -72,6 +72,7 @@ dependencies {
     implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:$mm_coroutinesVersion"
 
     implementation "androidx.core:core-ktx:$mm_coreKtxVersion"
+    implementation "androidx.lifecycle:lifecycle-runtime-ktx:$mm_lifecycleVersion"
     implementation "androidx.constraintlayout:constraintlayout:$mm_constraintLayoutVersion"
     implementation "androidx.appcompat:appcompat:$mm_appCompatVersion"
     implementation 'androidx.exifinterface:exifinterface:1.3.7'

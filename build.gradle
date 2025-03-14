@@ -35,6 +35,7 @@ ext {
     mm_appCompatVersion = "1.6.1"
     mm_materialVersion = "1.12.0"
     mm_coreKtxVersion = "1.10.1"
+    mm_lifecycleVersion = "2.5.1"
     mm_desugarJdkVersion = "2.0.3"
     mm_jUnitVersion = "4.12"
     mm_androidXjUnitVersion = "1.1.3"

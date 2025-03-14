@@ -31,7 +31,8 @@ public class InAppChatAttachmentHelper {
     public static final String MIME_TYPE_VIDEO_MP_4 = "video/mp4";
     public static final String MIME_TYPE_IMAGE_JPEG = "image/jpeg";
 
-    public static void makeAttachment(final FragmentActivity context, final Intent data, final Uri capturedMediaStoreUri, final InAppChatAttachmentHelperListener listener) {
+    @Deprecated
+    public static void makeAttachment(final FragmentActivity context, final Intent data, final Uri capturedMediaStoreUri, final InAppChatAttachmentHelper.InAppChatAttachmentHelperListener listener) {
         MMAsyncTask.execute(() -> {
             try {
                 //From media store Uri we need to get real Uri of the file
@@ -45,6 +46,7 @@ public class InAppChatAttachmentHelper {
     }
 
     @Nullable
+    @Deprecated
     public static Uri getOutputImageUri(FragmentActivity fragmentActivity) {
         if (fragmentActivity == null) {
             return null;
@@ -68,6 +70,7 @@ public class InAppChatAttachmentHelper {
 
     @RequiresApi(29)
     @Nullable
+    @Deprecated
     public static Uri getOutputImageUrlAPI29(FragmentActivity fragmentActivity) {
         if (fragmentActivity == null) {
             return null;
@@ -89,6 +92,7 @@ public class InAppChatAttachmentHelper {
 
     @RequiresApi(31)
     @Nullable
+    @Deprecated
     // Required only for 31 API, to get rid of camera error on emulator "Only owner is able to interact with pending item"
     public static Uri getOutputVideoUrl(FragmentActivity fragmentActivity) {
         if (fragmentActivity == null) {
@@ -108,6 +112,7 @@ public class InAppChatAttachmentHelper {
         return fragmentActivity.getContentResolver().insert(MediaStore.Video.Media.EXTERNAL_CONTENT_URI, contentValues);
     }
 
+    @Deprecated
     public static Boolean isUriFileEmpty(Context context, Uri uri) {
         if (context == null || uri == null)
             return null;
@@ -129,6 +134,7 @@ public class InAppChatAttachmentHelper {
         }
     }
 
+    @Deprecated
     public static void deleteEmptyFileByUri(Context context, Uri uri) {
         if (context == null || uri == null)
             return;
@@ -166,9 +172,10 @@ public class InAppChatAttachmentHelper {
         }
     }
 
+    @Deprecated
     public interface InAppChatAttachmentHelperListener {
         void onAttachmentCreated(InAppChatMobileAttachment attachment);
 
-        void onError(Context context, Exception exception);
+        void onError(Context context, InternalSdkError.InternalSdkException exception);
     }
 }
