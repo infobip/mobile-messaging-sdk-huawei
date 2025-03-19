@@ -3,14 +3,14 @@ package org.infobip.mobile.messaging.demo;
 import android.os.Parcel;
 import android.os.Parcelable;
 
-import androidx.annotation.NonNull;
-
 import org.infobip.mobile.messaging.UserAttributes;
 import org.infobip.mobile.messaging.UserIdentity;
 
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
+
+import androidx.annotation.NonNull;
 
 class AuthData implements Parcelable {
     private final String name;

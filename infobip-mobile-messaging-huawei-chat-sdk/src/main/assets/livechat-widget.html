@@ -1,0 +1,258 @@
+<html lang="En">
+
+<head>
+    <meta name="viewport" charset="UTF-8"
+          content="width=device-width, height=device-height, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <style>
+        body {
+            margin: 0;
+        }
+
+        #ib-widget-container {
+            height: 100vh;
+        }
+    </style>
+</head>
+
+<body>
+<div id="ib-widget-container"></div>
+<script>
+    const widgetUri = getQueryParameter('widgetUri');
+    const domain = getQueryParameter('domain');
+    const jwt = getQueryParameter('jwt');
+    const pushRegId = getQueryParameter('pushRegId');
+    const widgetId = getQueryParameter('widgetId');
+    const widgetTheme = getQueryParameter('widgetTheme');
+
+    let uri = 'https://livechat.infobip.com/widget.js';
+    let livechatSdk = null;
+
+    let decodedWidgetUri = null;
+    if (!isNullOrBlank(widgetUri)) {
+        decodedWidgetUri = decodeURIComponent(widgetUri);
+    }
+
+    if (!isNullOrBlank(domain)) {
+        uri = `https://livechat-${domain.toLocaleLowerCase()}.infobip.com/widget.js`;
+    } else if (!isNullOrBlank(decodedWidgetUri)) {
+        uri = decodedWidgetUri;
+    }
+
+    (function (I, n, f, o, b, i, p) {
+        I[b] = I[b] || function () { (I[b].q = I[b].q || []).push(arguments) };
+        I[b].t = 1 * new Date(); i = n.createElement(f); i.async = 1; i.src = o;
+        p = n.getElementsByTagName(f)[0]; p.parentNode.insertBefore(i, p)
+    })
+        (window, document, 'script', uri, 'liveChat');
+
+    // Override widget config
+    const widgetConfig = {
+        widgetId: widgetId,
+        container: document.getElementById('ib-widget-container'),
+        showHeader: false,
+        showFooter: false,
+        showFab: false
+    };
+    liveChat('config', widgetConfig, function (error, result) {
+        widgetApiCallback('config', error, result);
+        if (!error) {
+            identify();
+        }
+    });
+
+    // Try identify user by pushRegId and (optional) jwt
+    function identify() {
+        const inputParams = {
+            'pushRegistrationId': pushRegId,
+        };
+        if (jwt != null) {
+            inputParams.jwt = jwt;
+        }
+        liveChat('identify', inputParams, function (error, result) {
+            widgetApiCallback('identify', error, result);
+            if (!error) {
+                init();
+            }
+        });
+    }
+
+    // If all is OK -> initialize widget, enable native controls and show widget
+    function init() {
+        const callback = function (error, result) {
+            widgetApiCallback('initWidget', error, result);
+            if (!error) {
+                show();
+            }
+        };
+        if (domain != null) {
+            liveChat('init', { widgetId: widgetId, domain: domain }, callback);
+        } else {
+            liveChat('init', widgetId, callback);
+        }
+    }
+
+    function show() {
+        liveChat('show', null, function (error, result) {
+            widgetApiCallback('show', error, result);
+            if (!error && widgetTheme != null) {
+                setTheme(widgetTheme);
+            }
+        });
+        addLiveChatEventsListener();
+    }
+
+    window.addEventListener('message', (event) => {
+        if (event.data.destination === 'viewChange') {
+            InAppChatMobile.onViewChanged(event.data.view);
+        }
+    });
+
+    function addLiveChatEventsListener() {
+        try {
+            getLivechatSdk().on('messageReceived', (payload) => {
+                InAppChatMobile.onRawMessageReceived(stringify(payload));
+            });
+        } catch (e) {
+            console.error('Could not register to observe messageReceived event: ', e);
+        }
+    }
+
+    //Widget API
+    function sendMessage(message) {
+        liveChat('send', message, (error, result) => widgetApiCallback('sendMessage', error, message));
+    }
+
+    function sendMessageWithAttachment(message, attachment, fileName) {
+        liveChat('send', {
+            'message': message,
+            'attachment': attachment,
+            'fileName': fileName,
+            'type': 'BASIC'
+        }, (error, result) => widgetApiCallback('sendMessageWithAttachment', error, message));
+    }
+
+    function sendDraft(draft) {
+        liveChat('send', {
+            'message': draft,
+            'type': 'DRAFT'
+        }, (error, result) => widgetApiCallback('sendDraft', error, draft));
+    }
+
+    function showThreadList() {
+        liveChat('show_thread_list', null, (error, result) => widgetApiCallback('showThreadList', error, result));
+    }
+
+    function setLanguage(language) {
+        liveChat('set_language', language, (error, result) => widgetApiCallback('setLanguage', error, language));
+    }
+
+    function sendContextualData(data, strategy) {
+        liveChat(
+            'send_contextual_data',
+            {
+                metadata: data,
+                multiThreadStrategy: strategy
+            },
+            (error, result) => widgetApiCallback('sendContextualData', error, result)
+        );
+    }
+
+    function pauseConnection() {
+        liveChat('mobile_chat_pause', null, (error, result) => widgetApiCallback('pauseConnection', error, result));
+    }
+
+    function resumeConnection() {
+        liveChat('mobile_chat_resume', null, (error, result) => widgetApiCallback('resumeConnection', error, result));
+    }
+
+    function setTheme(theme) {
+        liveChat('set_theme', theme, (error, result) => widgetApiCallback('setTheme', error, result));
+    }
+
+    async function getThreads() {
+        try {
+            const response = await getLivechatSdk().getThreads();
+            if (response.success) {
+                widgetApiCallback('getThreads', null, response.data);
+            } else {
+                widgetApiCallback('getThreads', response.error, null);
+            }
+        } catch (e) {
+            widgetApiCallback('getThreads', `Could not get threads ${e.message}`, null);
+        }
+    }
+
+    async function showThread(threadId) {
+        try {
+            const response = await getLivechatSdk().getWidget().showThread(threadId);
+            if (response.success) {
+                widgetApiCallback('showThread', null, response.data);
+            } else {
+                widgetApiCallback('showThread', response.error, null);
+            }
+        } catch (e) {
+            widgetApiCallback('showThread', `Could not show thread ${e.message}`, null);
+        }
+    }
+
+    async function getActiveThread() {
+        try {
+            const response = await getLivechatSdk().getActiveThread();
+            if (response.success) {
+                widgetApiCallback('getActiveThread', null, response.data);
+            } else {
+                widgetApiCallback('getActiveThread', response.error, null);
+            }
+        } catch (e) {
+            widgetApiCallback('getActiveThread', `Could not show thread ${e.message}`, null);
+        }
+    }
+
+    function getQueryParameter(name) {
+        if (name = (new RegExp('[?&]' + encodeURIComponent(name) + '=([^&]*)')).exec(location.search)) {
+            return decodeURIComponent(name[1]);
+        }
+    }
+
+    function isNullOrBlank(value) {
+        return !value?.toString().trim()
+    }
+
+    function stringify(value) {
+        switch (typeof value) {
+            case 'string': case 'object': return JSON.stringify(value);
+            default: return String(value);
+        }
+    };
+
+    function widgetApiCallback(name, error, result) {
+        if (error) {
+            if (error === undefined || error === null) {
+                InAppChatMobile.onWidgetApiError(name, null);
+            } else {
+                InAppChatMobile.onWidgetApiError(name, stringify(error));
+            }
+        } else {
+            if (result === undefined || result === null) {
+                InAppChatMobile.onWidgetApiSuccess(name, null);
+            } else {
+                InAppChatMobile.onWidgetApiSuccess(name, stringify(result));
+            }
+        }
+    }
+
+    function getLivechatSdk() {
+        if (!livechatSdk) {
+            try {
+                livechatSdk = new LiveChatSDK();
+            } catch (e) {
+                throw e;
+            }
+        }
+        return livechatSdk;
+    }
+
+</script>
+</body>
+
+</html>

@@ -31,6 +31,11 @@ import org.infobip.mobile.messaging.api.chat.WidgetInfo;
 import org.infobip.mobile.messaging.chat.InAppChat;
 import org.infobip.mobile.messaging.chat.core.InAppChatEvent;
 import org.infobip.mobile.messaging.chat.core.InAppChatWidgetView;
+import org.infobip.mobile.messaging.chat.core.JwtProvider;
+import org.infobip.mobile.messaging.chat.core.widget.LivechatWidgetResult;
+import org.infobip.mobile.messaging.chat.core.widget.LivechatWidgetThread;
+import org.infobip.mobile.messaging.chat.core.widget.LivechatWidgetThreads;
+import org.infobip.mobile.messaging.chat.core.widget.LivechatWidgetView;
 import org.infobip.mobile.messaging.chat.view.InAppChatEventsListener;
 import org.infobip.mobile.messaging.chat.view.InAppChatFragment;
 import org.infobip.mobile.messaging.chat.view.styles.InAppChatInputViewStyle;
@@ -51,6 +56,7 @@ import androidx.core.content.res.ResourcesCompat;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentTransaction;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
+import kotlin.Unit;
 
 /**
  * @author sslavin
@@ -77,6 +83,7 @@ public class MainActivity extends AppCompatActivity implements InAppChatFragment
     private final String WIDGET_SECRET_KEY_JSON = "your_widget_secret_key";
     private final InAppChat inAppChat = InAppChat.getInstance(this);
     private boolean pushRegIdReceiverRegistered = false;
+    private boolean lcRegIdReceiverRegistered = false;
     private boolean inAppChatAvailabilityReceiverRegistered = false;
     private JWTSubjectType jwtSubjectType = null;
     private AuthData lastUsedAuthData = null;
@@ -95,12 +102,11 @@ public class MainActivity extends AppCompatActivity implements InAppChatFragment
             }
         }
     };
-
     private final BroadcastReceiver isInAppChatAvailableReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
             if (intent != null) {
-                onChatAvailabilityUpdated(intent.getBooleanExtra(BroadcastParameter.EXTRA_IS_CHAT_AVAILABLE, false));
+                onChatAvailabilityUpdated(intent.getBooleanExtra(BroadcastParameter.EXTRA_IS_CHAT_AVAILABLE, false), true);
             }
         }
     };
@@ -139,6 +145,7 @@ public class MainActivity extends AppCompatActivity implements InAppChatFragment
         setUpAuthButton();
         setUpPersonalizationButton();
         setUpDepersonalizationButton();
+        setUpWidgetApiButton();
         setUpRuntimeCustomization();
         setUpInAppChatAvailabilityReceiver();
     }
@@ -167,6 +174,9 @@ public class MainActivity extends AppCompatActivity implements InAppChatFragment
         if (this.lastUsedAuthData != null) {
             outState.putParcelable(EXTRA_AUTH_DATA, this.lastUsedAuthData);
         }
+        if (this.openChatActivityButton != null) {
+            outState.putBoolean(BroadcastParameter.EXTRA_IS_CHAT_AVAILABLE, this.openChatActivityButton.isEnabled());
+        }
         super.onSaveInstanceState(outState);
     }
 
@@ -177,6 +187,7 @@ public class MainActivity extends AppCompatActivity implements InAppChatFragment
         if (parcelable instanceof AuthData) {
             this.lastUsedAuthData = (AuthData) parcelable;
         }
+        onChatAvailabilityUpdated(savedInstanceState.getBoolean(BroadcastParameter.EXTRA_IS_CHAT_AVAILABLE), false);
     }
 
     @Override
@@ -188,8 +199,8 @@ public class MainActivity extends AppCompatActivity implements InAppChatFragment
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         if (item.getItemId() == R.id.action_id) {
-            setPushRegIdToClipboard(getPushRegId());
-            Toast.makeText(this, R.string.toast_registration_id_copy, Toast.LENGTH_SHORT).show();
+            saveToClipboard(getString(R.string.push_registration_id), getPushRegId());
+            Toast.makeText(this, getString(R.string.push_registration_id) + " " + getString(R.string.toast_registration_id_copy), Toast.LENGTH_SHORT).show();
             return true;
         } else if (item.getGroupId() == R.id.languages) {
             String language = langMenuIdToLocale(item.getItemId());
@@ -280,70 +291,10 @@ public class MainActivity extends AppCompatActivity implements InAppChatFragment
         }
     }
 
-    private void setUpInAppChatAvailabilityReceiver() {
-        if (!inAppChatAvailabilityReceiverRegistered) {
-            LocalBroadcastManager.getInstance(this).registerReceiver(isInAppChatAvailableReceiver, new IntentFilter(InAppChatEvent.IN_APP_CHAT_AVAILABILITY_UPDATED.getKey()));
-            this.inAppChatAvailabilityReceiverRegistered = true;
-        }
-    }
-
-    private void onChatAvailabilityUpdated(boolean isAvailable) {
-        openChatActivityButton.setEnabled(isAvailable);
-        showChatFragmentButton.setEnabled(isAvailable);
-        openChatFragmentButton.setEnabled(isAvailable);
-        openChatViewButton.setEnabled(isAvailable);
-        Toast.makeText(this, getString(R.string.chat_availability, isAvailable), Toast.LENGTH_SHORT).show();
-    }
-
-    private void setInAppChatEventsListener() {
-        inAppChat.setEventsListener(new InAppChatEventsListener() {
-            @Override
-            public void onChatRawMessageReceived(@NonNull String rawMessage) {
-                MobileMessagingLogger.d(TAG, "On chat raw message received: " + rawMessage);
-            }
-
-            @Override
-            public void onChatWidgetThemeChanged(@NonNull String widgetThemeName) {
-                MobileMessagingLogger.d(TAG, "On chat widget theme changed: " + widgetThemeName);
-            }
-
-            @Override
-            public void onChatWidgetInfoUpdated(@NonNull WidgetInfo widgetInfo) {
-                MobileMessagingLogger.d(TAG, "On chat widget info updated: " + widgetInfo);
-            }
-
-            @Override
-            public void onChatViewChanged(@NonNull InAppChatWidgetView widgetView) {
-                MobileMessagingLogger.d(TAG, "On chat view changed: " + widgetView);
-            }
-
-            @Override
-            public void onChatControlsVisibilityChanged(boolean isVisible) {
-                MobileMessagingLogger.d(TAG, "On chat controls visibility changed: " + isVisible);
-            }
-
-            @Override
-            public void onChatReconnected() {
-                MobileMessagingLogger.d(TAG, "On chat reconnected");
-            }
-
-            @Override
-            public void onChatDisconnected() {
-                MobileMessagingLogger.d(TAG, "On chat disconnected");
-            }
-
-            @Override
-            public void onChatLoaded(boolean controlsEnabled) {
-                MobileMessagingLogger.d(TAG, "On chat loaded: " + controlsEnabled);
-            }
-        });
-    }
-
-    private void setPushRegIdToClipboard(String pushRegId) {
+    private void saveToClipboard(String label, String value) {
         ClipboardManager clipboard = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
-        ClipData clip = ClipData.newPlainText(getString(R.string.action_registration_id_copy), pushRegId);
+        ClipData clip = ClipData.newPlainText(label, value);
         clipboard.setPrimaryClip(clip);
-        Toast.makeText(this, R.string.toast_registration_id_copy, Toast.LENGTH_SHORT).show();
     }
 
     private boolean showPushRegId(String pushRegId) {
@@ -352,7 +303,7 @@ public class MainActivity extends AppCompatActivity implements InAppChatFragment
             pushRegIdEditText.setText(pushRegId);
             pushRegIdEditText.setKeyListener(null);
             pushRegIdEditText.setOnClickListener(view -> {
-                setPushRegIdToClipboard(pushRegId);
+                saveToClipboard(getString(R.string.push_registration_id), pushRegId);
             });
             return true;
         }
@@ -365,6 +316,132 @@ public class MainActivity extends AppCompatActivity implements InAppChatFragment
         autoCompleteTextView.setAdapter(adapter);
         autoCompleteTextView.setOnItemClickListener((adapterView, view, position, id) -> {
             MainActivity.this.jwtSubjectType = JWTSubjectType.values()[position];
+        });
+    }
+
+    private void setUpInAppChatAvailabilityReceiver() {
+        if (!inAppChatAvailabilityReceiverRegistered) {
+            LocalBroadcastManager.getInstance(this).registerReceiver(isInAppChatAvailableReceiver, new IntentFilter(InAppChatEvent.IN_APP_CHAT_AVAILABILITY_UPDATED.getKey()));
+            this.inAppChatAvailabilityReceiverRegistered = true;
+        }
+    }
+
+    private void onChatAvailabilityUpdated(boolean isAvailable, boolean showToast) {
+        openChatActivityButton.setEnabled(isAvailable);
+        showChatFragmentButton.setEnabled(isAvailable);
+        openChatFragmentButton.setEnabled(isAvailable);
+        openChatViewButton.setEnabled(isAvailable);
+        if (showToast)
+            Toast.makeText(this, getString(R.string.chat_availability, isAvailable), Toast.LENGTH_SHORT).show();
+    }
+
+    private void setInAppChatEventsListener() {
+        inAppChat.setEventsListener(new InAppChatEventsListener() {
+
+            @Override
+            public void onChatLanguageChanged(@NonNull LivechatWidgetResult<String> result) {
+                MobileMessagingLogger.d(TAG, "On chat language changed: " + result);
+            }
+
+            @Override
+            public void onChatThreadListShown(@NonNull LivechatWidgetResult<Unit> result) {
+                MobileMessagingLogger.d(TAG, "On chat thread list shown: " + result);
+            }
+
+            @Override
+            public void onChatThreadShown(@NonNull LivechatWidgetResult<LivechatWidgetThread> result) {
+                MobileMessagingLogger.d(TAG, "On chat thread shown: " + result);
+            }
+
+            @Override
+            public void onChatActiveThreadReceived(@NonNull LivechatWidgetResult<LivechatWidgetThread> result) {
+                MobileMessagingLogger.d(TAG, "On chat active thread received: " + result);
+            }
+
+            @Override
+            public void onChatThreadsReceived(@NonNull LivechatWidgetResult<LivechatWidgetThreads> result) {
+                MobileMessagingLogger.d(TAG, "On chat threads received: " + result);
+            }
+
+            @Override
+            public void onChatContextualDataSent(@NonNull LivechatWidgetResult<String> result) {
+                MobileMessagingLogger.d(TAG, "On chat contextual data sent: " + result);
+            }
+
+            @Override
+            public void onChatDraftSent(@NonNull LivechatWidgetResult<String> result) {
+                MobileMessagingLogger.d(TAG, "On chat draft sent: " + result);
+            }
+
+            @Override
+            public void onChatMessageSent(@NonNull LivechatWidgetResult<String> result) {
+                MobileMessagingLogger.d(TAG, "On chat message sent: " + result);
+            }
+
+            @Override
+            public void onChatLoadingFinished(@NonNull LivechatWidgetResult<Unit> result) {
+                MobileMessagingLogger.d(TAG, "On chat loading finished: " + result);
+            }
+
+            @Override
+            public void onChatRawMessageReceived(@NonNull String rawMessage) {
+                MobileMessagingLogger.d(TAG, "On chat raw message received: " + rawMessage);
+            }
+
+            @Override
+            public void onChatWidgetThemeChanged(@NonNull String widgetThemeName) {
+                //Deprecated, use onChatWidgetThemeChanged(LivechatWidgetResult<String>) instead
+            }
+
+            @Override
+            public void onChatWidgetThemeChanged(@NonNull LivechatWidgetResult<String> result) {
+                MobileMessagingLogger.d(TAG, "On chat widget theme changed: " + result);
+            }
+
+            @Override
+            public void onChatWidgetInfoUpdated(@NonNull WidgetInfo widgetInfo) {
+                MobileMessagingLogger.d(TAG, "On chat widget info updated: " + widgetInfo);
+            }
+
+            @Override
+            public void onChatViewChanged(@NonNull InAppChatWidgetView widgetView) {
+                //Deprecated, use onChatViewChanged(LivechatWidgetView) instead
+            }
+
+            @Override
+            public void onChatViewChanged(@NonNull LivechatWidgetView widgetView) {
+                MobileMessagingLogger.d(TAG, "On chat view changed: " + widgetView);
+            }
+
+            @Override
+            public void onChatControlsVisibilityChanged(boolean isVisible) {
+                MobileMessagingLogger.d(TAG, "On chat controls visibility changed: " + isVisible);
+            }
+
+            @Override
+            public void onChatConnectionResumed(@NonNull LivechatWidgetResult<Unit> result) {
+                MobileMessagingLogger.d(TAG, "On chat connection resumed: " + result);
+            }
+
+            @Override
+            public void onChatReconnected() {
+                //Deprecated, use onChatConnectionResumed(LivechatWidgetResult<Unit>) instead
+            }
+
+            @Override
+            public void onChatConnectionPaused(@NonNull LivechatWidgetResult<Unit> result) {
+                MobileMessagingLogger.d(TAG, "On chat connection paused: " + result);
+            }
+
+            @Override
+            public void onChatDisconnected() {
+                //Deprecated, use onChatConnectionPaused(LivechatWidgetResult<Unit>) instead
+            }
+
+            @Override
+            public void onChatLoaded(boolean controlsEnabled) {
+                //Deprecated, use onChatLoadingFinished(LivechatWidgetResult<Unit>) instead
+            }
         });
     }
 
@@ -386,7 +463,6 @@ public class MainActivity extends AppCompatActivity implements InAppChatFragment
         CheckBox toolbarCheckbox = findViewById(R.id.toolbarCheckbox);
         CheckBox inputCheckbox = findViewById(R.id.inputCheckbox);
         openChatFragmentButton.setOnClickListener((v) -> {
-            inAppChat.showInAppChatFragment(getSupportFragmentManager(), R.id.fragmentContainer);
             FragmentTransaction fragmentTransaction = getSupportFragmentManager().beginTransaction();
             Fragment fragment = new InAppChatFragmentDemoFragment();
             Bundle args = new Bundle();
@@ -411,18 +487,23 @@ public class MainActivity extends AppCompatActivity implements InAppChatFragment
         authButton.setOnClickListener((v) -> {
             showProgressBar();
 
-            inAppChat.setJwtProvider(() -> {
-                AuthData authData = MainActivity.this.lastUsedAuthData;
-                String jwt = null;
-                if (authData != null) {
-                    jwt = JWTUtils.createJwt(authData.getJwtSubjectType(), authData.getSubject(), WIDGET_ID, WIDGET_SECRET_KEY_JSON);
-                    if (jwt == null) {
-                        Toast.makeText(MainActivity.this, "Create JWT process failed!", Toast.LENGTH_SHORT).show();
+            JwtProvider jwtProvider = new JwtProvider() {
+                @Nullable
+                @Override
+                public String provideJwt() {
+                    AuthData authData = MainActivity.this.lastUsedAuthData;
+                    String jwt = null;
+                    if (authData != null) {
+                        jwt = JWTUtils.createJwt(authData.getJwtSubjectType(), authData.getSubject(), WIDGET_ID, WIDGET_SECRET_KEY_JSON);
+                        if (jwt == null) {
+                            Toast.makeText(MainActivity.this, "Create JWT process failed!", Toast.LENGTH_SHORT).show();
+                        }
                     }
+                    MobileMessagingLogger.d(TAG, "Providing JWT for " + authData + " = " + jwt);
+                    return jwt;
                 }
-                MobileMessagingLogger.d(TAG, "Providing JWT for " + authData + " = " + jwt);
-                return jwt;
-            });
+            };
+            inAppChat.setWidgetJwtProvider(jwtProvider);
 
             AuthData authData = createAuthData();
             if (authData != null) {
@@ -578,6 +659,15 @@ public class MainActivity extends AppCompatActivity implements InAppChatFragment
                     )
             );
             Toast.makeText(this, "Custom style applied", Toast.LENGTH_SHORT).show();
+        });
+    }
+
+    private void setUpWidgetApiButton() {
+        Button openWidgetApiButton = findViewById(R.id.openWidgetApi);
+        openWidgetApiButton.setOnClickListener(v -> {
+            FragmentTransaction fragmentTransaction = getSupportFragmentManager().beginTransaction();
+            fragmentTransaction.add(R.id.fragmentContainer, new LivechatWidgetApiFragment(), LivechatWidgetApiFragment.class.getSimpleName());
+            fragmentTransaction.commit();
         });
     }
 

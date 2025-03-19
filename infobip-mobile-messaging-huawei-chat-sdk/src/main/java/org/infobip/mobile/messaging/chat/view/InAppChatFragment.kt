@@ -34,6 +34,11 @@ import org.infobip.mobile.messaging.chat.attachments.InAppChatMobileAttachment
 import org.infobip.mobile.messaging.chat.core.InAppChatWidgetView
 import org.infobip.mobile.messaging.chat.core.MultithreadStrategy
 import org.infobip.mobile.messaging.chat.core.SessionStorage
+import org.infobip.mobile.messaging.chat.core.widget.LivechatWidgetLanguage
+import org.infobip.mobile.messaging.chat.core.widget.LivechatWidgetResult
+import org.infobip.mobile.messaging.chat.core.widget.LivechatWidgetThread
+import org.infobip.mobile.messaging.chat.core.widget.LivechatWidgetThreads
+import org.infobip.mobile.messaging.chat.core.widget.LivechatWidgetView
 import org.infobip.mobile.messaging.chat.databinding.IbFragmentChatBinding
 import org.infobip.mobile.messaging.chat.models.AttachmentSource
 import org.infobip.mobile.messaging.chat.models.ContextualData
@@ -80,6 +85,8 @@ class InAppChatFragment : Fragment(), InAppChatFragmentActivityResultDelegate.Re
      *
      * It is intended to be used for more advanced integrations of [InAppChatFragment].
      * Together with another public properties and functions it offers you more control over chat.
+     *
+     * You can use [DefaultInAppChatFragmentEventsListener] to override only necessary methods.
      */
     interface EventsListener : InAppChatEventsListener {
 
@@ -94,7 +101,21 @@ class InAppChatFragment : Fragment(), InAppChatFragmentActivityResultDelegate.Re
          * @param caption attachment caption
          * @return true if attachment preview has been handled, false otherwise
          */
+        @Deprecated("Use onChatAttachmentPreviewOpened(url: String?, type: String?, caption: String?) instead")
         fun onAttachmentPreviewOpened(url: String?, type: String?, caption: String?): Boolean
+
+        /**
+         * Called when attachment from chat has been interacted.
+         *
+         * It allows you to handle attachment preview on your own. Return true if you handled attachment preview.
+         * Return false to let [InAppChatFragment] handle attachment preview.
+         *
+         * @param url attachment url
+         * @param type attachment type
+         * @param caption attachment caption
+         * @return true if attachment preview has been handled, false otherwise
+         */
+        fun onChatAttachmentPreviewOpened(url: String?, type: String?, caption: String?): Boolean
 
         /**
          * Called by default InAppChat's Toolbar back navigation logic to exit chat. You are supposed to hide/remove [InAppChatFragment].
@@ -107,6 +128,7 @@ class InAppChatFragment : Fragment(), InAppChatFragmentActivityResultDelegate.Re
 
     /**
      * [InAppChatFragment] errors handler allows you to define custom way to process chat errors.
+     * You can use [DefaultInAppChatErrorHandler] to override only necessary methods.
      */
     interface ErrorsHandler : InAppChatErrorHandler
 
@@ -124,8 +146,7 @@ class InAppChatFragment : Fragment(), InAppChatFragmentActivityResultDelegate.Re
     private var originalLightStatusBar: Boolean? = null
     private lateinit var localizationUtils: LocalizationUtils
     private var widgetInfo: WidgetInfo? = null
-    private var widgetView: InAppChatWidgetView? = null
-    private var appliedWidgetTheme: String? = null
+    private var widgetView: LivechatWidgetView? = null
     private val backPressedCallback: OnBackPressedCallback = object : OnBackPressedCallback(true) {
         override fun handleOnBackPressed() {
             if (handleBackPress)
@@ -185,7 +206,7 @@ class InAppChatFragment : Fragment(), InAppChatFragmentActivityResultDelegate.Re
      * You can use [InAppChatFragment.navigateBackOrCloseChat] for default back navigation logic,
      * what handles internal multithread widget navigation together with android native navigation.
      * In case you want to handle back navigation on your own, there is [InAppChatFragment.showThreadList]
-     * to navigate from [InAppChatWidgetView.THREAD] back to [InAppChatWidgetView.THREAD_LIST] in multithread widget.
+     * to navigate from [LivechatWidgetView.THREAD] back to [LivechatWidgetView.THREAD_LIST] in multithread widget.
      */
     var withToolbar = true
         set(value) {
@@ -332,19 +353,32 @@ class InAppChatFragment : Fragment(), InAppChatFragmentActivityResultDelegate.Re
 
     //region Public
     /**
-     * Set the language of the Livechat Widget.
+     * Sends a message with optional [InAppChatMobileAttachment].
      *
-     * It does nothing if [InAppChatFragment] is not attached.
+     * Does nothing if [InAppChatFragment] not attached.
      *
-     * @param locale locale's language is used by Livechat Widget and native parts
+     * @param message message to be send, max length allowed is 4096 characters
+     * @param attachment to create attachment use [InAppChatMobileAttachment]'s constructor where you provide attachment's mimeType, base64 and filename
      */
-    fun setLanguage(locale: Locale) {
-        MobileMessagingLogger.d(TAG, "setLanguage($locale)")
-        withBinding { it.ibLcChat.setLanguage(locale) }
+    @JvmOverloads
+    @Throws(IllegalArgumentException::class)
+    fun sendChatMessage(message: String?, attachment: InAppChatMobileAttachment? = null) {
+        withBinding { it.ibLcChat.sendChatMessage(message, attachment) }
     }
 
     /**
-     * Set contextual data of the Livechat Widget.
+     * Sends a draft message.
+     *
+     * Does nothing if [InAppChatFragment] not attached.
+     *
+     * @param draft message
+     */
+    fun sendChatMessageDraft(draft: String) {
+        withBinding { it.ibLcChat.sendChatMessageDraft(draft) }
+    }
+
+    /**
+     * Set contextual data of the livechat widget.
      *
      * If the function is called when [InAppChatFragment] is attached and the chat is loaded,
      * data will be sent immediately, otherwise they will be sent to the chat once it is loaded.
@@ -363,7 +397,7 @@ class InAppChatFragment : Fragment(), InAppChatFragmentActivityResultDelegate.Re
     }
 
     /**
-     * Set contextual data of the Livechat Widget.
+     * Set contextual data of the livechat widget.
      *
      * If the function is called when [InAppChatFragment] is attached and the chat is loaded,
      * data will be sent immediately, otherwise they will be sent to the chat once it is loaded.
@@ -385,49 +419,107 @@ class InAppChatFragment : Fragment(), InAppChatFragmentActivityResultDelegate.Re
     }
 
     /**
-     * Navigates Livechat widget from [InAppChatWidgetView.THREAD] back to [InAppChatWidgetView.THREAD_LIST]
-     * destination in multithread widget. It does nothing if widget is not multithread.
+     * Requests current threads from livechat widget.
      *
-     * It does nothing if [InAppChatFragment] is not attached.
+     * Does nothing if [InAppChatFragment] not attached.
+     *
+     * You can observe result by [InAppChatFragment.EventsListener.onChatThreadsReceived] event.
+     */
+    fun getThreads() {
+        withBinding { it.ibLcChat.getThreads() }
+    }
+
+    /**
+     * Requests shown thread - active from livechat widget.
+     *
+     * Does nothing if [InAppChatFragment] not attached.
+     *
+     * You can observe result by [InAppChatFragment.EventsListener.onChatActiveThreadReceived] event.
+     */
+    fun getActiveThread() {
+        withBinding { it.ibLcChat.getActiveThread() }
+    }
+
+    /**
+     * Navigates livechat widget to thread specified by provided [threadId].
+     *
+     * Does nothing if [InAppChatFragment] not attached.
+     *
+     * You can observe result by [InAppChatFragment.EventsListener.onChatThreadShown] event.
+     *
+     * @param threadId thread to be shown
+     */
+    fun showThread(threadId: String) {
+        withBinding { it.ibLcChat.showThread(threadId) }
+    }
+
+    /**
+     * Navigates livechat widget from [LivechatWidgetView.THREAD] back to [LivechatWidgetView.THREAD_LIST]
+     * destination in multithread widget. Does nothing if livechat widget not multithread.
+     *
+     * Does nothing if [InAppChatFragment] not attached.
      */
     fun showThreadList() {
         withBinding { it.ibLcChat.showThreadList() }
     }
 
     /**
-     * Sends draft message to be show in chat to peer's chat.
+     * Executes back navigation. In multithread widget it handles internal navigation
+     * from [LivechatWidgetView.THREAD] back to [LivechatWidgetView.THREAD_LIST] using
+     * [InAppChatFragment.showThreadList], otherwise it triggers [InAppChatFragment.EventsListener.onExitChatPressed] event
+     * and [InAppChatFragment.InAppChatActionBarProvider.onInAppChatBackPressed].
      *
-     * It does nothing if [InAppChatFragment] is not attached.
-     *
-     * @param draft message
+     * It is default InAppChatFragment back navigation logic.
      */
-    fun sendChatMessageDraft(draft: String) {
-        withBinding { it.ibLcChat.sendChatMessageDraft(draft) }
+    fun navigateBackOrCloseChat() {
+        navigateBack()
     }
 
     /**
-     * Sends message to the chat with optional [InAppChatMobileAttachment].
+     * Set an in-app chat's language
      *
-     * It does nothing if [InAppChatFragment] is not attached.
+     * Does nothing if [InAppChatFragment] not attached.
      *
-     * @param message message to be send, max length allowed is 4096 characters
-     * @param attachment to create attachment use [InAppChatMobileAttachment]'s constructor where you provide attachment's mimeType, base64 and filename
+     * @param locale locale's language is used by livechat widget and native parts
      */
-    @JvmOverloads
-    @Throws(IllegalArgumentException::class)
-    fun sendChatMessage(message: String?, attachment: InAppChatMobileAttachment? = null) {
-        withBinding { it.ibLcChat.sendChatMessage(message, attachment) }
+    @Deprecated(
+        "Use setLanguage(LivechatWidgetLanguage) instead",
+        ReplaceWith("setLanguage(LivechatWidgetLanguage.findLanguageOrDefault(locale))", "org.infobip.mobile.messaging.chat.core.widget.LivechatWidgetLanguage")
+    )
+    fun setLanguage(locale: Locale) {
+        setLanguage(LivechatWidgetLanguage.findLanguageOrDefault(locale))
     }
 
     /**
-     * Set the theme of the Livechat Widget.
+     * Set an in-app chat's language
+     *
+     * Does nothing if [InAppChatFragment] not attached.
+     *
+     * @param language language is used by livechat widget and InAppChat native parts
+     */
+    fun setLanguage(language: LivechatWidgetLanguage) {
+        MobileMessagingLogger.d(TAG, "setLanguage($language)")
+        withBinding { it.ibLcChat.setLanguage(language) }
+    }
+
+    /**
+     * Returns current in-app chat language
+     *
+     * @return current in-app chat language or default [LivechatWidgetLanguage.ENGLISH]
+     */
+    fun getLanguage(): LivechatWidgetLanguage {
+        return _binding?.ibLcChat?.getLanguage() ?: InAppChat.getInstance(requireContext()).language
+    }
+
+    /**
+     * Sets a livechat widget's theme.
      * You can define widget themes in <a href="https://portal.infobip.com/apps/livechat/widgets">Live chat widget setup page</a> in Infobip Portal, section `Advanced customization`.
      * Please check widget <a href="https://www.infobip.com/docs/live-chat/widget-customization">documentation</a> for more details.
      *
      * Function allows to change widget theme while chat is shown - in runtime.
      * If you set widget theme before [InAppChatFragment] is shown the theme will be used once chat is loaded.
      *
-     * It does nothing if [InAppChatFragment] is not attached.
+     * Does nothing if [InAppChatFragment] not attached.
      *
      * @param widgetThemeName unique theme name, empty or blank value is ignored
      */
@@ -436,15 +528,12 @@ class InAppChatFragment : Fragment(), InAppChatFragmentActivityResultDelegate.Re
     }
 
     /**
-     * Executes back navigation. In multithread widget it handles internal navigation
-     * from [InAppChatWidgetView.THREAD] back to [InAppChatWidgetView.THREAD_LIST] using
-     * [InAppChatFragment.showThreadList], otherwise it triggers [InAppChatFragment.EventsListener.onExitChatPressed] event
-     * and [InAppChatFragment.InAppChatActionBarProvider.onInAppChatBackPressed].
+     * Returns current livechat widget theme.
      *
-     * It is default InAppChatFragment back navigation logic.
+     * @return applied theme name of livechat widget
      */
-    fun navigateBackOrCloseChat() {
-        navigateBack()
+    fun getWidgetTheme(): String? {
+        return _binding?.ibLcChat?.getWidgetTheme() ?: InAppChat.getInstance(requireContext()).widgetTheme
     }
     //endregion
 
@@ -468,8 +557,8 @@ class InAppChatFragment : Fragment(), InAppChatFragmentActivityResultDelegate.Re
         val view = widgetView
         if (isMultiThread && view != null) {
             when (view) {
-                InAppChatWidgetView.LOADING, InAppChatWidgetView.THREAD_LIST, InAppChatWidgetView.SINGLE_MODE_THREAD -> closeChatPage()
-                InAppChatWidgetView.THREAD, InAppChatWidgetView.LOADING_THREAD, InAppChatWidgetView.CLOSED_THREAD -> showThreadList()
+                LivechatWidgetView.LOADING, LivechatWidgetView.THREAD_LIST, LivechatWidgetView.SINGLE_MODE_THREAD -> closeChatPage()
+                LivechatWidgetView.THREAD, LivechatWidgetView.LOADING_THREAD, LivechatWidgetView.CLOSED_THREAD -> showThreadList()
             }
         } else {
             closeChatPage()
@@ -486,7 +575,8 @@ class InAppChatFragment : Fragment(), InAppChatFragmentActivityResultDelegate.Re
     }
 
     private fun applyToolbarStyle(widgetInfo: WidgetInfo) {
-        val style = StyleFactory.create(requireContext(), widgetInfo = widgetInfo).chatToolbarStyle()
+        val style =
+            StyleFactory.create(requireContext(), widgetInfo = widgetInfo).chatToolbarStyle()
         withBinding { style.apply(it.ibLcChatToolbar) }
         applyStatusBarStyle(style)
     }
@@ -520,19 +610,72 @@ class InAppChatFragment : Fragment(), InAppChatFragmentActivityResultDelegate.Re
     //region Chat
     private fun initChat() {
         binding.ibLcChat.eventsListener = object : InAppChatView.EventsListener {
+
             override fun onChatLoaded(controlsEnabled: Boolean) {
-                binding.ibLcChatInput.isEnabled = controlsEnabled
                 eventsListener?.onChatLoaded(controlsEnabled)
             }
 
+            override fun onChatLoadingFinished(result: LivechatWidgetResult<Unit>) {
+                binding.ibLcChatInput.isEnabled = result.isSuccess
+                eventsListener?.onChatLoadingFinished(result)
+            }
+
             override fun onChatDisconnected() {
-                binding.ibLcChatInput.isEnabled = false
                 eventsListener?.onChatDisconnected()
             }
 
+            override fun onChatConnectionPaused(result: LivechatWidgetResult<Unit>) {
+                if (result.isSuccess) {
+                    binding.ibLcChatInput.isEnabled = false
+                }
+                eventsListener?.onChatConnectionPaused(result)
+            }
+
             override fun onChatReconnected() {
-                binding.ibLcChatInput.isEnabled = true
                 eventsListener?.onChatReconnected()
+            }
+
+            override fun onChatConnectionResumed(result: LivechatWidgetResult<Unit>) {
+                if (result.isSuccess) {
+                    binding.ibLcChatInput.isEnabled = true
+                }
+                eventsListener?.onChatConnectionResumed(result)
+            }
+
+            override fun onChatMessageSent(result: LivechatWidgetResult<String?>) {
+                eventsListener?.onChatMessageSent(result)
+            }
+
+            override fun onChatDraftSent(result: LivechatWidgetResult<String?>) {
+                eventsListener?.onChatDraftSent(result)
+            }
+
+            override fun onChatContextualDataSent(result: LivechatWidgetResult<String?>) {
+                eventsListener?.onChatContextualDataSent(result)
+            }
+
+            override fun onChatThreadsReceived(result: LivechatWidgetResult<LivechatWidgetThreads>) {
+                eventsListener?.onChatThreadsReceived(result)
+            }
+
+            override fun onChatActiveThreadReceived(result: LivechatWidgetResult<LivechatWidgetThread?>) {
+                eventsListener?.onChatActiveThreadReceived(result)
+            }
+
+            override fun onChatThreadShown(result: LivechatWidgetResult<LivechatWidgetThread>) {
+                eventsListener?.onChatThreadShown(result)
+            }
+
+            override fun onChatThreadListShown(result: LivechatWidgetResult<Unit>) {
+                eventsListener?.onChatThreadListShown(result)
+            }
+
+            override fun onChatLanguageChanged(result: LivechatWidgetResult<String?>) {
+                eventsListener?.onChatLanguageChanged(result)
+            }
+
+            override fun onChatWidgetThemeChanged(result: LivechatWidgetResult<String?>) {
+                eventsListener?.onChatWidgetThemeChanged(result)
             }
 
             override fun onChatControlsVisibilityChanged(isVisible: Boolean) {
@@ -540,7 +683,11 @@ class InAppChatFragment : Fragment(), InAppChatFragmentActivityResultDelegate.Re
             }
 
             override fun onAttachmentPreviewOpened(url: String?, type: String?, caption: String?) {
-                val handled = eventsListener?.onAttachmentPreviewOpened(url, type, caption) ?: false
+                eventsListener?.onAttachmentPreviewOpened(url, type, caption)
+            }
+
+            override fun onChatAttachmentPreviewOpened(url: String?, type: String?, caption: String?) {
+                val handled = eventsListener?.onChatAttachmentPreviewOpened(url, type, caption) ?: false
                 if (!handled) {
                     val intent: Intent
                     if (type == "DOCUMENT") {
@@ -562,6 +709,10 @@ class InAppChatFragment : Fragment(), InAppChatFragmentActivityResultDelegate.Re
             }
 
             override fun onChatViewChanged(widgetView: InAppChatWidgetView) {
+                eventsListener?.onChatViewChanged(widgetView)
+            }
+
+            override fun onChatViewChanged(widgetView: LivechatWidgetView) {
                 this@InAppChatFragment.widgetView = widgetView
                 updateInputVisibilityByMultiThreadView(widgetView)
                 eventsListener?.onChatViewChanged(widgetView)
@@ -575,7 +726,6 @@ class InAppChatFragment : Fragment(), InAppChatFragmentActivityResultDelegate.Re
             }
 
             override fun onChatWidgetThemeChanged(widgetThemeName: String) {
-                appliedWidgetTheme = widgetThemeName
                 eventsListener?.onChatWidgetThemeChanged(widgetThemeName)
             }
 
@@ -664,18 +814,18 @@ class InAppChatFragment : Fragment(), InAppChatFragmentActivityResultDelegate.Re
         withBinding { it.ibLcChatInput.applyWidgetInfoStyle(widgetInfo) }
     }
 
-    private fun updateInputVisibilityByMultiThreadView(widgetView: InAppChatWidgetView) {
+    private fun updateInputVisibilityByMultiThreadView(widgetView: LivechatWidgetView) {
         if (!withInput)
             return
         if (isMultiThread) {
             when (widgetView) {
-                InAppChatWidgetView.THREAD,
-                InAppChatWidgetView.SINGLE_MODE_THREAD -> setChatInputVisibility(true)
+                LivechatWidgetView.THREAD,
+                LivechatWidgetView.SINGLE_MODE_THREAD -> setChatInputVisibility(true)
 
-                InAppChatWidgetView.LOADING,
-                InAppChatWidgetView.THREAD_LIST,
-                InAppChatWidgetView.CLOSED_THREAD,
-                InAppChatWidgetView.LOADING_THREAD -> setChatInputVisibility(false)
+                LivechatWidgetView.LOADING,
+                LivechatWidgetView.THREAD_LIST,
+                LivechatWidgetView.CLOSED_THREAD,
+                LivechatWidgetView.LOADING_THREAD -> setChatInputVisibility(false)
             }
         } else {
             setChatInputVisibility(true)
@@ -687,7 +837,7 @@ class InAppChatFragment : Fragment(), InAppChatFragmentActivityResultDelegate.Re
             if (!withInput)
                 return@withBinding
             val canShowInMultiThread =
-                isMultiThread && (widgetView == InAppChatWidgetView.THREAD || widgetView == InAppChatWidgetView.SINGLE_MODE_THREAD)
+                isMultiThread && (widgetView == LivechatWidgetView.THREAD || widgetView == LivechatWidgetView.SINGLE_MODE_THREAD)
             val isNotMultiThread: Boolean = !isMultiThread
             val isVisibleMultiThreadSafe = isVisible && (canShowInMultiThread || isNotMultiThread)
             if (binding.ibLcChatInput.isVisible == isVisibleMultiThreadSafe) {
@@ -707,6 +857,7 @@ class InAppChatFragment : Fragment(), InAppChatFragmentActivityResultDelegate.Re
     }
 
     //region Attachment picker
+
     private fun chooseAttachmentSource() {
         val chooser = attachmentBottomSheetChooser()
         val dialog = chooser.createDialog()
@@ -716,6 +867,7 @@ class InAppChatFragment : Fragment(), InAppChatFragmentActivityResultDelegate.Re
             when (attachmentSource) {
                 AttachmentSource.Camera -> activityResultDelegate.capturePhoto()
                 AttachmentSource.VideoRecorder -> activityResultDelegate.recordVideo()
+
                 AttachmentSource.FilePicker -> {
                     activityResultDelegate.selectFile()
                 }
@@ -777,6 +929,8 @@ class InAppChatFragment : Fragment(), InAppChatFragmentActivityResultDelegate.Re
         return hasCameraFeature && cameraManager.cameraIdList.isNotEmpty()
     }
     //endregion
+    //endregion
+
 
     private fun initBackPressHandler() {
         requireActivity().onBackPressedDispatcher.addCallback(
@@ -810,7 +964,12 @@ class InAppChatFragment : Fragment(), InAppChatFragmentActivityResultDelegate.Re
      */
     private fun InAppChatEventsListener.toFragmentEventsListener(): EventsListener {
         return object : EventsListener {
+
             override fun onAttachmentPreviewOpened(url: String?, type: String?, caption: String?): Boolean {
+                return false
+            }
+
+            override fun onChatAttachmentPreviewOpened(url: String?, type: String?, caption: String?): Boolean {
                 return false
             }
 
@@ -821,12 +980,60 @@ class InAppChatFragment : Fragment(), InAppChatFragmentActivityResultDelegate.Re
                 this@toFragmentEventsListener.onChatLoaded(controlsEnabled)
             }
 
+            override fun onChatLoadingFinished(result: LivechatWidgetResult<Unit>) {
+                this@toFragmentEventsListener.onChatLoadingFinished(result)
+            }
+
             override fun onChatDisconnected() {
                 this@toFragmentEventsListener.onChatDisconnected()
             }
 
+            override fun onChatConnectionPaused(result: LivechatWidgetResult<Unit>) {
+                this@toFragmentEventsListener.onChatConnectionPaused(result)
+            }
+
             override fun onChatReconnected() {
                 this@toFragmentEventsListener.onChatReconnected()
+            }
+
+            override fun onChatConnectionResumed(result: LivechatWidgetResult<Unit>) {
+                this@toFragmentEventsListener.onChatConnectionResumed(result)
+            }
+
+            override fun onChatMessageSent(result: LivechatWidgetResult<String?>) {
+                this@toFragmentEventsListener.onChatMessageSent(result)
+            }
+
+            override fun onChatDraftSent(result: LivechatWidgetResult<String?>) {
+                this@toFragmentEventsListener.onChatDraftSent(result)
+            }
+
+            override fun onChatContextualDataSent(result: LivechatWidgetResult<String?>) {
+                this@toFragmentEventsListener.onChatContextualDataSent(result)
+            }
+
+            override fun onChatThreadsReceived(result: LivechatWidgetResult<LivechatWidgetThreads>) {
+                this@toFragmentEventsListener.onChatThreadsReceived(result)
+            }
+
+            override fun onChatActiveThreadReceived(result: LivechatWidgetResult<LivechatWidgetThread?>) {
+                this@toFragmentEventsListener.onChatActiveThreadReceived(result)
+            }
+
+            override fun onChatThreadShown(result: LivechatWidgetResult<LivechatWidgetThread>) {
+                this@toFragmentEventsListener.onChatThreadShown(result)
+            }
+
+            override fun onChatThreadListShown(result: LivechatWidgetResult<Unit>) {
+                this@toFragmentEventsListener.onChatThreadListShown(result)
+            }
+
+            override fun onChatLanguageChanged(result: LivechatWidgetResult<String?>) {
+                this@toFragmentEventsListener.onChatLanguageChanged(result)
+            }
+
+            override fun onChatWidgetThemeChanged(result: LivechatWidgetResult<String?>) {
+                this@toFragmentEventsListener.onChatWidgetThemeChanged(result)
             }
 
             override fun onChatControlsVisibilityChanged(isVisible: Boolean) {
@@ -834,6 +1041,10 @@ class InAppChatFragment : Fragment(), InAppChatFragmentActivityResultDelegate.Re
             }
 
             override fun onChatViewChanged(widgetView: InAppChatWidgetView) {
+                this@toFragmentEventsListener.onChatViewChanged(widgetView)
+            }
+
+            override fun onChatViewChanged(widgetView: LivechatWidgetView) {
                 this@toFragmentEventsListener.onChatViewChanged(widgetView)
             }
 
@@ -850,4 +1061,6 @@ class InAppChatFragment : Fragment(), InAppChatFragmentActivityResultDelegate.Re
             }
         }
     }
+
+
 }

@@ -90,14 +90,6 @@ android {
             dimension "default"
         }
     }
-
-    sourceSets {
-        chat {
-            java.srcDirs += "src/chatCommon/java"
-            kotlin.srcDirs += ["src/chatCommon/java", "src/chatCommon/kotlin"]
-            res.srcDirs += "src/chatCommon/res"
-        }
-    }
 }
 
 dependencies {

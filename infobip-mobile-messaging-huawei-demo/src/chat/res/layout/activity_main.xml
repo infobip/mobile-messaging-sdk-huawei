@@ -214,7 +214,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginEnd="8dp"
                     android:text="@string/mm_personalize"
-                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintBottom_toTopOf="@+id/openWidgetApi"
                     app:layout_constraintEnd_toStartOf="@id/depersonalize"
                     app:layout_constraintHorizontal_chainStyle="packed"
                     app:layout_constraintStart_toStartOf="parent"
@@ -229,6 +229,17 @@
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toEndOf="@id/personalize"
                     app:layout_constraintTop_toTopOf="@id/personalize" />
+
+                <Button
+                    android:id="@+id/openWidgetApi"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/open_widget_api"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/personalize"
+                    />
 
             </androidx.constraintlayout.widget.ConstraintLayout>
 

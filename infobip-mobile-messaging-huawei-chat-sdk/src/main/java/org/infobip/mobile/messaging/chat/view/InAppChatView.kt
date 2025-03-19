@@ -8,14 +8,17 @@ import android.util.AttributeSet
 import android.view.LayoutInflater
 import android.widget.TextView
 import androidx.constraintlayout.widget.ConstraintLayout
+import androidx.core.content.ContextCompat
 import androidx.core.view.isInvisible
 import androidx.core.view.isVisible
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner
+import androidx.lifecycle.findViewTreeLifecycleOwner
+import androidx.lifecycle.lifecycleScope
 import com.google.android.material.snackbar.Snackbar
+import kotlinx.coroutines.CoroutineScope
 import org.infobip.mobile.messaging.*
-import org.infobip.mobile.messaging.MobileMessaging.ResultListener
 import org.infobip.mobile.messaging.api.chat.WidgetInfo
 import org.infobip.mobile.messaging.api.support.http.client.DefaultApiClient
 import org.infobip.mobile.messaging.chat.InAppChat
@@ -23,6 +26,16 @@ import org.infobip.mobile.messaging.chat.InAppChatErrors
 import org.infobip.mobile.messaging.chat.R
 import org.infobip.mobile.messaging.chat.attachments.InAppChatMobileAttachment
 import org.infobip.mobile.messaging.chat.core.*
+import org.infobip.mobile.messaging.chat.core.widget.LivechatWidgetApi
+import org.infobip.mobile.messaging.chat.core.widget.LivechatWidgetApiImpl
+import org.infobip.mobile.messaging.chat.core.widget.LivechatWidgetEventsListener
+import org.infobip.mobile.messaging.chat.core.widget.LivechatWidgetException
+import org.infobip.mobile.messaging.chat.core.widget.LivechatWidgetLanguage
+import org.infobip.mobile.messaging.chat.core.widget.LivechatWidgetResult
+import org.infobip.mobile.messaging.chat.core.widget.LivechatWidgetThread
+import org.infobip.mobile.messaging.chat.core.widget.LivechatWidgetThreads
+import org.infobip.mobile.messaging.chat.core.widget.LivechatWidgetView
+import org.infobip.mobile.messaging.chat.core.widget.toInAppChatWidgetView
 import org.infobip.mobile.messaging.chat.databinding.IbViewChatBinding
 import org.infobip.mobile.messaging.chat.models.ContextualData
 import org.infobip.mobile.messaging.chat.properties.MobileMessagingChatProperty
@@ -33,8 +46,8 @@ import org.infobip.mobile.messaging.chat.view.styles.factory.StyleFactory
 import org.infobip.mobile.messaging.logging.MobileMessagingLogger
 import org.infobip.mobile.messaging.mobileapi.InternalSdkError
 import org.infobip.mobile.messaging.mobileapi.MobileMessagingError
-import org.infobip.mobile.messaging.mobileapi.Result
 import org.infobip.mobile.messaging.util.StringUtils
+import org.infobip.mobile.messaging.util.SystemInformation
 import java.util.*
 
 class InAppChatView @JvmOverloads constructor(
@@ -51,11 +64,18 @@ class InAppChatView @JvmOverloads constructor(
         /**
          * Attachment from chat has been interacted.
          */
+        @Deprecated("Use onChatAttachmentPreviewOpened(url: String?, type: String?, caption: String?) instead")
         fun onAttachmentPreviewOpened(url: String?, type: String?, caption: String?)
+
+        /**
+         * Attachment from chat has been interacted.
+         */
+        fun onChatAttachmentPreviewOpened(url: String?, type: String?, caption: String?)
     }
 
     /**
      * [InAppChatView] errors handler allows you to define custom way to process [InAppChatView] errors.
+     * You can use [DefaultInAppChatErrorHandler] to override only necessary methods.
      */
     interface ErrorsHandler : InAppChatErrorHandler
 
@@ -69,21 +89,33 @@ class InAppChatView @JvmOverloads constructor(
 
     private val binding = IbViewChatBinding.inflate(LayoutInflater.from(context), this)
     private var style = StyleFactory.create(context, attributes).chatStyle()
-    private val inAppChat = InAppChat.getInstance(context)
-    private val inAppChatClient: InAppChatClient = InAppChatClientImpl(binding.ibLcWebView)
+    private val mmCore: MobileMessagingCore by lazy { MobileMessagingCore.getInstance(context) }
+    private val inAppChat by lazy { InAppChat.getInstance(context) }
     private var inAppChatBroadcaster: InAppChatBroadcaster = InAppChatBroadcasterImpl(context)
-    private val mmCore: MobileMessagingCore = MobileMessagingCore.getInstance(context)
     private val localizationUtils = LocalizationUtils.getInstance(context)
     private val propertyHelper = PropertyHelper(context)
     private var widgetInfo: WidgetInfo? = null
     private var lastControlsVisibility: Boolean? = null
-    private var isChatLoaded: Boolean = false
     private var lifecycle: Lifecycle? = null
     private val pushRegistrationId
         get() = mmCore.pushRegistrationId
+    private val coroutineScope: CoroutineScope
+        get() = findViewTreeLifecycleOwner()?.lifecycleScope ?: SessionStorage.scope //when View is attached to the window, it has a lifecycle owner otherwise use session scope
+    private val livechatWidgetApi: LivechatWidgetApi by lazy {
+        LivechatWidgetApiImpl(
+            binding.ibLcWebView,
+            mmCore,
+            inAppChat,
+            propertyHelper,
+            coroutineScope
+        ).apply { eventsListener = livechatWidgetEventsListener }
+    }
+    private val isWidgetLoaded: Boolean
+        get() = livechatWidgetApi.isWidgetLoaded
 
     /**
-     * [InAppChatView] event listener allows you to listen to Livechat widget events.
+     * [InAppChatView] event listener allows you to listen to livechat widget events.
+     * You can use [DefaultInAppChatViewEventsListener] to override only necessary methods.
      */
     var eventsListener: EventsListener? = null
 
@@ -97,7 +129,7 @@ class InAppChatView @JvmOverloads constructor(
 
         private fun parseWidgetError(errorJson: String): String {
             return runCatching {
-                val error = InAppChatWidgetError.fromJson(errorJson)
+                val error = LivechatWidgetException.parse(errorJson)
                 val message: String? = error.message
                 val code: String? = error.code?.toString()
                 when {
@@ -119,13 +151,14 @@ class InAppChatView @JvmOverloads constructor(
             val message = if (CommonUtils.isJSON(error)) parseWidgetError(error) else error
             Snackbar.make(binding.root, message, Snackbar.LENGTH_INDEFINITE)
                 .also {
-                    var textView = it.view.findViewById<TextView>(androidx.core.R.id.text)
-                    if (textView == null) {
-                        textView =
-                            it.view.findViewById(com.google.android.material.R.id.snackbar_text)
-                    }
-                    if (textView != null) {
-                        textView.maxLines = 4
+                    runCatching {
+                        var textView = it.view.findViewById<TextView>(androidx.core.R.id.text)
+                        if (textView == null) {
+                            textView = it.view.findViewById(com.google.android.material.R.id.snackbar_text)
+                        }
+                        if (textView != null) {
+                            textView.maxLines = 4
+                        }
                     }
                 }
                 .setAction(R.string.ib_chat_ok) {}
@@ -139,6 +172,7 @@ class InAppChatView @JvmOverloads constructor(
                 showNoInternetConnectionView()
             }
         }
+
     }
 
     /**
@@ -164,33 +198,29 @@ class InAppChatView @JvmOverloads constructor(
         this.lifecycle = lifecycle
         updateWidgetInfo()
         inAppChat.activate()
-        binding.ibLcWebView.setup(inAppChatWebViewManager)
         lifecycle.addObserver(lifecycleObserver)
-        loadChatPage()
+        loadWidget()
     }
 
     /**
-     * Use it to re-establish chat connection when you previously called [stopConnection].
+     * Pauses chat connection.
      *
-     * It is not needed to use it in most cases as chat connection is established and stopped based on [Lifecycle] provided in [init].
-     * Chat connection is active only when [Lifecycle.State] is at least [Lifecycle.State.STARTED].
+     * It is not needed to use it in most cases as chat connection is established and paused based on [Lifecycle] provided in [init].
+     * Chat connection is paused when [Lifecycle.State] is below [Lifecycle.State.STARTED].
      *
      * By chat connection you can control push notifications.
-     * Push notifications are suppressed while the chat connection is active.
+     * Push notifications are active only when chat connection is not active.
      *
-     * To detect if chat connection was re-established use [EventsListener.onChatReconnected] event from [EventsListener].
+     * Can be used to enable chat's push notifications when [InAppChatView] is not visible.
+     * Use [resumeChatConnection] to reestablish chat connection.
+     *
+     * To detect if chat connection is paused use [EventsListener.onChatConnectionPaused] event from [EventsListener].
      */
-    fun restartConnection() {
-        if (widgetInfo == null)
-            updateWidgetInfo()
-        val listener = object : MobileMessaging.ResultListener<String>() {
-            override fun onResult(result: Result<String, MobileMessagingError>) {
-                if (result.error != null) {
-                    MobileMessagingLogger.e(TAG, "Could not restart chat connections: ${result.error.message}")
-                }
-            }
+    fun pauseChatConnection() {
+        livechatWidgetApi.pauseConnection()
+        if (lifecycle?.currentState == Lifecycle.State.DESTROYED) {
+            binding.ibLcWebView.destroy()
         }
-        inAppChatClient.mobileChatResume(listener)
     }
 
     /**
@@ -207,34 +237,70 @@ class InAppChatView @JvmOverloads constructor(
      *
      * To detect if chat connection is stopped use [EventsListener.onChatDisconnected] event from [EventsListener].
      */
+    @Deprecated("Use pauseChatConnection() instead", ReplaceWith("pauseChatConnection()"))
     fun stopConnection() {
-        val listener = object : MobileMessaging.ResultListener<String>() {
-            override fun onResult(result: Result<String, MobileMessagingError>) {
-                if (result.error != null) {
-                    MobileMessagingLogger.e(TAG, "Could not stop chat connections: ${result.error.message}")
-                }
-                if (lifecycle?.currentState == Lifecycle.State.DESTROYED) {
-                    binding.ibLcWebView.destroy()
-                }
-            }
-        }
-        inAppChatClient.mobileChatPause(listener)
+        pauseChatConnection()
     }
 
     /**
-     * Set the language of the Livechat Widget
-     * @param locale locale's language is used by Livechat Widget and native parts
+     * Use it to resume chat connection when you previously called [pauseChatConnection].
+     *
+     * It is not needed to use it in most cases as chat connection is established and stopped based on [Lifecycle] provided in [init].
+     * Chat connection is active only when [Lifecycle.State] is at least [Lifecycle.State.STARTED].
+     *
+     * By chat connection you can control push notifications.
+     * Push notifications are suppressed while the chat connection is active.
+     *
+     * To detect if chat connection was resumed use [EventsListener.onChatConnectionResumed] event from [EventsListener].
      */
-    fun setLanguage(locale: Locale) {
-        MobileMessagingLogger.d(TAG, "setLanguage($locale)")
-        propertyHelper.saveString(MobileMessagingChatProperty.IN_APP_CHAT_LANGUAGE, locale.toString())
-        inAppChatClient.setLanguage(locale)
-        localizationUtils.setLanguage(locale)
-        updateWidgetInfo()
+    fun resumeChatConnection() {
+        if (widgetInfo == null)
+            updateWidgetInfo()
+        livechatWidgetApi.resumeConnection()
     }
 
     /**
-     * Set contextual data of the Livechat Widget.
+     * Use it to re-establish chat connection when you previously called [stopConnection].
+     *
+     * It is not needed to use it in most cases as chat connection is established and stopped based on [Lifecycle] provided in [init].
+     * Chat connection is active only when [Lifecycle.State] is at least [Lifecycle.State.STARTED].
+     *
+     * By chat connection you can control push notifications.
+     * Push notifications are suppressed while the chat connection is active.
+     *
+     * To detect if chat connection was re-established use [EventsListener.onChatReconnected] event from [EventsListener].
+     */
+    @Deprecated("Use resumeChatConnection() instead", ReplaceWith("resumeChatConnection()"))
+    fun restartConnection() {
+        resumeChatConnection()
+    }
+
+    /**
+     * Sends a message with optional [InAppChatMobileAttachment].
+     * @param message message to be send, max length allowed is 4096 characters
+     * @param attachment to create attachment use [InAppChatMobileAttachment]'s constructor where you provide attachment's mimeType, base64 and filename
+     */
+    @JvmOverloads
+    @Throws(IllegalArgumentException::class)
+    fun sendChatMessage(message: String?, attachment: InAppChatMobileAttachment? = null) {
+        val messageEscaped = message?.let(CommonUtils::escapeJsonString)
+        if (message != null && message.length > MESSAGE_MAX_LENGTH) {
+            throw IllegalArgumentException("Message length exceed maximal allowed length $MESSAGE_MAX_LENGTH")
+        } else {
+            livechatWidgetApi.sendMessage(messageEscaped, attachment)
+        }
+    }
+
+    /**
+     * Sends a draft message.
+     * @param draft message
+     */
+    fun sendChatMessageDraft(draft: String) {
+        livechatWidgetApi.sendDraft(draft)
+    }
+
+    /**
+     * Set contextual data of the livechat widget.
      *
      * If the function is called when the chat is loaded,
      * data will be sent immediately, otherwise they will be sent to the chat once it is loaded.
@@ -252,7 +318,7 @@ class InAppChatView @JvmOverloads constructor(
     }
 
     /**
-     * Set contextual data of the Livechat Widget.
+     * Set contextual data of the livechat widget.
      *
      * If the function is called when the chat is loaded,
      * data will be sent immediately, otherwise they will be sent to the chat once it is loaded.
@@ -264,16 +330,8 @@ class InAppChatView @JvmOverloads constructor(
      * @see [InAppChatView.EventsListener.onChatLoaded] to detect if chat is loaded
      */
     fun sendContextualData(data: String, flag: MultithreadStrategy) {
-        if (isChatLoaded) {
-            val listener = object : ResultListener<String>() {
-                override fun onResult(result: Result<String, MobileMessagingError>) {
-                    SessionStorage.contextualData = null
-                    if (result.error != null) {
-                        MobileMessagingLogger.e(TAG, "Could not send contextual data: ${result.error.message}")
-                    }
-                }
-            }
-            inAppChatClient.sendContextualData(data, flag, listener)
+        if (isWidgetLoaded) {
+            livechatWidgetApi.sendContextualData(data, flag)
         } else {
             SessionStorage.contextualData = ContextualData(data, flag)
             MobileMessagingLogger.d(TAG, "Contextual data is stored, will be sent once chat is loaded.")
@@ -281,48 +339,77 @@ class InAppChatView @JvmOverloads constructor(
     }
 
     /**
-     * Navigates Livechat widget from [InAppChatWidgetView.THREAD] back to [InAppChatWidgetView.THREAD_LIST] destination in multithread widget. It does nothing if widget is not multithread.
-     */
-    fun showThreadList() = inAppChatClient.showThreadList()
-
-    /**
-     * Sends draft message to be show in chat to peer's chat.
-     * @param draft message
-     */
-    fun sendChatMessageDraft(draft: String) {
-        inAppChatClient.sendChatMessageDraft(draft)
-    }
-
-    /**
-     * DEPRECATED: Use new sendChatMessageDraft() instead.
+     * Requests current threads from livechat widget.
      *
-     * Sends draft message to be show in chat to peer's chat.
-     * @param draft message
+     * You can observe result by [InAppChatView.EventsListener.onChatThreadsReceived] event.
      */
-    @Deprecated("Use new sendChatMessageDraft() instead.", replaceWith = ReplaceWith("sendChatMessageDraft(draft)"), level = DeprecationLevel.WARNING)
-    fun sendInputDraft(draft: String) = sendChatMessageDraft(draft)
-
-    /**
-     * Sends message to the chat with optional [InAppChatMobileAttachment].
-     * @param message message to be send, max length allowed is 4096 characters
-     * @param attachment to create attachment use [InAppChatMobileAttachment]'s constructor where you provide attachment's mimeType, base64 and filename
-     */
-    @JvmOverloads
-    @Throws(IllegalArgumentException::class)
-    fun sendChatMessage(message: String?, attachment: InAppChatMobileAttachment? = null) {
-        val messageEscaped = message?.let(CommonUtils::escapeJsonString)
-
-        if (message != null && message.length > MESSAGE_MAX_LENGTH) {
-            throw IllegalArgumentException("Message length exceed maximal allowed length $MESSAGE_MAX_LENGTH")
-        } else if (attachment != null) {
-            inAppChatClient.sendChatMessage(messageEscaped, attachment)
-        } else {
-            inAppChatClient.sendChatMessage(messageEscaped)
-        }
+    fun getThreads() {
+        livechatWidgetApi.getThreads()
     }
 
     /**
-     * Set the theme of the Livechat Widget.
+     * Requests shown thread - active from livechat widget.
+     *
+     * You can observe result by [InAppChatView.EventsListener.onChatActiveThreadReceived] event.
+     */
+    fun getActiveThread() {
+        livechatWidgetApi.getActiveThread()
+    }
+
+    /**
+     * Navigates livechat widget to thread specified by provided [threadId].
+     *
+     * You can observe result by [InAppChatView.EventsListener.onChatThreadShown] event.
+     *
+     * @param threadId thread to be shown
+     */
+    fun showThread(threadId: String) {
+        livechatWidgetApi.showThread(threadId)
+    }
+
+    /**
+     * Navigates livechat widget from [LivechatWidgetView.THREAD] back to [LivechatWidgetView.THREAD_LIST] destination in multithread widget. It does nothing if widget is not multithread.
+     */
+    fun showThreadList() {
+        livechatWidgetApi.showThreadList()
+    }
+
+    /**
+     * Set an in-app chat's language
+     * @param locale locale's language is used by livechat widget and in-app chat native parts
+     */
+    @Deprecated(
+        "Use setLanguage(LivechatWidgetLanguage) instead",
+        ReplaceWith("setLanguage(LivechatWidgetLanguage.findLanguageOrDefault(locale))", "org.infobip.mobile.messaging.chat.core.widget.LivechatWidgetLanguage")
+    )
+    fun setLanguage(locale: Locale) {
+        setLanguage(LivechatWidgetLanguage.findLanguageOrDefault(locale))
+    }
+
+    /**
+     * Set an in-app chat's language
+     * @param language language is used by livechat widget and in-app chat native parts
+     */
+    fun setLanguage(language: LivechatWidgetLanguage) {
+        MobileMessagingLogger.d(TAG, "setLanguage($language)")
+        propertyHelper.saveString(MobileMessagingChatProperty.IN_APP_CHAT_LANGUAGE, language.widgetCode)
+        livechatWidgetApi.setLanguage(language)
+        localizationUtils.setLanguage(language.locale)
+        updateWidgetInfo()
+    }
+
+    /**
+     * Returns current in-app chat language
+     *
+     * @return current in-app chat language or default [LivechatWidgetLanguage.ENGLISH]
+     */
+    fun getLanguage(): LivechatWidgetLanguage {
+        return inAppChat.language
+    }
+
+    /**
+     * Sets a livechat widget's theme.
+     *
      * You can define widget themes in <a href="https://portal.infobip.com/apps/livechat/widgets">Live chat widget setup page</a> in Infobip Portal, section `Advanced customization`.
      * Please check widget <a href="https://www.infobip.com/docs/live-chat/widget-customization">documentation</a> for more details.
      *
@@ -332,17 +419,19 @@ class InAppChatView @JvmOverloads constructor(
      * @param widgetThemeName unique theme name, empty or blank value is ignored
      */
     fun setWidgetTheme(widgetThemeName: String) {
-        inAppChat.widgetTheme = widgetThemeName
-        if (widgetThemeName.isNotBlank() && isChatLoaded) {
-            val listener = object : MobileMessaging.ResultListener<String>() {
-                override fun onResult(result: Result<String, MobileMessagingError>) {
-                    if (result.error != null) {
-                        MobileMessagingLogger.e(TAG, "Could not set widget theme: ${result.error.message}")
-                    }
-                }
-            }
-            inAppChatClient.setWidgetTheme(widgetThemeName, listener)
+        SessionStorage.widgetTheme = widgetThemeName
+        if (widgetThemeName.isNotBlank() && isWidgetLoaded) {
+            livechatWidgetApi.setTheme(widgetThemeName)
         }
+    }
+
+    /**
+     * Get current livechat widget theme.
+     *
+     * @return applied theme name of livechat widget
+     */
+    fun getWidgetTheme(): String? {
+        return inAppChat.widgetTheme
     }
 
     override fun setForceDarkAllowed(allow: Boolean) {
@@ -361,7 +450,7 @@ class InAppChatView @JvmOverloads constructor(
 
         override fun onStart(owner: LifecycleOwner) {
             //do not call widget API when chat is not loaded yet - initial loading
-            if (isChatLoaded)
+            if (isWidgetLoaded)
                 restartConnection()
         }
 
@@ -386,58 +475,146 @@ class InAppChatView @JvmOverloads constructor(
     }
     //endregion
 
-    //region InAppChatWebViewManager
-    private val inAppChatWebViewManager = object : InAppChatWebViewManager {
+    //region LivechatWidgetEventsListener
+    private val livechatWidgetEventsListener: LivechatWidgetEventsListener = object : LivechatWidgetEventsListener {
 
-        override fun onPageStarted(url: String) {
-        }
+        override fun onPageStarted(url: String?) {}
 
-        override fun onPageFinished(url: String) {
+        override fun onPageFinished(url: String?) {
             binding.ibLcSpinner.invisible()
             binding.ibLcWebView.visible()
-            applyLanguage()
         }
 
-        override fun onWidgetApiError(method: InAppChatWidgetApiMethod, errorPayload: String?) {
-            when (method) {
-                InAppChatWidgetApiMethod.identify,
-                InAppChatWidgetApiMethod.init_chat,
-                InAppChatWidgetApiMethod.show -> onWidgetLoadError(errorPayload)
+        override fun onLoadingFinished(result: LivechatWidgetResult<Unit>) {
+            when (result) {
+                is LivechatWidgetResult.Error -> {
+                    errorsHandler.handlerWidgetError(result.throwable.message ?: localizationUtils.getString(R.string.ib_chat_error, "Unknown error"))
+                    binding.ibLcSpinner.invisible()
+                    binding.ibLcWebView.visible()
+                }
 
-                else -> {} // Do nothing, just preserve original logic, to be extended in future if needed
+                is LivechatWidgetResult.Success -> {
+                    inAppChat.resetMessageCounter()
+                    setLanguage(inAppChat.language)
+                    SessionStorage.contextualData?.let {
+                        sendContextualData(it.data, it.allMultiThreadStrategy)
+                    }
+                }
+            }
+
+            eventsListener?.onChatLoaded(result.isSuccess)
+            eventsListener?.onChatLoadingFinished(result)
+            if (eventsListener == null && result.isError) {
+                MobileMessagingLogger.e(TAG, "Chat could not load:", result.errorOrNull())
             }
         }
 
-        override fun onWidgetApiSuccess(method: InAppChatWidgetApiMethod, successPayload: String?) {
-            when (method) {
-                InAppChatWidgetApiMethod.set_theme -> eventsListener?.onChatWidgetThemeChanged(successPayload ?: "")
-                InAppChatWidgetApiMethod.show -> onWidgetLoaded(true)
-                InAppChatWidgetApiMethod.mobile_chat_pause -> eventsListener?.onChatDisconnected()
-                InAppChatWidgetApiMethod.mobile_chat_resume -> eventsListener?.onChatReconnected()
-                else -> {} // Do nothing, just preserve original logic, to be extended in future if needed
+        override fun onConnectionPaused(result: LivechatWidgetResult<Unit>) {
+            eventsListener?.onChatDisconnected()
+            eventsListener?.onChatConnectionPaused(result)
+            if (eventsListener == null && result.isError) {
+                MobileMessagingLogger.e(TAG, "Chat could not pause connection:", result.errorOrNull())
             }
         }
 
-        override fun setControlsVisibility(isVisible: Boolean) {
+        override fun onConnectionResumed(result: LivechatWidgetResult<Unit>) {
+            eventsListener?.onChatReconnected()
+            eventsListener?.onChatConnectionResumed(result)
+            if (eventsListener == null && result.isError) {
+                MobileMessagingLogger.e(TAG, "Chat could not resume connection:", result.errorOrNull())
+            }
+        }
+
+        override fun onMessageSent(result: LivechatWidgetResult<String?>) {
+            eventsListener?.onChatMessageSent(result)
+            if (eventsListener == null && result.isError) {
+                MobileMessagingLogger.e(TAG, "Chat could not send message:", result.errorOrNull())
+            }
+        }
+
+        override fun onDraftSent(result: LivechatWidgetResult<String?>) {
+            eventsListener?.onChatDraftSent(result)
+            if (eventsListener == null && result.isError) {
+                MobileMessagingLogger.e(TAG, "Chat could not send draft:", result.errorOrNull())
+            }
+        }
+
+        override fun onContextualDataSent(result: LivechatWidgetResult<String?>) {
+            eventsListener?.onChatContextualDataSent(result)
+            if (result.isSuccess) {
+                SessionStorage.contextualData = null
+            }
+            if (eventsListener == null && result.isError) {
+                MobileMessagingLogger.e(TAG, "Chat could not send contextual data:", result.errorOrNull())
+            }
+        }
+
+        override fun onThreadListShown(result: LivechatWidgetResult<Unit>) {
+            eventsListener?.onChatThreadListShown(result)
+            if (eventsListener == null && result.isError) {
+                MobileMessagingLogger.e(TAG, "Chat could not show thread list:", result.errorOrNull())
+            }
+        }
+
+        override fun onLanguageChanged(result: LivechatWidgetResult<String?>) {
+            eventsListener?.onChatLanguageChanged(result)
+            if (eventsListener == null && result.isError) {
+                MobileMessagingLogger.e(TAG, "Chat could not set language:", result.errorOrNull())
+            }
+        }
+
+        override fun onThemeChanged(result: LivechatWidgetResult<String?>) {
+            eventsListener?.onChatWidgetThemeChanged(result.getOrNull() ?: "")
+            eventsListener?.onChatWidgetThemeChanged(result)
+            if (eventsListener == null && result.isError) {
+                MobileMessagingLogger.e(TAG, "Chat could not set widget theme:", result.errorOrNull())
+            }
+        }
+
+        override fun onControlsVisibilityChanged(visible: Boolean) {
             if (lastControlsVisibility != isVisible) {
                 eventsListener?.onChatControlsVisibilityChanged(isVisible)
             }
             lastControlsVisibility = isVisible
         }
 
-        override fun openAttachmentPreview(url: String?, type: String?, caption: String?) {
+        override fun onAttachmentPreviewOpened(url: String?, type: String?, caption: String?) {
             eventsListener?.onAttachmentPreviewOpened(url, type, caption)
+            eventsListener?.onChatAttachmentPreviewOpened(url, type, caption)
         }
 
-        override fun onWidgetViewChanged(widgetView: InAppChatWidgetView) {
-            eventsListener?.onChatViewChanged(widgetView)
-            inAppChatBroadcaster.chatViewChanged(widgetView)
+        override fun onWidgetViewChanged(view: LivechatWidgetView) {
+            eventsListener?.onChatViewChanged(view.toInAppChatWidgetView())
+            eventsListener?.onChatViewChanged(view)
+            inAppChatBroadcaster.chatViewChanged(view)
         }
 
-        override fun onWidgetRawMessageReceived(message: String?) {
+        override fun onRawMessageReceived(message: String?) {
             if (message?.isNotBlank() == true)
                 eventsListener?.onChatRawMessageReceived(message)
         }
+
+        override fun onThreadsReceived(result: LivechatWidgetResult<LivechatWidgetThreads>) {
+            eventsListener?.onChatThreadsReceived(result)
+            if (eventsListener == null && result.isError) {
+                MobileMessagingLogger.e(TAG, "Chat could not obtain threads:", result.errorOrNull())
+            }
+        }
+
+        override fun onActiveThreadReceived(result: LivechatWidgetResult<LivechatWidgetThread?>) {
+            eventsListener?.onChatActiveThreadReceived(result)
+            if (eventsListener == null && result.isError) {
+                MobileMessagingLogger.e(TAG, "Chat could not obtain active thread:", result.errorOrNull())
+            }
+        }
+
+        override fun onThreadShown(result: LivechatWidgetResult<LivechatWidgetThread>) {
+            eventsListener?.onChatThreadShown(result)
+            if (eventsListener == null && result.isError) {
+                MobileMessagingLogger.e(TAG, "Chat could not show thread:", result.errorOrNull())
+            }
+        }
+
     }
     //endregion
 
@@ -457,8 +634,7 @@ class InAppChatView @JvmOverloads constructor(
                 inAppChatErrors.removeError(InAppChatErrors.CONFIG_SYNC_ERROR)
                 onWidgetSynced()
             } else if (action == Event.API_COMMUNICATION_ERROR.key && intent.hasExtra(BroadcastParameter.EXTRA_EXCEPTION)) {
-                val mobileMessagingError =
-                    intent.getSerializableExtra(BroadcastParameter.EXTRA_EXCEPTION) as MobileMessagingError?
+                val mobileMessagingError = intent.getSerializableExtra(BroadcastParameter.EXTRA_EXCEPTION) as MobileMessagingError?
                 val errorCode = mobileMessagingError!!.code
                 if (errorCode == CHAT_SERVICE_ERROR || errorCode == CHAT_WIDGET_NOT_FOUND) {
                     inAppChatErrors.insertError(InAppChatErrors.Error(InAppChatErrors.CONFIG_SYNC_ERROR, mobileMessagingError.message))
@@ -477,7 +653,11 @@ class InAppChatView @JvmOverloads constructor(
             intentFilter.addAction(InAppChatEvent.CHAT_CONFIGURATION_SYNCED.key)
             intentFilter.addAction(Event.API_COMMUNICATION_ERROR.key)
             intentFilter.addAction(Event.REGISTRATION_CREATED.key)
-            context.registerReceiver(broadcastEventsReceiver, intentFilter)
+            if (SystemInformation.isUpsideDownCakeOrAbove()) {
+                ContextCompat.registerReceiver(context, broadcastEventsReceiver, intentFilter, ContextCompat.RECEIVER_EXPORTED)
+            } else {
+                context.registerReceiver(broadcastEventsReceiver, intentFilter)
+            }
             receiversRegistered = true
         }
     }
@@ -495,7 +675,7 @@ class InAppChatView @JvmOverloads constructor(
         if (configSyncResult != null && !configSyncResult.isSuccess) {
             val error = configSyncResult.error
             val isInternetConnectionError = DefaultApiClient.ErrorCode.API_IO_ERROR.value == error.code && error.type == MobileMessagingError.Type.SERVER_ERROR
-            val isPushRegIdMissing = mmCore.pushRegistrationId == null
+            val isPushRegIdMissing = pushRegistrationId == null
             val isRegistrationPendingError = InternalSdkError.NO_VALID_REGISTRATION.error.code == error.code && mmCore.isRegistrationIdReported
 
             /**
@@ -514,8 +694,8 @@ class InAppChatView @JvmOverloads constructor(
         if (removedError != null) {
             if (InAppChatErrors.INTERNET_CONNECTION_ERROR == removedError.type) {
                 errorsHandler.handlerNoInternetConnectionError(true)
-                if (!isChatLoaded) {
-                    loadChatPage()
+                if (!isWidgetLoaded) {
+                    loadWidget()
                 }
             }
         }
@@ -549,10 +729,10 @@ class InAppChatView @JvmOverloads constructor(
     //endregion
 
     //region Helpers
-    private fun loadChatPage() {
+    private fun loadWidget() {
         val pushRegId = pushRegistrationId
         val widgetId = widgetInfo?.id
-        val jwt = inAppChat.jwtProvider?.provideJwt()
+        val jwt = inAppChat.widgetJwtProvider?.provideJwt()
         val domain = inAppChat.domain
         val widgetTheme = inAppChat.widgetTheme
 
@@ -564,26 +744,8 @@ class InAppChatView @JvmOverloads constructor(
         with(binding) {
             ibLcSpinner.visible()
             ibLcWebView.invisible()
-            ibLcWebView.loadChatPage(pushRegId, widgetId, jwt, domain, widgetTheme)
+            livechatWidgetApi.loadWidget(widgetId, jwt, domain, widgetTheme)
         }
-    }
-
-    private fun onWidgetLoaded(isLoaded: Boolean) {
-        eventsListener?.onChatLoaded(isLoaded)
-        isChatLoaded = isLoaded
-        if (isLoaded) {
-            inAppChat.resetMessageCounter()
-            SessionStorage.contextualData?.let {
-                sendContextualData(it.data, it.allMultiThreadStrategy)
-            }
-        }
-    }
-
-    private fun onWidgetLoadError(message: String?) {
-        inAppChatErrors.insertError(InAppChatErrors.Error(InAppChatErrors.JS_ERROR, message))
-        binding.ibLcSpinner.invisible()
-        binding.ibLcWebView.visible()
-        onWidgetLoaded(false)
     }
 
     @Suppress("DEPRECATION")
@@ -618,10 +780,10 @@ class InAppChatView @JvmOverloads constructor(
     }
 
     private fun onWidgetSynced() {
-        if (widgetInfo == null || !isChatLoaded) {
+        if (widgetInfo == null || !isWidgetLoaded) {
             MobileMessagingLogger.d(TAG, "Widget synced")
             updateWidgetInfo()
-            loadChatPage()
+            loadWidget()
         }
     }
 
@@ -633,19 +795,19 @@ class InAppChatView @JvmOverloads constructor(
 
     private fun prepareWidgetInfo(): WidgetInfo? {
         val widgetId = propertyHelper.findString(MobileMessagingChatProperty.IN_APP_CHAT_WIDGET_ID)
-        val widgetTitle = propertyHelper.findString(MobileMessagingChatProperty.IN_APP_CHAT_WIDGET_TITLE)
-        val widgetPrimaryColor = propertyHelper.findString(MobileMessagingChatProperty.IN_APP_CHAT_WIDGET_PRIMARY_COLOR)
-        val widgetBackgroundColor = propertyHelper.findString(MobileMessagingChatProperty.IN_APP_CHAT_WIDGET_BACKGROUND_COLOR)
-        val maxUploadContentSizeStr = propertyHelper.findString(MobileMessagingChatProperty.IN_APP_CHAT_WIDGET_MAX_UPLOAD_CONTENT_SIZE)
-        val widgetMultiThread = propertyHelper.findBoolean(MobileMessagingChatProperty.IN_APP_CHAT_WIDGET_MULTITHREAD)
-        val widgetMultichannelConversation = propertyHelper.findBoolean(MobileMessagingChatProperty.IN_APP_CHAT_WIDGET_MULTICHANNEL_CONVERSATION)
-        val callsEnabled = propertyHelper.findBoolean(MobileMessagingChatProperty.IN_APP_CHAT_WIDGET_CALLS_ENABLED)
-        var maxUploadContentSize = InAppChatMobileAttachment.DEFAULT_MAX_UPLOAD_CONTENT_SIZE
-        if (StringUtils.isNotBlank(maxUploadContentSizeStr)) {
-            maxUploadContentSize = maxUploadContentSizeStr!!.toLong()
-        }
-        val themeNames: Set<String>? = propertyHelper.findStringSet(MobileMessagingChatProperty.IN_APP_CHAT_WIDGET_THEMES)
         return widgetId?.let {
+            val widgetTitle = propertyHelper.findString(MobileMessagingChatProperty.IN_APP_CHAT_WIDGET_TITLE)
+            val widgetPrimaryColor = propertyHelper.findString(MobileMessagingChatProperty.IN_APP_CHAT_WIDGET_PRIMARY_COLOR)
+            val widgetBackgroundColor = propertyHelper.findString(MobileMessagingChatProperty.IN_APP_CHAT_WIDGET_BACKGROUND_COLOR)
+            val maxUploadContentSizeStr = propertyHelper.findString(MobileMessagingChatProperty.IN_APP_CHAT_WIDGET_MAX_UPLOAD_CONTENT_SIZE)
+            val widgetMultiThread = propertyHelper.findBoolean(MobileMessagingChatProperty.IN_APP_CHAT_WIDGET_MULTITHREAD)
+            val widgetMultichannelConversation = propertyHelper.findBoolean(MobileMessagingChatProperty.IN_APP_CHAT_WIDGET_MULTICHANNEL_CONVERSATION)
+            val callsEnabled = propertyHelper.findBoolean(MobileMessagingChatProperty.IN_APP_CHAT_WIDGET_CALLS_ENABLED)
+            var maxUploadContentSize = InAppChatMobileAttachment.DEFAULT_MAX_UPLOAD_CONTENT_SIZE
+            if (StringUtils.isNotBlank(maxUploadContentSizeStr)) {
+                maxUploadContentSize = maxUploadContentSizeStr!!.toLong()
+            }
+            val themeNames: Set<String>? = propertyHelper.findStringSet(MobileMessagingChatProperty.IN_APP_CHAT_WIDGET_THEMES)
             WidgetInfo(
                 it,
                 widgetTitle,
@@ -658,17 +820,6 @@ class InAppChatView @JvmOverloads constructor(
                 themeNames?.toList()
             )
         }
-    }
-
-    private fun applyLanguage() {
-        val storedLanguage: String? = propertyHelper.findString(MobileMessagingChatProperty.IN_APP_CHAT_LANGUAGE)
-        val language: String = if (storedLanguage?.isNotBlank() == true) {
-            storedLanguage
-        } else {
-            mmCore.installation.language
-        }
-        val locale = localizationUtils.localeFromString(language)
-        setLanguage(locale)
     }
     //endregion
 }
