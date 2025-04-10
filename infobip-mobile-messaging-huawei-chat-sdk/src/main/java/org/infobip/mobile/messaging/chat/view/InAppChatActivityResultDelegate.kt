@@ -84,25 +84,15 @@ internal class InAppChatActivityResultDelegateImpl(
     }
 
     //All DefaultLifecycleObserver methods must be overridden to avoid compilation error with different versions of Lifecycle library
-    override fun onDestroy(owner: LifecycleOwner) {
-        super.onDestroy(owner)
-    }
+    override fun onDestroy(owner: LifecycleOwner) {}
 
-    override fun onPause(owner: LifecycleOwner) {
-        super.onPause(owner)
-    }
+    override fun onPause(owner: LifecycleOwner) {}
 
-    override fun onResume(owner: LifecycleOwner) {
-        super.onResume(owner)
-    }
+    override fun onResume(owner: LifecycleOwner) {}
 
-    override fun onStart(owner: LifecycleOwner) {
-        super.onStart(owner)
-    }
+    override fun onStart(owner: LifecycleOwner) {}
 
-    override fun onStop(owner: LifecycleOwner) {
-        super.onStop(owner)
-    }
+    override fun onStop(owner: LifecycleOwner) {}
 
     override fun selectFile(mimeTypes: Array<String>?) {
         filePickerLauncher.launch(mimeTypes)
