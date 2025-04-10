@@ -968,6 +968,7 @@ public abstract class MobileMessaging {
             MobileMessagingCore.setShouldSaveAppCode(application, storeAppCodeOnDisk);
             MobileMessagingCore.setAllowUntrustedSSLOnError(application, allowUntrustedSSLOnError);
             MobileMessagingCore.setSharedPrefsStorage(application, usePrivateSharedPrefs);
+            MobileMessagingCore.setCustomNotificationChannel(application, channelId, channelName, notificationAudio);
 
             MobileMessagingCore.Builder mobileMessagingCoreBuilder = new MobileMessagingCore.Builder(application)
                     .withDisplayNotification(notificationSettings);
