@@ -153,7 +153,7 @@ public class BaseNotificationHandler {
                 .setLargeIcon(notificationPicture)
                 .setStyle(new NotificationCompat.BigPictureStyle()
                         .bigPicture(notificationPicture)
-                        .bigLargeIcon(null)
+                        .bigLargeIcon((Bitmap) null)
                         .setBigContentTitle(title)
                         .setSummaryText(body));
     }
