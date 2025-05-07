@@ -56,4 +56,12 @@
     <string name="language_changed">Language changed to %1$s</string>
     <string name="chat_availability">Chat available: %1$b</string>
     <string name="open_widget_api">Livechat Widget API</string>
+    <string name="message_type">Message type</string>
+    <string-array name="message_types">
+        <item>Basic text</item>
+        <item>Draft</item>
+        <item>Attachment</item>
+        <item>Custom data</item>
+    </string-array>
+    <string name="thread_id">Thread ID</string>
 </resources>
