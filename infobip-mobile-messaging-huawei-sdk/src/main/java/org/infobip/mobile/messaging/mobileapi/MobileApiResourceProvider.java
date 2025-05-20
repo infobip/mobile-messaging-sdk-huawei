@@ -5,6 +5,7 @@ import android.content.Context;
 import org.infobip.mobile.messaging.MobileMessagingCore;
 import org.infobip.mobile.messaging.MobileMessagingProperty;
 import org.infobip.mobile.messaging.api.appinstance.MobileApiAppInstance;
+import org.infobip.mobile.messaging.api.appinstance.MobileApiUserData;
 import org.infobip.mobile.messaging.api.baseurl.MobileApiBaseUrl;
 import org.infobip.mobile.messaging.api.chat.MobileApiChat;
 import org.infobip.mobile.messaging.api.inbox.MobileApiInbox;
@@ -120,6 +121,7 @@ public class MobileApiResourceProvider {
     private MobileApiBaseUrl mobileApiBaseUrl;
     private MobileApiInbox mobileApiInbox;
     private MobileApiRtc mobileApiRtc;
+    private MobileApiUserData mobileApiUserData;
 
     public MobileApiMessages getMobileApiMessages(Context context) {
         if (null != mobileApiMessages) {
@@ -149,6 +151,16 @@ public class MobileApiResourceProvider {
         mobileApiAppInstance = getGenerator(context).create(MobileApiAppInstance.class);
 
         return mobileApiAppInstance;
+    }
+
+    public MobileApiUserData getMobileApiUserData(Context context) {
+        if (null != mobileApiUserData) {
+            return mobileApiUserData;
+        }
+
+        mobileApiUserData = getGenerator(context).create(MobileApiUserData.class);
+
+        return mobileApiUserData;
     }
 
     public MobileApiChat getMobileApiChat(Context context) {

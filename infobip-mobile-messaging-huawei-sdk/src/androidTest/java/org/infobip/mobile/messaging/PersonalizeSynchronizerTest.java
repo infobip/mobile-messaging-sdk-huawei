@@ -158,7 +158,7 @@ public class PersonalizeSynchronizerTest extends MobileMessagingTestCase {
 
         //given
         doThrow(new ApiIOException(ApiErrorCode.PERSONALIZATION_IMPOSSIBLE, "Personalize impossible"))
-                .when(mobileApiAppInstance).personalize(anyString(), anyBoolean(), anyBoolean(), any(UserPersonalizeBody.class));
+                .when(mobileApiUserData).personalize(anyString(), anyString(), anyBoolean(), anyBoolean(), any(UserPersonalizeBody.class));
         UserIdentity userIdentity = new UserIdentity();
         userIdentity.setExternalUserId(givenExternalUserId);
 
@@ -177,7 +177,7 @@ public class PersonalizeSynchronizerTest extends MobileMessagingTestCase {
 
         //given
         doThrow(new ApiIOException(ApiErrorCode.AMBIGUOUS_PERSONALIZE_CANDIDATES, "Ambiguous personalize candidates"))
-                .when(mobileApiAppInstance).personalize(anyString(), anyBoolean(), anyBoolean(), any(UserPersonalizeBody.class));
+                .when(mobileApiUserData).personalize(anyString(), anyString(), anyBoolean(), anyBoolean(), any(UserPersonalizeBody.class));
         UserIdentity userIdentity = new UserIdentity();
         userIdentity.setExternalUserId(givenExternalUserId);
 
