@@ -104,8 +104,7 @@ dependencies {
     implementation "com.infobip:infobip-mobile-messaging-api-java:${mm_androidSdkVersion}"
     implementation ("com.infobip:infobip-mobile-messaging-android-resources:${mm_androidSdkVersion}@aar")
 
-    //To add JWT use build flavour "chat"
-    chatImplementation 'com.nimbusds:nimbus-jose-jwt:9.0.1'
+    implementation 'com.nimbusds:nimbus-jose-jwt:9.0.1'
 
     // push kit
     implementation "com.huawei.hms:push:$mm_hmsPushVersion"
