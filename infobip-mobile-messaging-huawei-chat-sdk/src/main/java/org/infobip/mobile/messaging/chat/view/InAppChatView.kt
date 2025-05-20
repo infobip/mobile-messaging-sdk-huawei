@@ -197,6 +197,7 @@ class InAppChatView @JvmOverloads constructor(
      */
     fun init(lifecycle: Lifecycle) {
         this.lifecycle = lifecycle
+        localizationUtils.setLanguage(inAppChat.language.locale)
         updateWidgetInfo()
         inAppChat.activate()
         lifecycle.addObserver(lifecycleObserver)
@@ -422,7 +423,9 @@ class InAppChatView @JvmOverloads constructor(
     fun setLanguage(language: LivechatWidgetLanguage) {
         MobileMessagingLogger.d(TAG, "setLanguage($language)")
         propertyHelper.saveString(MobileMessagingChatProperty.IN_APP_CHAT_LANGUAGE, language.widgetCode)
-        livechatWidgetApi.setLanguage(language)
+        if (isWidgetLoaded) {
+            livechatWidgetApi.setLanguage(language)
+        }
         localizationUtils.setLanguage(language.locale)
         updateWidgetInfo()
     }
@@ -535,7 +538,6 @@ class InAppChatView @JvmOverloads constructor(
 
                 is LivechatWidgetResult.Success -> {
                     inAppChat.resetMessageCounter()
-                    setLanguage(inAppChat.language)
                     SessionStorage.contextualData?.let {
                         sendContextualData(it.data, it.allMultiThreadStrategy)
                     }
@@ -786,6 +788,7 @@ class InAppChatView @JvmOverloads constructor(
         val jwt = inAppChat.widgetJwtProvider?.provideJwt()
         val domain = inAppChat.domain
         val widgetTheme = inAppChat.widgetTheme
+        val language = inAppChat.language
 
         if (pushRegId.isNullOrBlank() || widgetId.isNullOrBlank()) {
             MobileMessagingLogger.e(TAG, "Chat loading skipped, pushRegId($pushRegId) or widgetId($widgetId) is missing.")
@@ -795,7 +798,13 @@ class InAppChatView @JvmOverloads constructor(
         with(binding) {
             ibLcSpinner.visible()
             ibLcWebView.invisible()
-            livechatWidgetApi.loadWidget(widgetId, jwt, domain, widgetTheme)
+            livechatWidgetApi.loadWidget(
+                widgetId = widgetId,
+                jwt = jwt,
+                domain = domain,
+                theme = widgetTheme,
+                language = language
+            )
         }
     }
 
@@ -850,6 +859,7 @@ class InAppChatView @JvmOverloads constructor(
             val widgetTitle = propertyHelper.findString(MobileMessagingChatProperty.IN_APP_CHAT_WIDGET_TITLE)
             val widgetPrimaryColor = propertyHelper.findString(MobileMessagingChatProperty.IN_APP_CHAT_WIDGET_PRIMARY_COLOR)
             val widgetBackgroundColor = propertyHelper.findString(MobileMessagingChatProperty.IN_APP_CHAT_WIDGET_BACKGROUND_COLOR)
+            val widgetPrimaryTextColor = propertyHelper.findString(MobileMessagingChatProperty.IN_APP_CHAT_WIDGET_PRIMARY_TEXT_COLOR)
             val maxUploadContentSizeStr = propertyHelper.findString(MobileMessagingChatProperty.IN_APP_CHAT_WIDGET_MAX_UPLOAD_CONTENT_SIZE)
             val widgetMultiThread = propertyHelper.findBoolean(MobileMessagingChatProperty.IN_APP_CHAT_WIDGET_MULTITHREAD)
             val widgetMultichannelConversation = propertyHelper.findBoolean(MobileMessagingChatProperty.IN_APP_CHAT_WIDGET_MULTICHANNEL_CONVERSATION)
@@ -864,6 +874,7 @@ class InAppChatView @JvmOverloads constructor(
                 widgetTitle,
                 widgetPrimaryColor,
                 widgetBackgroundColor,
+                widgetPrimaryTextColor,
                 maxUploadContentSize,
                 widgetMultiThread,
                 widgetMultichannelConversation,

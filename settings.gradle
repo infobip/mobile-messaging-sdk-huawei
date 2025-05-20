@@ -5,6 +5,7 @@ pluginManagement {
         mavenCentral()
         // Configure the Maven repository address for the HMS Core SDK.
         maven { url 'https://developer.huawei.com/repo/' }
+        mavenLocal()
     }
 }
 dependencyResolutionManagement {
@@ -14,6 +15,7 @@ dependencyResolutionManagement {
         mavenCentral()
         // Configure the Maven repository address for the HMS Core SDK.
         maven {url 'https://developer.huawei.com/repo/'}
+        mavenLocal()
     }
 }
 include ':infobip-mobile-messaging-huawei-sdk', ':infobip-mobile-messaging-huawei-demo', ':infobip-mobile-messaging-huawei-test', ':infobip-mobile-messaging-huawei-chat-sdk', ':infobip-mobile-messaging-huawei-cryptor-migration', 'infobip-mobile-messaging-huawei-inbox-sdk'

@@ -129,17 +129,6 @@ internal fun Theme?.isThemeAttributePresent(attr: Int): Boolean {
     } ?: false
 }
 
-internal fun Theme?.isMMBaseTheme(): Boolean {
-    return this?.let {
-        listOf(
-            resolveThemeColor(androidx.appcompat.R.attr.colorPrimary),
-            resolveThemeColor(androidx.appcompat.R.attr.colorPrimaryDark),
-            resolveThemeColor(androidx.appcompat.R.attr.colorControlNormal),
-            resolveThemeColor(androidx.appcompat.R.attr.titleTextColor),
-        ).all { it == Color.BLACK }
-    } ?: false
-}
-
 /**
  * Checks if attribute attr is present in theme as theme attribute inside theme's style attributes.
  */
@@ -194,6 +183,10 @@ internal val WidgetInfo.colorPrimary: Int?
 @get:ColorInt
 internal val WidgetInfo.colorBackground: Int?
     get() = runCatching { Color.parseColor(this.getBackgroundColor()) }.getOrNull()
+
+@get:ColorInt
+internal val WidgetInfo.colorPrimaryText: Int?
+    get() = runCatching { Color.parseColor(this.getPrimaryTextColor()) }.getOrNull()
 
 @get:ColorInt
 internal val WidgetInfo.colorPrimaryDark: Int?
