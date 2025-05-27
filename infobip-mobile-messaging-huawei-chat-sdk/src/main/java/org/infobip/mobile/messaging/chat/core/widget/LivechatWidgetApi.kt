@@ -98,7 +98,7 @@ interface LivechatWidgetApi {
      */
     fun loadWidget(
         widgetId: String? = null,
-    ) = loadWidget(widgetId, jwt = null, domain = null, theme = null)
+    ) = loadWidget(widgetId, jwt = null, domain = null, theme = null, language = null)
 
     /**
      * Triggers livechat widget loading with current `InAppChat` configuration. Does nothing, if widget is already loaded.
@@ -106,7 +106,7 @@ interface LivechatWidgetApi {
      * If you want to force load widget again, you need to call [reset] first.
      * You can control widget loading timeout by setting [loadingTimeoutMillis] property.
      */
-    fun loadWidget() = loadWidget(widgetId = null, jwt = null, domain = null, theme = null)
+    fun loadWidget() = loadWidget(widgetId = null, jwt = null, domain = null, theme = null, language = null)
 
     /**
      * Pauses livechat widget connection, but widget stay loaded in WebView.

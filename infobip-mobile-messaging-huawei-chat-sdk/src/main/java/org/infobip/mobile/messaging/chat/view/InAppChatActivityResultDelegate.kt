@@ -31,8 +31,8 @@ internal interface InAppChatFragmentActivityResultDelegate : DefaultLifecycleObs
         fun onAttachmentLauncherResult(uri: Uri, source: AttachmentSource)
     }
 
-    fun capturePhoto()
-    fun recordVideo()
+    fun capturePhoto(photoFileExtension: String)
+    fun recordVideo(videoFileExtension: String)
     fun selectFile(mimeTypes: Array<String>? = null)
 }
 
@@ -98,12 +98,12 @@ internal class InAppChatActivityResultDelegateImpl(
         filePickerLauncher.launch(mimeTypes)
     }
 
-    override fun capturePhoto() {
-        useCamera(photoActionLauncher, "Photo-${System.currentTimeMillis()}.jpeg", AttachmentSource.Camera)
+    override fun capturePhoto(photoFileExtension: String) {
+        useCamera(photoActionLauncher, "Photo-${System.currentTimeMillis()}.$photoFileExtension", AttachmentSource.Camera)
     }
 
-    override fun recordVideo() {
-        useCamera(videoActionLauncher, "Video-${System.currentTimeMillis()}.mp4", AttachmentSource.VideoRecorder)
+    override fun recordVideo(videoFileExtension: String) {
+        useCamera(videoActionLauncher, "Video-${System.currentTimeMillis()}.$videoFileExtension", AttachmentSource.VideoRecorder)
     }
 
     private fun useCamera(launcher: ActivityResultLauncher<Uri>, fileName: String, source: AttachmentSource) {

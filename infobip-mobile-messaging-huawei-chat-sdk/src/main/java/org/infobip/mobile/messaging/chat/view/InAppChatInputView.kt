@@ -155,6 +155,10 @@ class InAppChatInputView @JvmOverloads constructor(
         binding.attachmentButton.setThrottleFirstOnClickListener(listener)
     }
 
+    fun setAttachmentButtonVisibility(visibility: Int) {
+        binding.attachmentButton.visibility = visibility
+    }
+
     fun getInputText(): String? = binding.messageInput.text?.toString()
 
     fun clearInputText() = binding.messageInput.text?.clear()

@@ -31,7 +31,7 @@ ext {
     mm_compileSdkVersion = 35
     mm_targetSdkVersion = 35
     mm_buildToolsVersion = "35.0.0"
-    mm_androidSdkVersion = "13.16.0"
+    mm_androidSdkVersion = "13.17.0"
     mm_constraintLayoutVersion = "2.1.4"
     mm_appCompatVersion = "1.6.1"
     mm_materialVersion = "1.12.0"
@@ -39,7 +39,8 @@ ext {
     mm_lifecycleVersion = "2.5.1"
     mm_desugarJdkVersion = "2.0.3"
     mm_jUnitVersion = "4.12"
-    mm_androidXjUnitVersion = "1.1.3"
+    mm_androidXjUnitVersion = "1.2.1"
+    mm_androidTestRunnerVersion = "1.6.2"
     mm_mockitoCoreVersion = "1.10.19"
     mm_coroutinesVersion = "1.9.0"
     mm_hmsPushVersion = "6.7.0.300"

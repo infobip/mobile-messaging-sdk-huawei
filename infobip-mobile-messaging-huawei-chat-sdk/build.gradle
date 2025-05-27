@@ -61,6 +61,10 @@ android {
     lint {
         abortOnError false
     }
+
+    packagingOptions {
+        resources.excludes.add("META-INF/*")
+    }
 }
 
 dependencies {
@@ -78,16 +82,17 @@ dependencies {
     implementation 'androidx.exifinterface:exifinterface:1.3.7'
     implementation "com.google.android.material:material:$mm_materialVersion"
 
-    androidTestImplementation project(":infobip-mobile-messaging-huawei-test")
+    androidTestImplementation "androidx.test:runner:$mm_androidTestRunnerVersion"
     androidTestImplementation "androidx.test.ext:junit:$mm_androidXjUnitVersion"
     androidTestImplementation "junit:junit:$mm_jUnitVersion"
-    androidTestImplementation "org.mockito:mockito-core:$mm_mockitoCoreVersion"
+    androidTestImplementation "io.mockk:mockk-android:1.13.11"
     androidTestImplementation 'com.nanohttpd:nanohttpd:2.1.0'
     androidTestImplementation 'com.android.support:multidex:2.0.1'
 
     testImplementation project(":infobip-mobile-messaging-huawei-test")
     testImplementation "junit:junit:$mm_jUnitVersion"
-    testImplementation "org.mockito:mockito-core:$mm_mockitoCoreVersion"
+    testImplementation "io.mockk:mockk:1.13.9"
+    testImplementation "org.assertj:assertj-core:3.26.0"
 
 }
 
