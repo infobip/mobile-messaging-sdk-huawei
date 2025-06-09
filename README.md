@@ -19,7 +19,7 @@ Mobile Messaging SDK is designed and developed to easily enable push notificatio
     ```groovy
     dependencies {
         ...
-        implementation ('com.infobip:infobip-mobile-messaging-huawei-sdk:7.7.1@aar') {
+        implementation ('com.infobip:infobip-mobile-messaging-huawei-sdk:7.8.0@aar') {
             transitive = true
         }
     }
