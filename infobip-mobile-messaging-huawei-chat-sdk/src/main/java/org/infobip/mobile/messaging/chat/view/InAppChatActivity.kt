@@ -59,7 +59,7 @@ class InAppChatActivity : AppCompatActivity() {
 
     override fun onNewIntent(intent: Intent?) {
         super.onNewIntent(intent)
-        sendInitialMessage(intent)
+        handleIntent(intent)
     }
 
     private fun getEventsListener(): InAppChatFragment.EventsListener {
@@ -67,7 +67,7 @@ class InAppChatActivity : AppCompatActivity() {
 
             override fun onChatLoadingFinished(result: LivechatWidgetResult<Unit>) {
                 if (result.isSuccess) {
-                    sendInitialMessage(this@InAppChatActivity.intent)
+                    handleIntent(this@InAppChatActivity.intent)
                 }
             }
 
@@ -78,10 +78,16 @@ class InAppChatActivity : AppCompatActivity() {
         }
     }
 
-    private fun sendInitialMessage(intent: Intent?) {
+    private fun handleIntent(intent: Intent?) {
         runCatching {
-            intent?.extractLivechatMessage()?.let { message ->
-                sendMessage(message)
+            intent?.extractLivechatAction()?.let { action ->
+                val fragment = getInAppChatFragment()
+                val message = action.keyword
+                when {
+                    message?.isNotBlank() == true && fragment.isMultiThread -> fragment.createThread(MessagePayload.Basic(message = message))
+                    message?.isNotBlank() == true && !fragment.isMultiThread -> fragment.send(MessagePayload.Basic(message = message))
+                    fragment.isMultiThread -> fragment.openNewThread()
+                }
                 intent.removeExtra(BroadcastParameter.EXTRA_MESSAGE)
             }
         }.onFailure {
@@ -89,19 +95,9 @@ class InAppChatActivity : AppCompatActivity() {
         }
     }
 
-    private fun sendMessage(message: String) {
-        val fragment = getInAppChatFragment()
-        val messagePayload = MessagePayload.Basic(message = message)
-        if (fragment.isMultiThread) {
-            fragment.createThread(messagePayload)
-        } else {
-            fragment.send(messagePayload)
-        }
-    }
-
-    private fun Intent?.extractLivechatMessage(): String? {
+    private fun Intent?.extractLivechatAction(): OpenLivechatAction? {
         return this?.getBundleExtra(BroadcastParameter.EXTRA_MESSAGE)?.let { bundle ->
-            OpenLivechatAction.parseFrom(Message.createFrom(bundle))?.keyword?.takeIf { it.isNotBlank() }
+            OpenLivechatAction.parseFrom(Message.createFrom(bundle))
         }
     }
 

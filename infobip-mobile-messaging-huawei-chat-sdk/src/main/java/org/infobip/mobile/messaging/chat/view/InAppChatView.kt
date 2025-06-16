@@ -104,6 +104,7 @@ class InAppChatView @JvmOverloads constructor(
         get() = findViewTreeLifecycleOwner()?.lifecycleScope ?: SessionStorage.scope //when View is attached to the window, it has a lifecycle owner otherwise use session scope
     private val livechatWidgetApi: LivechatWidgetApi by lazy {
         LivechatWidgetApiImpl(
+            LivechatWidgetApi.INSTANCE_ID_IN_APP_CHAT_VIEW,
             binding.ibLcWebView,
             mmCore,
             inAppChat,
@@ -471,6 +472,19 @@ class InAppChatView @JvmOverloads constructor(
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             binding.ibLcWebView.isForceDarkAllowed = allow
         }
+    }
+    //endregion
+
+    //region Internal
+    /**
+     * Prepares the widget to start a new conversation by setting its destination to [LivechatWidgetView.THREAD].
+     *
+     * Note: This does not create the actual thread until the initial message is sent by the user.
+     * Internal method to be used by [InAppChat] only.
+     * @param resultListener Optional listener to receive the result of the operation.
+     */
+    internal fun openNewThread(resultListener: ((LivechatWidgetResult<Unit>) -> Unit)? = null) {
+        (livechatWidgetApi as? LivechatWidgetApiImpl)?.openNewThread(resultListener)
     }
     //endregion
 
