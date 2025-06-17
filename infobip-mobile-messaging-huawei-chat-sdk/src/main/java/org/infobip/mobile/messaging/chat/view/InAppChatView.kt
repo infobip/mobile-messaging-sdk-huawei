@@ -750,7 +750,7 @@ class InAppChatView @JvmOverloads constructor(
     //endregion
 
     private fun updateErrors() {
-        val configSyncResult = SessionStorage.configSyncResult
+        val configSyncResult = SessionStorage.lcWidgetConfigSyncResult
         if (configSyncResult != null && !configSyncResult.isSuccess) {
             val error = configSyncResult.error
             val isInternetConnectionError = DefaultApiClient.ErrorCode.API_IO_ERROR.value == error.code && error.type == MobileMessagingError.Type.SERVER_ERROR
