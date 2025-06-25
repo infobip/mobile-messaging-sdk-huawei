@@ -325,9 +325,10 @@ public class BaseNotificationHandler {
 
         Uri soundUri = Uri.parse("android.resource://" + context.getPackageName() + "/raw/" + sound);
         if (soundUri == null) {
-            MobileMessagingLogger.e("Cannot create uri for sound:" + sound + " messageId:" + message.getMessageId());
+            MobileMessagingLogger.e("Cannot create uri for sound: " + sound + " messageId: " + message.getMessageId());
             return;
         }
+        MobileMessagingLogger.w("Trying to play custom sound: " + sound + " messageId: " + message.getMessageId());
         notificationBuilder.setSound(soundUri);
     }
 
@@ -359,10 +360,12 @@ public class BaseNotificationHandler {
 
         if (hasCustomSound) {
             String baseChannelId = PreferenceHelper.findString(context, MobileMessagingProperty.NOTIFICATION_CHANNEL_ID);
-            if (shouldDisplayHeadsUp) {
-                return baseChannelId + (isVibrate ? "_high_priority, vibration" : "_high_priority");
-            } else {
-                return baseChannelId + (isVibrate ? "_vibration" : "");
+            if (baseChannelId != null) {
+                if (shouldDisplayHeadsUp) {
+                    return baseChannelId + (isVibrate ? "_high_priority, vibration" : "_high_priority");
+                } else {
+                    return baseChannelId + (isVibrate ? "_vibration" : "");
+                }
             }
         }
 
