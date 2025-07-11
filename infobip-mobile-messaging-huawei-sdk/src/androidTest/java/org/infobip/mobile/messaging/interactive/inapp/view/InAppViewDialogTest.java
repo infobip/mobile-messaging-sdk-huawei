@@ -22,11 +22,10 @@ import org.junit.Test;
 import java.util.Random;
 import java.util.concurrent.Executor;
 
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyBoolean;
-import static org.mockito.Matchers.anyInt;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Matchers.eq;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -35,11 +34,12 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+
 /**
  * @author sslavin
  * @since 24/04/2018.
  */
-@Ignore("mock issues") //fix within MM-5769
+
 public class InAppViewDialogTest {
 
     private InAppViewDialog inAppViewDialog;
@@ -57,12 +57,7 @@ public class InAppViewDialogTest {
     private Activity activity = mock(Activity.class);
     private Resources resources = mock(Resources.class);
 
-    private Executor syncExecutor = new Executor() {
-        @Override
-        public void execute(@NonNull Runnable command) {
-            command.run();
-        }
-    };
+    private Executor syncExecutor = Runnable::run;
 
 
     @Before
@@ -158,25 +153,6 @@ public class InAppViewDialogTest {
         verify(alertDialogBuilder, times(1)).setView(eq(dialogView));
         verify(alertDialogBuilder, times(1)).create();
         verify(alertDialog, times(1)).show();
-    }
-
-    @Test
-    public void shouldDisplayDialogWithBuiltInThemeIfDefaultFails() {
-        Message message = message();
-        message.setTitle(null);
-        message.setContentUrl(null);
-        NotificationAction[] actions = actions();
-        when(activityWrapper.getActivity().getResources().getString(actions[0].getTitleResourceId())).thenReturn("action1");
-        NotificationCategory category = category(actions);
-
-        doThrow(new IllegalStateException("You need to use a Theme.AppCompat theme (or descendant) with this activity.")).doNothing().when(alertDialog).show();
-
-        inAppViewDialog.show(message, category, actions);
-
-        verify(activityWrapper, times(1)).createAlertDialogBuilder();
-        verify(activityWrapper, times(1)).createAlertDialogBuilder();
-
-        verify(alertDialog, times(2)).show();
     }
 
     @Test

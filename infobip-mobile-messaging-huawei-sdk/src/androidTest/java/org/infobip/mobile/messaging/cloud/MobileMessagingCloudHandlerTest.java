@@ -66,7 +66,7 @@ public class MobileMessagingCloudHandlerTest extends TestCase {
 
         handler.handleWork(context, intent);
 
-        Mockito.verify(registrationTokenHandler, Mockito.times(1)).cleanupToken(Mockito.eq("senderId"), Mockito.any(Context.class));
+        Mockito.verify(registrationTokenHandler, Mockito.times(1)).cleanupToken(Mockito.eq("senderId"), Mockito.nullable(Context.class));
     }
 
     @Test
@@ -76,8 +76,8 @@ public class MobileMessagingCloudHandlerTest extends TestCase {
 
         handler.handleWork(context, intent);
 
-        Mockito.verify(registrationTokenHandler, Mockito.times(1)).cleanupToken(Mockito.eq("senderId"), Mockito.any(Context.class));
-        Mockito.verify(registrationTokenHandler, Mockito.times(1)).acquireNewToken(Mockito.eq("senderId"), Mockito.any(Context.class));
+        Mockito.verify(registrationTokenHandler, Mockito.times(1)).cleanupToken(Mockito.eq("senderId"), Mockito.nullable(Context.class));
+        Mockito.verify(registrationTokenHandler, Mockito.times(1)).acquireNewToken(Mockito.eq("senderId"), Mockito.nullable(Context.class));
     }
 
     @Test
@@ -87,6 +87,6 @@ public class MobileMessagingCloudHandlerTest extends TestCase {
 
         handler.handleWork(context, intent);
 
-        Mockito.verify(registrationTokenHandler, Mockito.times(1)).acquireNewToken(Mockito.eq("senderId"), Mockito.any(Context.class));
+        Mockito.verify(registrationTokenHandler, Mockito.times(1)).acquireNewToken(Mockito.eq("senderId"), Mockito.nullable(Context.class));
     }
 }

@@ -48,9 +48,7 @@ dependencies {
 
     implementation "androidx.test.ext:junit:$mm_androidXjUnitVersion"
     implementation "androidx.test:runner:$mm_androidTestRunnerVersion"
-    implementation "com.crittercism.dexmaker:dexmaker-dx:1.4"
-    implementation "com.crittercism.dexmaker:dexmaker:1.4"
-    implementation "com.crittercism.dexmaker:dexmaker-mockito:1.4"
+    implementation "com.linkedin.dexmaker:dexmaker-mockito-inline:2.28.3"
     implementation "org.mockito:mockito-core:$mm_mockitoCoreVersion"
     implementation "junit:junit:$mm_jUnitVersion"
     implementation 'com.nanohttpd:nanohttpd:2.1.0'

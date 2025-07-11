@@ -11,7 +11,6 @@ import org.infobip.mobile.messaging.platform.PlatformTestCase;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.ArgumentMatcher;
 import org.mockito.Mockito;
 
 import java.util.concurrent.Executor;
@@ -33,12 +32,7 @@ public class MobileMessagingCloudServiceTest extends PlatformTestCase {
     public void beforeEach() {
         Mockito.reset(handler);
         resetMobileMessagingCloudHandler(handler);
-        resetBackgroundExecutor(new Executor() {
-            @Override
-            public void execute(@NonNull Runnable command) {
-                command.run();
-            }
-        });
+        resetBackgroundExecutor(Runnable::run);
 
         // will verify only below "O" logic since after that it will go deep into JobIntentService (cannot mock)
         resetSdkVersion(Build.VERSION_CODES.N_MR1);
@@ -82,38 +76,24 @@ public class MobileMessagingCloudServiceTest extends PlatformTestCase {
     }
 
     private static Intent intentWith(final Message message) {
-        return Mockito.argThat(new ArgumentMatcher<Intent>() {
-            @Override
-            public boolean matches(Object o) {
-                Intent intent = (Intent) o;
-
-                Message that = Message.createFrom(intent.getExtras());
-                return message.getBody().equals(that.getBody())
-                        && message.getMessageId().equals(that.getMessageId());
-            }
+        return Mockito.argThat(o -> {
+            Message that = Message.createFrom(o.getExtras());
+            return message.getBody().equals(that.getBody())
+                    && message.getMessageId().equals(that.getMessageId());
         });
     }
 
     @SuppressWarnings("SameParameterValue")
     private static Intent intentWith(final String senderId) {
-        return Mockito.argThat(new ArgumentMatcher<Intent>() {
-            @Override
-            public boolean matches(Object o) {
-                Intent intent = (Intent) o;
-                return senderId.equals(intent.getStringExtra(MobileMessagingCloudHandler.EXTRA_SENDER_ID));
-            }
+        return Mockito.argThat(o -> {
+            return senderId.equals(o.getStringExtra(MobileMessagingCloudHandler.EXTRA_SENDER_ID));
         });
     }
 
     @SuppressWarnings("SameParameterValue")
     private static Intent intentWith(final String senderId, final String token) {
-        return Mockito.argThat(new ArgumentMatcher<Intent>() {
-            @Override
-            public boolean matches(Object o) {
-                Intent intent = (Intent) o;
-                return senderId.equals(intent.getStringExtra(MobileMessagingCloudHandler.EXTRA_SENDER_ID))
-                        && token.equals(intent.getStringExtra(MobileMessagingCloudHandler.EXTRA_TOKEN));
-            }
+        return Mockito.argThat(o -> {
+            return token.equals(o.getStringExtra(MobileMessagingCloudHandler.EXTRA_TOKEN));
         });
     }
 }

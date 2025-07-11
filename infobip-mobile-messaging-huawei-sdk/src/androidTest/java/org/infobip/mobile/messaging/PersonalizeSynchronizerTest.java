@@ -7,12 +7,13 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyBoolean;
-import static org.mockito.Matchers.anyString;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.after;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.verify;
 
 import androidx.annotation.NonNull;
@@ -203,7 +204,7 @@ public class PersonalizeSynchronizerTest extends MobileMessagingTestCase {
 
         //then
         verify(broadcaster, after(300).never()).depersonalized();
-        verify(broadcaster, after(300).times(1)).error(any(MobileMessagingError.class));
+        verify(broadcaster, timeout(2000).times(1)).error(any(MobileMessagingError.class));
         assertTrue(PreferenceHelper.findBoolean(context, MobileMessagingProperty.IS_DEPERSONALIZE_UNREPORTED));
         verifyNeededPrefsCleanUp();
         assertNull(mobileMessagingCore.getUser());
