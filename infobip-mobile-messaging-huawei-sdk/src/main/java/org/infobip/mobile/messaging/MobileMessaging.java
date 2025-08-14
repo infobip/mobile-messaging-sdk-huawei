@@ -21,6 +21,7 @@ import org.infobip.mobile.messaging.util.CryptorImpl;
 import org.infobip.mobile.messaging.util.ResourceLoader;
 import org.infobip.mobile.messaging.util.StringUtils;
 
+import java.util.HashSet;
 import java.util.List;
 
 /**
@@ -540,6 +541,7 @@ public abstract class MobileMessaging {
      * @see Builder#withoutRegisteringForRemoteNotifications()
      * @see Builder#withoutDisplayNotification()
      * @see Builder#withoutStoringUserData()
+     * @see Builder#withoutStoringInstallationData()
      * @see Builder#withoutCarrierInfo()
      * @see Builder#withoutSystemInfo()
      * @see Builder#withoutMarkingSeenOnNotificationTap()
@@ -558,6 +560,7 @@ public abstract class MobileMessaging {
         private boolean doMarkSeenOnNotificationTap = true;
         private boolean shouldSaveUserData = true;
         private boolean storeAppCodeOnDisk = true;
+        private boolean shouldSaveInstallationData = true;
         private boolean allowUntrustedSSLOnError = false;
         private boolean usePrivateSharedPrefs = true;
         private boolean postNotificationPermissionRequest = true;
@@ -569,6 +572,7 @@ public abstract class MobileMessaging {
         private Cryptor oldCryptor = null;
         private JwtSupplier jwtSupplier = null;
         private boolean bannerForegroundNotifications = false;
+        private HashSet<String> trustedDomains = null;
 
         @SuppressWarnings("unchecked")
         private Class<? extends MessageStore> messageStoreClass = (Class<? extends MessageStore>) MobileMessagingProperty.MESSAGE_STORE_CLASS.getDefaultValue();
@@ -911,6 +915,14 @@ public abstract class MobileMessaging {
         }
 
         /**
+         * It will not store any {@link Installation} data on device.
+         * */
+        public Builder withoutStoringInstallationData() {
+            this.shouldSaveInstallationData = false;
+            return this;
+        }
+
+        /**
          * Set `allowUntrustedSSLOnError` to true to allow connections to untrusted hosts when SSL error happens.
          * <br>Regardless of the setting, SDK will first try to connect in ordinary mode.
          *
@@ -990,6 +1002,19 @@ public abstract class MobileMessaging {
             return this;
         }
 
+        /**
+         * Sets the HashSet of allowed domains for URLs that can be opened in webviews or external browsers.
+         * Only URLs matching the specified trusted domains will be allowed to open. URLs from untrusted domains will be blocked.
+         * If no trusted domains are configured, all URLs will be allowed (default behavior).
+         * Each domain should be in format "example.com" or "subdomain.example.com".
+         *
+         * @param trustedDomains the list of allowed domains
+         * @return {@link Builder}
+         */
+        public Builder withTrustedDomains(HashSet<String> trustedDomains) {
+            this.trustedDomains = trustedDomains;
+            return this;
+        }
 
         /**
          * Builds the <i>MobileMessaging</i> configuration. Registration token patch is started by default.
@@ -1020,6 +1045,7 @@ public abstract class MobileMessaging {
             MobileMessagingCore.setRemoteNotificationsEnabled(application, postNotificationPermissionRequest);
             MobileMessagingCore.setFullFeatureInAppsEnabled(application, fullFeaturedInApps);
             MobileMessagingCore.setShouldSaveUserData(application, shouldSaveUserData);
+            MobileMessagingCore.setShouldSaveInstallationData(application, shouldSaveInstallationData);
             MobileMessagingCore.setShouldSaveAppCode(application, storeAppCodeOnDisk);
             MobileMessagingCore.setAllowUntrustedSSLOnError(application, allowUntrustedSSLOnError);
             MobileMessagingCore.setSharedPrefsStorage(application, usePrivateSharedPrefs);
@@ -1028,7 +1054,8 @@ public abstract class MobileMessaging {
 
             MobileMessagingCore.Builder mobileMessagingCoreBuilder = new MobileMessagingCore.Builder(application)
                     .withDisplayNotification(notificationSettings)
-                    .withJwtSupplier(jwtSupplier);
+                    .withJwtSupplier(jwtSupplier)
+                    .withTrustedDomains(trustedDomains);
 
             if (oldCryptor != null) {
                 mobileMessagingCoreBuilder.withCryptorMigration(oldCryptor);

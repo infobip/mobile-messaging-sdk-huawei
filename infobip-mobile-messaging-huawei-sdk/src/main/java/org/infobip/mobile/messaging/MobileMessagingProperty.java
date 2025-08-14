@@ -80,6 +80,8 @@ public enum MobileMessagingProperty {
     REPORT_SYSTEM_INFO("org.infobip.mobile.messaging.infobip.REPORT_SYSTEM_INFO", true),
     SAVE_USER_DATA_ON_DISK("org.infobip.mobile.messaging.infobip.SAVE_USER_DATA_ON_DISK", true),
     SAVE_APP_CODE_ON_DISK("org.infobip.mobile.messaging.infobip.SAVE_APP_CODE_ON_DISK", true),
+    SAVE_INSTALLATION_ON_DISK("org.infobip.mobile.messaging.infobip.SAVE_INSTALLATION_ON_DISK", true),
+    SAVE_CUSTOM_ATTRIBUTES_ON_DISK("org.infobip.mobile.messaging.infobip.SAVE_CUSTOM_ATTRIBUTES_ON_DISK", true),
     ALLOW_UNTRUSTED_SSL_ON_ERROR("org.infobip.mobile.messaging.infobip.ALLOW_UNTRUSTED_SSL_ON_ERROR", false),
     APP_CODE_PROVIDER_CANONICAL_CLASS_NAME("org.infobip.mobile.messaging.infobip.APP_CODE_PROVIDER_CANONICAL_CLASS_NAME"),
     // END
@@ -111,7 +113,7 @@ public enum MobileMessagingProperty {
     SHOULD_REPERSONALIZE("org.infobip.mobile.messaging.infobip.SHOULD_REPERSONALIZE", false),
 
     UNREPORTED_USER_DATA("org.infobip.mobile.messaging.infobip.UNREPORTED_USER_DATA"),
-    USER_DATA("org.infobip.mobile.messaging.infobip.USER_DATA"),
+    USER_DATA("org.infobip.mobile.messaging.infobip.USER_DATA", "", true),
     USER_INSTALLATIONS_EXPIRE_AT("org.infobip.mobile.messaging.infobip.USER_INSTALLATIONS_EXPIRE_AT"),
 
     USER_CUSTOM_EVENTS("org.infobip.mobile.messaging.infobip.USER_CUSTOM_EVENTS"),

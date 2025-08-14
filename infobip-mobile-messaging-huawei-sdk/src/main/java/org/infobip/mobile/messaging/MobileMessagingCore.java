@@ -1,5 +1,9 @@
 package org.infobip.mobile.messaging;
 
+import static org.infobip.mobile.messaging.UserMapper.filterOutDeletedData;
+import static org.infobip.mobile.messaging.UserMapper.toJson;
+import static org.infobip.mobile.messaging.mobileapi.events.UserSessionTracker.SESSION_BOUNDS_DELIMITER;
+
 import android.app.Application;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
@@ -10,6 +14,9 @@ import android.net.Uri;
 import android.os.Build;
 import android.text.TextUtils;
 import android.util.Pair;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import org.infobip.mobile.messaging.api.appinstance.AppInstanceAtts;
 import org.infobip.mobile.messaging.api.appinstance.UserAtts;
@@ -93,13 +100,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-
-import static org.infobip.mobile.messaging.UserMapper.filterOutDeletedData;
-import static org.infobip.mobile.messaging.UserMapper.toJson;
-import static org.infobip.mobile.messaging.mobileapi.events.UserSessionTracker.SESSION_BOUNDS_DELIMITER;
-
 /**
  * @author sslavin
  * @since 28.04.2016.
@@ -173,6 +173,7 @@ public class MobileMessagingCore
     private PostNotificationsPermissionRequester postNotificationsPermissionRequester;
     private InAppClickReporter inAppClickReporter;
     private volatile JwtSupplier jwtSupplier;
+    private HashSet<String> trustedDomains;
 
     protected MobileMessagingCore(Context context) {
         this(context, new AndroidBroadcaster(context), Executors.newSingleThreadExecutor(), new ModuleLoader(context));
@@ -210,6 +211,7 @@ public class MobileMessagingCore
         }
 
         migratePrefsIfNecessary(context);
+        encryptUserDataIfNecessary();
 
         this.installationId = getUniversalInstallationId();
     }
@@ -260,6 +262,21 @@ public class MobileMessagingCore
         }
     }
 
+    /**
+     * Clearing unencrypted user data and storing it as encrypted.
+     */
+    private void encryptUserDataIfNecessary() {
+        if (!PreferenceHelper.contains(context, MobileMessagingProperty.USER_DATA.getKey())) {
+            return;
+        }
+
+        String newValue = PreferenceHelper.findString(context, MobileMessagingProperty.USER_DATA.getKey(), "");
+        if (StringUtils.isNotBlank(newValue)) {
+            PreferenceHelper.remove(context, MobileMessagingProperty.USER_DATA.getKey());
+            PreferenceHelper.saveString(context, MobileMessagingProperty.USER_DATA, newValue);
+        }
+    }
+
     private static String createNotificationChannelKey(boolean soundEnabled, boolean isVibrate, boolean shouldDisplayHeadsUp) {
         return soundEnabled + "_" + isVibrate + "_" + shouldDisplayHeadsUp;
     }
@@ -267,6 +284,7 @@ public class MobileMessagingCore
     public static String getNotificationChannelId(boolean soundEnabled, boolean isVibrate, boolean shouldDisplayHeadsUp) {
         return channelMap.get(createNotificationChannelKey(soundEnabled, isVibrate, shouldDisplayHeadsUp));
     }
+
     private void initDefaultChannels() {
         if (Build.VERSION.SDK_INT < 26) {
             return;
@@ -281,8 +299,8 @@ public class MobileMessagingCore
 
         createNotificationChannel(MM_DEFAULT_CHANNEL_ID, channelName, true, true, null, null, NotificationManager.IMPORTANCE_DEFAULT, notificationManager);
         createNotificationChannel(MM_DEFAULT_CHANNEL_ID_VIBRATION, channelName + " Vibration", true, false, null, null, NotificationManager.IMPORTANCE_DEFAULT, notificationManager);
-        createNotificationChannel(MM_DEFAULT_CHANNEL_ID_SOUND, channelName + " Sound", false,true,  null, null, NotificationManager.IMPORTANCE_DEFAULT, notificationManager);
-        createNotificationChannel(MM_DEFAULT_CHANNEL_ID_QUIET, channelName + " Quiet", false,false,  null, null, NotificationManager.IMPORTANCE_DEFAULT, notificationManager);
+        createNotificationChannel(MM_DEFAULT_CHANNEL_ID_SOUND, channelName + " Sound", false, true, null, null, NotificationManager.IMPORTANCE_DEFAULT, notificationManager);
+        createNotificationChannel(MM_DEFAULT_CHANNEL_ID_QUIET, channelName + " Quiet", false, false, null, null, NotificationManager.IMPORTANCE_DEFAULT, notificationManager);
 
         NotificationSettings notificationSettings = getNotificationSettings();
         if (notificationSettings != null && notificationSettings.areHeadsUpNotificationsEnabled()) {
@@ -686,7 +704,8 @@ public class MobileMessagingCore
         if (customAttributes == null) {
             customAttributes = new HashMap<>();
         }
-        PreferenceHelper.saveString(context, MobileMessagingProperty.CUSTOM_ATTRIBUTES, nullSerializer.serialize(customAttributes));
+        if (shouldSaveInstallationDataOnDisk())
+            PreferenceHelper.saveString(context, MobileMessagingProperty.CUSTOM_ATTRIBUTES, nullSerializer.serialize(customAttributes));
     }
 
     public String getCustomAttributes() {
@@ -697,7 +716,8 @@ public class MobileMessagingCore
         if (customAttributes == null) {
             customAttributes = new HashMap<>();
         }
-        PreferenceHelper.saveString(context, MobileMessagingProperty.UNREPORTED_CUSTOM_ATTRIBUTES, nullSerializer.serialize(customAttributes));
+        if (shouldSaveInstallationDataOnDisk())
+            PreferenceHelper.saveString(context, MobileMessagingProperty.UNREPORTED_CUSTOM_ATTRIBUTES, nullSerializer.serialize(customAttributes));
     }
 
     private String getUnreportedCustomAttributes() {
@@ -1105,6 +1125,15 @@ public class MobileMessagingCore
         return jwtSupplier.getJwt();
     }
 
+    public void setTrustedDomains(HashSet<String> trustedDomains) {
+        this.trustedDomains = trustedDomains;
+    }
+
+    public HashSet<String> getTrustedDomains() {
+        if (trustedDomains == null) return null;
+        return trustedDomains;
+    }
+
     private boolean isDisplayNotificationEnabled() {
         return PreferenceHelper.findBoolean(context, MobileMessagingProperty.DISPLAY_NOTIFICATION_ENABLED);
     }
@@ -1419,8 +1448,19 @@ public class MobileMessagingCore
         PreferenceHelper.saveBoolean(context, MobileMessagingProperty.SAVE_USER_DATA_ON_DISK, shouldSaveUserData);
     }
 
+    public static void setShouldSaveInstallationData(Context context, boolean shouldSaveInstallationData) {
+        if (!shouldSaveInstallationData)
+            PreferenceHelper.remove(context, MobileMessagingProperty.CUSTOM_ATTRIBUTES);
+        PreferenceHelper.saveBoolean(context, MobileMessagingProperty.SAVE_INSTALLATION_ON_DISK, shouldSaveInstallationData);
+        PreferenceHelper.saveBoolean(context, MobileMessagingProperty.SAVE_CUSTOM_ATTRIBUTES_ON_DISK, shouldSaveInstallationData);
+    }
+
     public boolean shouldSaveUserData() {
         return PreferenceHelper.findBoolean(context, MobileMessagingProperty.SAVE_USER_DATA_ON_DISK.getKey(), true);
+    }
+
+    public boolean shouldSaveInstallationDataOnDisk() {
+        return PreferenceHelper.findBoolean(context, MobileMessagingProperty.SAVE_INSTALLATION_ON_DISK.getKey(), true);
     }
 
     public static void setShouldSaveAppCode(Context context, boolean shouldSaveAppCode) {
@@ -2169,6 +2209,7 @@ public class MobileMessagingCore
         private ApplicationCodeProvider applicationCodeProvider;
         private Cryptor oldCryptor = null;
         private JwtSupplier jwtSupplier = null;
+        private HashSet<String> trustedDomains = null;
 
         public Builder(Application application) {
             if (null == application) {
@@ -2272,6 +2313,20 @@ public class MobileMessagingCore
         }
 
         /**
+         * Sets the HashSet of allowed domains for URLs that can be opened in webviews or external browsers.
+         * Only URLs matching the specified trusted domains will be allowed to open. URLs from untrusted domains will be blocked.
+         * If no trusted domains are configured, all URLs will be allowed (default behavior).
+         * Each domain should be in format "example.com" or "subdomain.example.com".
+         *
+         * @param trustedDomains the list of allowed domains
+         * @return {@link MobileMessaging.Builder}
+         */
+        public Builder withTrustedDomains(HashSet<String> trustedDomains) {
+            this.trustedDomains = trustedDomains;
+            return this;
+        }
+
+        /**
          * Builds the <i>MobileMessagingCore</i> configuration. Registration token patch is started by default.
          * Any messages received in the past will be reported as delivered!
          *
@@ -2290,6 +2345,7 @@ public class MobileMessagingCore
             mobileMessagingCore.mobileNetworkStateListener = new MobileNetworkStateListener(application);
             mobileMessagingCore.playServicesSupport = new PlayServicesSupport();
             mobileMessagingCore.setJwtSupplier(jwtSupplier);
+            mobileMessagingCore.setTrustedDomains(trustedDomains);
 
             // do the force invalidation of old push cloud tokens
             boolean shouldResetToken = mobileMessagingCore.isPushServiceTypeChanged() && mobileMessagingCore.getPushRegistrationId() != null;

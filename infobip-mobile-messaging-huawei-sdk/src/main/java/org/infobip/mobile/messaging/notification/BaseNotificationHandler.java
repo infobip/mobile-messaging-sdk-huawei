@@ -1,5 +1,7 @@
 package org.infobip.mobile.messaging.notification;
 
+import static org.infobip.mobile.messaging.BroadcastParameter.EXTRA_MESSAGE;
+
 import android.Manifest;
 import android.app.Notification;
 import android.app.NotificationManager;
@@ -13,6 +15,14 @@ import android.net.Uri;
 import android.os.Build;
 import android.util.Log;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.annotation.VisibleForTesting;
+import androidx.arch.core.util.Function;
+import androidx.core.app.NotificationCompat;
+import androidx.core.content.ContextCompat;
+import androidx.core.graphics.BitmapCompat;
+
 import org.infobip.mobile.messaging.ConfigurationException;
 import org.infobip.mobile.messaging.Message;
 import org.infobip.mobile.messaging.MobileMessagingCore;
@@ -24,6 +34,7 @@ import org.infobip.mobile.messaging.app.ActivityLifecycleMonitor;
 import org.infobip.mobile.messaging.app.ContentIntentWrapper;
 import org.infobip.mobile.messaging.dal.bundle.MessageBundleMapper;
 import org.infobip.mobile.messaging.logging.MobileMessagingLogger;
+import org.infobip.mobile.messaging.util.DomainHelper;
 import org.infobip.mobile.messaging.util.PreferenceHelper;
 import org.infobip.mobile.messaging.util.ResourceLoader;
 import org.infobip.mobile.messaging.util.StringUtils;
@@ -32,15 +43,6 @@ import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
-
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.annotation.VisibleForTesting;
-import androidx.core.app.NotificationCompat;
-import androidx.core.content.ContextCompat;
-import androidx.core.graphics.BitmapCompat;
-
-import static org.infobip.mobile.messaging.BroadcastParameter.EXTRA_MESSAGE;
 
 /**
  * @author sslavin
@@ -53,6 +55,8 @@ public class BaseNotificationHandler {
     private final Context context;
 
     private ContentIntentWrapper contentIntentWrapper;
+
+    private DomainHelper domainHelper;
 
     public BaseNotificationHandler(Context context) {
         this.context = context;
@@ -198,7 +202,7 @@ public class BaseNotificationHandler {
      * Same code as in {@link BitmapCompat#getAllocationByteCount(Bitmap)} to avoid compat dependencies
      */
     private static boolean isBitmapEmpty(@NonNull Bitmap bitmap) {
-        return (Build.VERSION.SDK_INT >= 19 ? bitmap.getAllocationByteCount() : bitmap.getByteCount()) == 0;
+        return bitmap.getAllocationByteCount() == 0;
     }
 
     @Nullable
@@ -223,11 +227,10 @@ public class BaseNotificationHandler {
 
         Intent callbackIntent;
         if (StringUtils.isNotBlank(message.getWebViewUrl())) {
-            callbackIntent = activityStarterWrapper(context).createWebViewContentIntent(message);
+            callbackIntent = handleUrl(message.getWebViewUrl(), url -> activityStarterWrapper(context).createWebViewContentIntent(url), message, notificationSettings);
         } else if (StringUtils.isNotBlank(message.getBrowserUrl())) {
-            callbackIntent = activityStarterWrapper(context).createBrowserIntent(message.getBrowserUrl());
-        } else if (MobileMessagingCore.getInstance(context).findMessageHandlerModule(MobileMessagingCore.IN_APP_CHAT_MESSAGE_HANDLER_MODULE_NAME) != null
-                && (OpenLivechatAction.parseFrom(message) != null || message.isChatMessage())) {
+            callbackIntent = handleUrl(message.getBrowserUrl(), url -> activityStarterWrapper(context).createBrowserIntent(url), message, notificationSettings);
+        } else if (isInAppChatMessage(message)) {
             callbackIntent = null; // InAppChat module handles the chat notification tap
         } else {
             callbackIntent = activityStarterWrapper(context).createContentIntent(message, notificationSettings);
@@ -255,6 +258,20 @@ public class BaseNotificationHandler {
                 pendingIntentFlags
         );
 
+    }
+
+    private Intent handleUrl(String url, Function<Message, Intent> intentCreator, Message message, NotificationSettings notificationSettings) {
+        if (domainHelper(context).isTrustedDomain(url)) {
+            return intentCreator.apply(message);
+        } else {
+            MobileMessagingLogger.w("URL domain is not trusted and will not be opened: " + url);
+            return activityStarterWrapper(context).createContentIntent(message, notificationSettings);
+        }
+    }
+
+    private boolean isInAppChatMessage(Message message) {
+        return MobileMessagingCore.getInstance(context).findMessageHandlerModule(MobileMessagingCore.IN_APP_CHAT_MESSAGE_HANDLER_MODULE_NAME) != null
+                && (OpenLivechatAction.parseFrom(message) != null || message.isChatMessage());
     }
 
     int setPendingIntentMutabilityFlagIfNeeded(int currentFlags) {
@@ -404,5 +421,12 @@ public class BaseNotificationHandler {
             contentIntentWrapper = new ContentIntentWrapper(context);
         }
         return contentIntentWrapper;
+    }
+
+    private DomainHelper domainHelper(Context context) {
+        if (domainHelper == null) {
+            domainHelper = new DomainHelper(context);
+        }
+        return domainHelper;
     }
 }
