@@ -52,7 +52,7 @@ internal class LivechatWidgetConfigSynchronizer(
             return
         }
 
-        if (mmCore.isDepersonalizeInProgress()) {
+        if (mmCore.isDepersonalizeInProgress) {
             MobileMessagingLogger.d(TAG, "Livechat widget configuration sync skipped. Depersonalization is in progress.")
             listener?.onResult(Result(InternalSdkError.DEPERSONALIZATION_IN_PROGRESS.error))
             return
@@ -62,7 +62,7 @@ internal class LivechatWidgetConfigSynchronizer(
 
             override fun run(ins: Array<out Void>?): WidgetInfo {
                 MobileMessagingLogger.v("GET WIDGET CONFIGURATION >>>")
-                return mobileApiChat.getWidgetConfiguration()
+                return mobileApiChat.widgetConfiguration
             }
 
             override fun after(widgetInfo: WidgetInfo?) {
@@ -76,10 +76,10 @@ internal class LivechatWidgetConfigSynchronizer(
                     PreferenceHelper.saveBoolean(context, MobileMessagingChatProperty.IN_APP_CHAT_WIDGET_MULTITHREAD.key, widgetInfo.isMultiThread())
                     PreferenceHelper.saveBoolean(context, MobileMessagingChatProperty.IN_APP_CHAT_WIDGET_MULTICHANNEL_CONVERSATION.key, widgetInfo.isMultiChannelConversationEnabled())
                     PreferenceHelper.saveBoolean(context, MobileMessagingChatProperty.IN_APP_CHAT_WIDGET_CALLS_ENABLED.key, widgetInfo.isCallsEnabled())
-                    widgetInfo.getThemeNames()?.let { themes ->
+                    widgetInfo.themeNames?.let { themes ->
                         PreferenceHelper.saveStringSet(context, MobileMessagingChatProperty.IN_APP_CHAT_WIDGET_THEMES.key, HashSet(themes))
                     }
-                    widgetInfo.getAttachmentConfig()?.let { attachmentConfig ->
+                    widgetInfo.attachmentConfig?.let { attachmentConfig ->
                         PreferenceHelper.saveLong(context, MobileMessagingChatProperty.IN_APP_CHAT_WIDGET_ATTACHMENT_MAX_SIZE.key, attachmentConfig.maxSize)
                         PreferenceHelper.saveBoolean(context, MobileMessagingChatProperty.IN_APP_CHAT_WIDGET_ATTACHMENT_ENABLED.key, attachmentConfig.isEnabled)
                         if (attachmentConfig.allowedExtensions != null) {

@@ -14,7 +14,7 @@ import org.junit.After
 import org.junit.Before
 import org.junit.Test
 
-class AttachmentHelperTest {
+class InAppChatAttachmentTest {
 
     private val mimeTypeMap: MimeTypeMap = mockk()
 
@@ -32,7 +32,7 @@ class AttachmentHelperTest {
     //region getAvailableSourcesSpecifications()
     @Test
     fun `getAvailableSourcesSpecifications() allowed extensions set is empty`(){
-        val specifications = AttachmentHelper.getAvailableSourcesSpecifications(mockk(), emptySet())
+        val specifications = InAppChatAttachment.getAvailableSourcesSpecifications(mockk(), emptySet())
         Assertions.assertThat(specifications)
             .describedAs("No specifications for empty allowed extensions set")
             .isEmpty()
@@ -46,7 +46,7 @@ class AttachmentHelperTest {
         every { mimeTypeMap.getMimeTypeFromExtension("mp4") } returns "video/mp4"
         every { mimeTypeMap.getMimeTypeFromExtension("txt") } returns "text/plain"
 
-        val specifications = AttachmentHelper.getAvailableSourcesSpecifications(context, extensions)
+        val specifications = InAppChatAttachment.getAvailableSourcesSpecifications(context, extensions)
 
         Assertions.assertThat(specifications)
             .describedAs("All specifications available")
@@ -67,7 +67,7 @@ class AttachmentHelperTest {
         every { mimeTypeMap.getMimeTypeFromExtension("mp4") } returns "video/mp4"
         every { mimeTypeMap.getMimeTypeFromExtension("txt") } returns "text/plain"
 
-        val specifications = AttachmentHelper.getAvailableSourcesSpecifications(context, extensions)
+        val specifications = InAppChatAttachment.getAvailableSourcesSpecifications(context, extensions)
 
         Assertions.assertThat(specifications)
             .describedAs("Only non camera specifications available")
@@ -84,7 +84,7 @@ class AttachmentHelperTest {
         val context = getContextMock(true)
         every { mimeTypeMap.getMimeTypeFromExtension(any()) } returns null
 
-        val specifications = AttachmentHelper.getAvailableSourcesSpecifications(context, extensions)
+        val specifications = InAppChatAttachment.getAvailableSourcesSpecifications(context, extensions)
 
         Assertions.assertThat(specifications)
             .describedAs("No pickers specifications available")
@@ -103,7 +103,7 @@ class AttachmentHelperTest {
         every { mimeTypeMap.getMimeTypeFromExtension("jpg") } returns "image/jpg"
         every { mimeTypeMap.getMimeTypeFromExtension("png") } returns "image/png"
 
-        val specifications = AttachmentHelper.getAvailableSourcesSpecifications(context, extensions)
+        val specifications = InAppChatAttachment.getAvailableSourcesSpecifications(context, extensions)
 
         Assertions.assertThat(specifications)
             .describedAs("Only image specifications available")
@@ -124,7 +124,7 @@ class AttachmentHelperTest {
         every { mimeTypeMap.getMimeTypeFromExtension("jpg") } returns "image/jpg"
         every { mimeTypeMap.getMimeTypeFromExtension("png") } returns "image/png"
 
-        val specifications = AttachmentHelper.getAvailableSourcesSpecifications(context, extensions)
+        val specifications = InAppChatAttachment.getAvailableSourcesSpecifications(context, extensions)
 
         Assertions.assertThat(specifications)
             .describedAs("Only image specifications available")
@@ -143,7 +143,7 @@ class AttachmentHelperTest {
         every { mimeTypeMap.getMimeTypeFromExtension("mp4") } returns "video/mp4"
         every { mimeTypeMap.getMimeTypeFromExtension("3gp") } returns "video/3gp"
 
-        val specifications = AttachmentHelper.getAvailableSourcesSpecifications(context, extensions)
+        val specifications = InAppChatAttachment.getAvailableSourcesSpecifications(context, extensions)
 
         Assertions.assertThat(specifications)
             .describedAs("Only video specifications available")
@@ -164,7 +164,7 @@ class AttachmentHelperTest {
         every { mimeTypeMap.getMimeTypeFromExtension("mp4") } returns "video/mp4"
         every { mimeTypeMap.getMimeTypeFromExtension("3gp") } returns "video/3gp"
 
-        val specifications = AttachmentHelper.getAvailableSourcesSpecifications(context, extensions)
+        val specifications = InAppChatAttachment.getAvailableSourcesSpecifications(context, extensions)
 
         Assertions.assertThat(specifications)
             .describedAs("Only video specifications available")
@@ -183,7 +183,7 @@ class AttachmentHelperTest {
         every { mimeTypeMap.getMimeTypeFromExtension("txt") } returns "text/plain"
         every { mimeTypeMap.getMimeTypeFromExtension("pdf") } returns "application/pdf"
 
-        val specifications = AttachmentHelper.getAvailableSourcesSpecifications(context, extensions)
+        val specifications = InAppChatAttachment.getAvailableSourcesSpecifications(context, extensions)
 
         Assertions.assertThat(specifications)
             .describedAs("Only non visual media specifications available")
