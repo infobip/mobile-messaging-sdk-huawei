@@ -15,5 +15,7 @@
     <string name="tb_all">all</string>
     <string name="tb_notifications">notifications</string>
     <string name="tb_promo">promo</string>
+    <string name="tb_promotions_notifications">Promo, Notifications</string>
+    <string name="tb_offers">Offers</string>
     <string name="title_activity_main">MainActivity</string>
 </resources>
