@@ -8,6 +8,8 @@ import android.content.res.Resources.Theme
 import android.content.res.TypedArray
 import android.graphics.Color
 import android.graphics.drawable.Drawable
+import android.util.AttributeSet
+import android.util.Log
 import android.util.TypedValue
 import android.view.View
 import android.view.inputmethod.InputMethodManager
@@ -27,7 +29,6 @@ import androidx.core.graphics.ColorUtils
 import androidx.core.graphics.drawable.DrawableCompat
 import androidx.core.graphics.toColorInt
 import androidx.core.view.ViewCompat
-import androidx.core.view.ViewGroupCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.updatePadding
 import org.infobip.mobile.messaging.api.chat.WidgetInfo
@@ -140,7 +141,7 @@ internal fun Theme?.isThemeAttributePresent(attr: Int): Boolean {
 internal fun Theme?.isAttributePresent(
     attr: Int,
     @AttrRes styleAttr: Int? = null,
-    @StyleableRes styleable: IntArray? = null
+    @StyleableRes styleable: IntArray? = null,
 ): Boolean {
     return this?.let {
         if (styleAttr != null && styleable != null) { //style attr
@@ -197,6 +198,25 @@ internal val WidgetInfo.colorPrimaryText: Int?
 internal val WidgetInfo.colorPrimaryDark: Int?
     get() = colorPrimary?.let { ColorUtils.blendARGB(it, Color.BLACK, 0.2f) }
 
+internal fun Activity.applyWindowInsets() {
+    window?.let { window ->
+        val decor = window.decorView
+        //TODO: Uncomment it once RN plugin supports Android 15, it requires mm_coreKtxVersion = "1.16.0" and targetSdkVersion 35
+        //ViewGroupCompat.installCompatInsetsDispatch(decor)
+        ViewCompat.setOnApplyWindowInsetsListener(decor) { view, windowInsets ->
+            val insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.ime())
+            view.updatePadding(
+                left = insets.left,
+                top = insets.top,
+                right = insets.right,
+                bottom = insets.bottom
+            )
+            WindowInsetsCompat.CONSUMED
+        }
+        decor.post { ViewCompat.requestApplyInsets(decor) }
+    }
+}
+
 internal fun Activity?.setStatusBarColor(@ColorInt color: Int?) {
     if (color != null) {
         this?.window?.decorView?.rootView?.setBackgroundColor(color)
@@ -215,28 +235,10 @@ internal fun ComponentActivity?.setSystemBarIconsColor(lightIcons: Boolean) {
     )
 }
 
-internal fun Activity.applyWindowInsets() {
-    window?.let { window ->
-        val decor = window.decorView
-        ViewGroupCompat.installCompatInsetsDispatch(decor)
-        ViewCompat.setOnApplyWindowInsetsListener(decor) { view, windowInsets ->
-            val insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.ime())
-            view.updatePadding(
-                left = insets.left,
-                top = insets.top,
-                right = insets.right,
-                bottom = insets.bottom
-            )
-            WindowInsetsCompat.CONSUMED
-        }
-        decor.post { ViewCompat.requestApplyInsets(decor) }
-    }
-}
-
 internal fun TypedArray.resolveStringWithResId(
     context: Context,
     @StyleableRes stringAttr: Int,
-    defValue: Int? = null
+    defValue: Int? = null,
 ): Pair<Int?, String?> {
     var value: String? = getString(stringAttr)
     var resource: Int? = getResourceId(stringAttr, 0).takeIfDefined()
@@ -245,4 +247,16 @@ internal fun TypedArray.resolveStringWithResId(
         value = context.getString(resource)
     }
     return Pair(resource, value)
+}
+
+fun AttributeSet?.obtainStyledAttributes(context: Context, attrs: IntArray, defStyleAttr: Int = 0, defStyleRes: Int = 0, execute: (TypedArray) -> Unit) {
+    var ta: TypedArray? = null
+    try {
+        ta = context.obtainStyledAttributes(this, attrs, defStyleAttr, defStyleRes)
+        ta.let { execute.invoke(it) }
+    } catch (e: Exception) {
+        Log.e("obtainStyledAttributes", e.localizedMessage.orEmpty(), e)
+    } finally {
+        ta?.recycle()
+    }
 }

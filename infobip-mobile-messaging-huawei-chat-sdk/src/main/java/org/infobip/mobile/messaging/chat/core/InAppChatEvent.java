@@ -1,7 +1,6 @@
 package org.infobip.mobile.messaging.chat.core;
 
 public enum InAppChatEvent {
-
     /**
      * It is triggered when In-app chat widget configuration is synced.
      */
@@ -26,7 +25,6 @@ public enum InAppChatEvent {
      * <pre>
      * {@code
      * String viewName = intent.getStringExtra(BroadcastParameter.EXTRA_CHAT_VIEW);
-     * InAppChatWidgetView inAppChatWidgetView = InAppChatWidgetView.valueOf(viewName)
      * LivechatWidgetView livechatWidgetView = LivechatWidgetView.valueOf(viewName)
      * }
      * </pre>
@@ -44,7 +42,6 @@ public enum InAppChatEvent {
      * </pre>
      */
     IN_APP_CHAT_AVAILABILITY_UPDATED("org.infobip.mobile.messaging.chat.CHAT_AVAILABILITY_UPDATED");
-
     private final String key;
 
     InAppChatEvent(String key) {

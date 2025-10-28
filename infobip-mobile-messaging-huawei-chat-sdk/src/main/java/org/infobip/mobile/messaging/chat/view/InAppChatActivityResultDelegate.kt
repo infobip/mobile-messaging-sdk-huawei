@@ -53,7 +53,7 @@ internal class InAppChatActivityResultDelegateImpl(
 
     override fun onCreate(owner: LifecycleOwner) {
         requestPermissionLauncher = activity.activityResultRegistry.register(
-            "requestPermissionLauncherKey${this.hashCode()}",
+            "requestPermissionLauncherKey${this.hashCode()}", //hashCode has to be used to avoid key duplication if multiple instances coexist in the same time
             owner,
             ActivityResultContracts.RequestPermission()
         ) { onRequestPermissionResult?.invoke(it) }

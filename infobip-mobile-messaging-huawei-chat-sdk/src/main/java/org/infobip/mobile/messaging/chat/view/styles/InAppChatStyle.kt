@@ -6,6 +6,7 @@ import android.util.AttributeSet
 import androidx.annotation.ColorInt
 import androidx.annotation.StringRes
 import androidx.annotation.StyleRes
+import androidx.core.graphics.toColorInt
 import org.infobip.mobile.messaging.api.chat.WidgetInfo
 import org.infobip.mobile.messaging.chat.R
 import org.infobip.mobile.messaging.chat.utils.colorBackground
@@ -15,20 +16,20 @@ import org.infobip.mobile.messaging.chat.utils.resolveStringWithResId
 import org.infobip.mobile.messaging.chat.utils.takeIfDefined
 
 data class InAppChatStyle @JvmOverloads constructor(
-    @ColorInt val backgroundColor: Int = Defaults.backgroundColor,
-    @ColorInt val progressBarColor: Int = Defaults.progressBarColor,
-    val networkConnectionText: String? = null,
-    @StringRes val networkConnectionTextRes: Int? = Defaults.networkConnectionTextRes,
-    @StyleRes val networkConnectionTextAppearance: Int? = null,
-    @ColorInt val networkConnectionTextColor: Int = Defaults.networkConnectionTextColor,
-    @ColorInt val networkConnectionLabelBackgroundColor: Int = Defaults.networkConnectionLabelBackgroundColor,
+        @ColorInt val backgroundColor: Int = Defaults.backgroundColor,
+        @ColorInt val progressBarColor: Int = Defaults.progressBarColor,
+        val networkConnectionText: String? = null,
+        @StringRes val networkConnectionTextRes: Int? = Defaults.networkConnectionTextRes,
+        @StyleRes val networkConnectionTextAppearance: Int? = null,
+        @ColorInt val networkConnectionTextColor: Int = Defaults.networkConnectionTextColor,
+        @ColorInt val networkConnectionLabelBackgroundColor: Int = Defaults.networkConnectionLabelBackgroundColor,
 ) {
     object Defaults {
         @ColorInt val backgroundColor: Int = Color.WHITE
         @ColorInt val progressBarColor: Int = Color.BLACK
         @StringRes val networkConnectionTextRes: Int = R.string.ib_chat_no_connection
         @ColorInt val networkConnectionTextColor: Int = Color.BLACK
-        @ColorInt val networkConnectionLabelBackgroundColor: Int = Color.parseColor("#808080")
+        @ColorInt val networkConnectionLabelBackgroundColor: Int = "#808080".toColorInt()
     }
 
     class Builder {
@@ -70,31 +71,34 @@ data class InAppChatStyle @JvmOverloads constructor(
          * Priority: `IB_AppTheme.Chat.ibChatStyle` > [WidgetInfo] > `IB.Chat` style
          */
         internal operator fun invoke(
-            context: Context,
-            attrs: AttributeSet?,
-            widgetInfo: WidgetInfo?
+                context: Context,
+                attrs: AttributeSet?,
+                widgetInfo: WidgetInfo?
         ): InAppChatStyle {
             context.obtainStyledAttributes(
-                attrs,
-                R.styleable.InAppChatViewStyleable,
-                R.attr.ibChatStyle,
-                R.style.IB_Chat
+                    attrs,
+                    R.styleable.InAppChatViewStyleable,
+                    R.attr.ibChatStyle,
+                    R.style.IB_Chat
             ).run {
                 val isIbDefaultTheme = context.theme.isIbDefaultTheme()
 
-                val backgroundColor = widgetInfo?.colorBackground?.takeIf { isIbDefaultTheme }
-                    ?: getColor(R.styleable.InAppChatViewStyleable_ibChatBackgroundColor, Defaults.backgroundColor)
+                //Take widget color only if default theme is used or attribute is not defined in integrator's theme
+                val backgroundColor = widgetInfo?.colorBackground?.takeIf {
+                    isIbDefaultTheme || !hasValue(R.styleable.InAppChatViewStyleable_ibChatBackgroundColor)
+                } ?: getColor(R.styleable.InAppChatViewStyleable_ibChatBackgroundColor, Defaults.backgroundColor)
 
-                val progressBarColor =  widgetInfo?.colorPrimaryDark?.takeIf { isIbDefaultTheme }
-                    ?: getColor(R.styleable.InAppChatViewStyleable_ibChatProgressBarColor, Defaults.progressBarColor)
+                val progressBarColor =  widgetInfo?.colorPrimaryDark?.takeIf {
+                    isIbDefaultTheme || !hasValue(R.styleable.InAppChatViewStyleable_ibChatProgressBarColor)
+                } ?: getColor(R.styleable.InAppChatViewStyleable_ibChatProgressBarColor, Defaults.progressBarColor)
 
                 val connectionErrorLabelBackgroundColor = getColor(
-                    R.styleable.InAppChatViewStyleable_ibChatNetworkConnectionErrorLabelBackgroundColor,
-                    Defaults.networkConnectionLabelBackgroundColor
+                        R.styleable.InAppChatViewStyleable_ibChatNetworkConnectionErrorLabelBackgroundColor,
+                        Defaults.networkConnectionLabelBackgroundColor
                 )
                 val connectionErrorTextColor = getColor(
-                    R.styleable.InAppChatViewStyleable_ibChatNetworkConnectionErrorTextColor,
-                    Defaults.networkConnectionTextColor
+                        R.styleable.InAppChatViewStyleable_ibChatNetworkConnectionErrorTextColor,
+                        Defaults.networkConnectionTextColor
                 )
                 val (connectionErrorTextRes, connectionErrorText) = resolveStringWithResId(
                     context,
@@ -102,19 +106,19 @@ data class InAppChatStyle @JvmOverloads constructor(
                     Defaults.networkConnectionTextRes
                 )
                 val connectionErrorTextAppearance = getResourceId(
-                    R.styleable.InAppChatViewStyleable_ibChatNetworkConnectionErrorTextAppearance,
-                    0
+                        R.styleable.InAppChatViewStyleable_ibChatNetworkConnectionErrorTextAppearance,
+                        0
                 ).takeIfDefined()
 
                 recycle()
                 return InAppChatStyle(
-                    backgroundColor = backgroundColor,
-                    progressBarColor = progressBarColor,
-                    networkConnectionText = connectionErrorText,
-                    networkConnectionTextRes = connectionErrorTextRes,
-                    networkConnectionTextColor = connectionErrorTextColor,
-                    networkConnectionTextAppearance = connectionErrorTextAppearance,
-                    networkConnectionLabelBackgroundColor = connectionErrorLabelBackgroundColor,
+                        backgroundColor = backgroundColor,
+                        progressBarColor = progressBarColor,
+                        networkConnectionText = connectionErrorText,
+                        networkConnectionTextRes = connectionErrorTextRes,
+                        networkConnectionTextColor = connectionErrorTextColor,
+                        networkConnectionTextAppearance = connectionErrorTextAppearance,
+                        networkConnectionLabelBackgroundColor = connectionErrorLabelBackgroundColor,
                 )
             }
         }

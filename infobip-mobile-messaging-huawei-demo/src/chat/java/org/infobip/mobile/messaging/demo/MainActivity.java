@@ -21,6 +21,7 @@ import android.widget.Toast;
 
 import com.google.android.material.progressindicator.LinearProgressIndicator;
 import com.google.android.material.textfield.TextInputEditText;
+import com.google.android.material.textfield.TextInputLayout;
 
 import org.infobip.mobile.messaging.BroadcastParameter;
 import org.infobip.mobile.messaging.Event;
@@ -182,7 +183,6 @@ public class MainActivity extends AppCompatActivity {
     public boolean onOptionsItemSelected(MenuItem item) {
         if (item.getItemId() == R.id.action_id) {
             saveToClipboard(getString(R.string.push_registration_id), getPushRegId());
-            Toast.makeText(this, getString(R.string.push_registration_id) + " " + getString(R.string.toast_registration_id_copy), Toast.LENGTH_SHORT).show();
             return true;
         } else if (item.getGroupId() == R.id.languages) {
             LivechatWidgetLanguage language = lcLangFromId(item.getItemId());
@@ -396,32 +396,20 @@ public class MainActivity extends AppCompatActivity {
 
     private InAppChatErrorsHandler getInAppChatErrorHandler() {
         return new InAppChatErrorsHandler() {
-            @Override
-            public void handlerError(@NonNull String error) {
-                MobileMessagingLogger.d(TAG, "[DEPRECATED] On demo app handle error: " + error);
-            }
-
-            @Override
-            public void handlerWidgetError(@NonNull String error) {
-                MobileMessagingLogger.d(TAG, "[DEPRECATED] On demo app handle widget error: " + error);
-            }
-
-            @Override
-            public void handlerNoInternetConnectionError(boolean hasConnection) {
-                MobileMessagingLogger.d(TAG, "[DEPRECATED] On demo app handle no internet connection error: " + hasConnection);
-            }
 
             @Override
             public boolean handleError(@NonNull InAppChatException exception) {
                 MobileMessagingLogger.d(TAG, "On demo app handle exception: " + exception.getMessage());
                 return true;
             }
+
         };
     }
 
+
     private void setUpOpenChatActivityButton() {
         openChatActivityButton.setOnClickListener((v) -> {
-            inAppChat.inAppChatScreen().setErrorHandler(getInAppChatErrorHandler());
+            //inAppChat.inAppChatScreen().setErrorHandler(getInAppChatErrorHandler());
             inAppChat.inAppChatScreen().setEventsListener(getInAppChatEventsListener());
             inAppChat.inAppChatScreen().show();
         });
@@ -465,10 +453,9 @@ public class MainActivity extends AppCompatActivity {
                     }
                 }
                 MobileMessagingLogger.d(TAG, "Providing JWT for " + authData + " = " + jwt);
-                if (StringUtils.isNotBlank(jwt)) {
+                if (StringUtils.isNotBlank(jwt)){
                     callback.onJwtReady(jwt);
-                }
-                else {
+                } else {
                     callback.onJwtError(new IllegalStateException("JWT is null, check widgetId and widget secret key."));
                 }
             };

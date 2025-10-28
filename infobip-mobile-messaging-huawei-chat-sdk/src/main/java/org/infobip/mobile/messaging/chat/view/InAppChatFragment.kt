@@ -4,8 +4,6 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
-import android.os.Handler
-import android.os.Looper
 import android.text.Editable
 import android.text.TextWatcher
 import android.view.LayoutInflater
@@ -18,8 +16,18 @@ import androidx.core.net.toUri
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.flowWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.infobip.mobile.messaging.api.chat.WidgetInfo
@@ -51,6 +59,7 @@ import org.infobip.mobile.messaging.chat.view.styles.apply
 import org.infobip.mobile.messaging.chat.view.styles.factory.StyleFactory
 import org.infobip.mobile.messaging.logging.MobileMessagingLogger
 
+@OptIn(FlowPreview::class)
 class InAppChatFragment : Fragment(), InAppChatFragmentActivityResultDelegate.ResultListener {
 
     /**
@@ -106,11 +115,8 @@ class InAppChatFragment : Fragment(), InAppChatFragmentActivityResultDelegate.Re
                 navigateBack()
         }
     }
-    private val inputFinishChecker: InAppChatInputFinishChecker =
-        InAppChatInputFinishChecker { draft ->
-            withBinding { it.ibLcChat.send(MessagePayload.Draft(draft)) }
-        }
-    private val inputCheckerHandler = Handler(Looper.getMainLooper())
+    private val inputTextFlow = MutableStateFlow("")
+    private var sendDraftJob: Job? = null
     private var lifecycleRegistry: InAppChatFragmentLifecycleRegistry? = null
     private lateinit var activityResultDelegate: InAppChatFragmentActivityResultDelegate
 
@@ -120,24 +126,6 @@ class InAppChatFragment : Fragment(), InAppChatFragmentActivityResultDelegate.Re
     var eventsListener: EventsListener? = null
 
     val defaultErrorsHandler = object : ErrorsHandler {
-        override fun handlerError(error: String) {
-            withBinding {
-                it.ibLcChat.defaultErrorsHandler.handlerError(error)
-            }
-        }
-
-        override fun handlerWidgetError(error: String) {
-            withBinding {
-                it.ibLcChat.defaultErrorsHandler.handlerWidgetError(error)
-            }
-        }
-
-        override fun handlerNoInternetConnectionError(hasConnection: Boolean) {
-            withBinding {
-                it.ibLcChat.defaultErrorsHandler.handlerNoInternetConnectionError(hasConnection)
-            }
-        }
-
         override fun handleError(exception: InAppChatException): Boolean {
             withBinding {
                 return it.ibLcChat.defaultErrorsHandler.handleError(exception)
@@ -214,6 +202,25 @@ class InAppChatFragment : Fragment(), InAppChatFragmentActivityResultDelegate.Re
      */
     var handleBackPress = true
 
+    /**
+     * Timeout duration for loading chat in milliseconds.
+     *
+     * It has no effect if set to null or fragment is not attached yet.
+     *
+     * - **Minimum allowed:** 5,000 ms (5 seconds)
+     * - **Maximum allowed:** 300,000 ms (5 minutes)
+     * - **Default value:** 10,000 ms (10 seconds)
+     *
+     * @throws InAppChatException.LivechatWidgetInvalidLoadingTimeoutValue if the value is set outside the allowed range.
+     */
+    @set:Throws(InAppChatException.LivechatWidgetInvalidLoadingTimeoutValue::class)
+    var loadingTimeoutMillis: Long?
+        get() = _binding?.ibLcChat?.loadingTimeoutMillis
+        set(value) {
+            if (value != null)
+                _binding?.ibLcChat?.loadingTimeoutMillis = value
+        }
+
     //region Lifecycle
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -265,11 +272,6 @@ class InAppChatFragment : Fragment(), InAppChatFragmentActivityResultDelegate.Re
             widgetInfo?.let { updateViews(it) }
         }
         backPressedCallback.isEnabled = !isHidden
-    }
-
-    override fun onPause() {
-        super.onPause()
-        sendInputDraftImmediately()
     }
 
     override fun onDestroyView() {
@@ -593,7 +595,7 @@ class InAppChatFragment : Fragment(), InAppChatFragmentActivityResultDelegate.Re
             override fun onChatWidgetInfoUpdated(widgetInfo: WidgetInfo) {
                 this@InAppChatFragment.widgetInfo = widgetInfo
                 updateViews(widgetInfo)
-                MobileMessagingLogger.w(TAG, "WidgetInfo updated $widgetInfo")
+                MobileMessagingLogger.d(TAG, "WidgetInfo updated $widgetInfo")
                 eventsListener?.onChatWidgetInfoUpdated(widgetInfo)
             }
 
@@ -602,22 +604,9 @@ class InAppChatFragment : Fragment(), InAppChatFragmentActivityResultDelegate.Re
             }
         }
         binding.ibLcChat.errorsHandler = object : InAppChatView.ErrorsHandler {
-            override fun handlerError(error: String) {
-                errorsHandler.handlerError(error)
-            }
-
-            override fun handlerWidgetError(error: String) {
-                errorsHandler.handlerWidgetError(error)
-            }
-
-            override fun handlerNoInternetConnectionError(hasConnection: Boolean) {
-                errorsHandler.handlerNoInternetConnectionError(hasConnection)
-            }
-
             override fun handleError(exception: InAppChatException): Boolean {
                 return errorsHandler.handleError(exception)
             }
-
         }
         binding.ibLcChat.init(getLifecycleRegistry().lifecycle)
     }
@@ -644,22 +633,27 @@ class InAppChatFragment : Fragment(), InAppChatFragmentActivityResultDelegate.Re
             }
 
             override fun onTextChanged(s: CharSequence, start: Int, before: Int, count: Int) {
-                inputCheckerHandler.removeCallbacks(inputFinishChecker)
                 binding.ibLcChatInput.setSendButtonEnabled(s.isNotEmpty())
             }
 
             override fun afterTextChanged(s: Editable) {
-                inputFinishChecker.setInputValue(s.toString())
-                inputCheckerHandler.postDelayed(
-                    inputFinishChecker,
-                    USER_INPUT_CHECKER_DELAY_MS.toLong()
-                )
+                inputTextFlow.value = s.toString()
             }
         })
         binding.ibLcChatInput.setInputFocusChangeListener { _: View?, hasFocus: Boolean ->
             if (!hasFocus)
                 binding.ibLcChatInput.hideKeyboard()
         }
+        if (sendDraftJob?.isActive == true)
+            sendDraftJob?.cancel()
+        sendDraftJob = inputTextFlow
+            .debounce(USER_INPUT_CHECKER_DELAY_MS.toLong())
+            .flowWithLifecycle(viewLifecycleOwner.lifecycle, Lifecycle.State.RESUMED)
+            .flowOn(Dispatchers.Main)
+            .filter { it.isNotEmpty() }
+            .map { if (it.length > LivechatWidgetApi.MESSAGE_MAX_LENGTH) it.substring(0, LivechatWidgetApi.MESSAGE_MAX_LENGTH) else it }
+            .onEach { draft -> withBinding { it.ibLcChat.send(MessagePayload.Draft(draft)) } }
+            .launchIn(viewLifecycleOwner.lifecycleScope)
     }
 
     private fun initSendButton() = with(binding.ibLcChatInput) {
@@ -691,7 +685,9 @@ class InAppChatFragment : Fragment(), InAppChatFragmentActivityResultDelegate.Re
 
     private fun applyChatInputStyle(widgetInfo: WidgetInfo) {
         updateAttachmentButton(widgetInfo)
-        withBinding { it.ibLcChatInput.applyWidgetInfoStyle(widgetInfo) }
+        withBinding {
+            it.ibLcChatInput.applyWidgetInfoStyle(widgetInfo)
+        }
     }
 
     private fun updateInputVisibilityByMultiThreadView(widgetView: LivechatWidgetView) {
@@ -731,23 +727,15 @@ class InAppChatFragment : Fragment(), InAppChatFragmentActivityResultDelegate.Re
         }
     }
 
-    private fun sendInputDraftImmediately() {
-        if (!withInput)
-            return
-        inputCheckerHandler.removeCallbacks(inputFinishChecker)
-        inputCheckerHandler.post(inputFinishChecker)
-    }
-
     //region Attachment picker
-
     private fun showAttachmentActionDialog(allowedExtensions: Set<String>) {
         if (allowedExtensions.isEmpty()) {
-            MobileMessagingLogger.e(TAG, "Attachment picker skipped: no allowed attachment extensions are configured in the LiveChat Widget.")
+            MobileMessagingLogger.w(TAG, "Attachment picker skipped: no allowed attachment extensions are configured in the LiveChat Widget.")
             return
         }
         val specifications: Set<AttachmentSourceSpecification> = InAppChatAttachment.getAvailableSourcesSpecifications(requireContext(), allowedExtensions)
         if (specifications.isEmpty()) {
-            MobileMessagingLogger.e(TAG, "Attachment picker skipped: no available attachment sources match the allowed extensions configured in the LiveChat Widget.")
+            MobileMessagingLogger.w(TAG, "Attachment picker skipped: no available attachment sources match the allowed extensions configured in the LiveChat Widget.")
             return
         }
 
@@ -796,7 +784,10 @@ class InAppChatFragment : Fragment(), InAppChatFragmentActivityResultDelegate.Re
             }.onFailure {
                 MobileMessagingLogger.e(TAG, "Failed to create In-app chat attachment", it)
                 val messageRes =
-                    if (it.message == "Attachment data is too large") R.string.ib_chat_allowed_attachment_size_exceeded else R.string.ib_chat_cant_create_attachment
+                    if ((it as? InAppChatException)?.technicalMessage?.contains("Attachment exceeds maximum allowed size") == true)
+                        R.string.ib_chat_allowed_attachment_size_exceeded
+                    else
+                        R.string.ib_chat_cant_create_attachment
                 Toast.makeText(
                     context,
                     localizationUtils.getString(messageRes),
@@ -829,7 +820,7 @@ class InAppChatFragment : Fragment(), InAppChatFragmentActivityResultDelegate.Re
         noinline fallback: (() -> Unit)? = null,
         action: (IbFragmentChatBinding) -> Unit,
     ) {
-        _binding?.let(action) ?: fallback?.invoke() ?: MobileMessagingLogger.e(TAG, "Could not execute action, fragment is not attached yet")
+        _binding?.let(action) ?: fallback?.invoke() ?: MobileMessagingLogger.w(TAG, "Could not execute action, fragment is not attached yet")
     }
 
     private fun getLifecycleRegistry(): InAppChatFragmentLifecycleRegistry {

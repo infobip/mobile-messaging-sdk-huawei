@@ -2,6 +2,7 @@ package org.infobip.mobile.messaging.chat.models
 
 import androidx.annotation.StringRes
 import org.infobip.mobile.messaging.chat.R
+import org.infobip.mobile.messaging.chat.core.InAppChatException
 
 /**
  * Represents the source of the attachment.
@@ -21,7 +22,7 @@ internal sealed class AttachmentSourceSpecification(
     @StringRes val nameRes: Int,
 ) {
 
-    data class Camera @Throws(IllegalArgumentException::class) constructor(
+    data class Camera @Throws(InAppChatException::class) constructor(
         val photoFileExtension: String,
     ) : AttachmentSourceSpecification(AttachmentSource.Camera, R.string.ib_chat_attachments_take_a_photo) {
         companion object {
@@ -30,13 +31,13 @@ internal sealed class AttachmentSourceSpecification(
         }
 
         init {
-            require(allowedFileExtension.any { photoFileExtension.equals(it, ignoreCase = true) }) {
-                "Photo file extension must by jpg or jpeg."
+            if (allowedFileExtension.none { photoFileExtension.equals(it, ignoreCase = true) }) {
+                throw InAppChatException.InvalidPhotoAttachmentExtension()
             }
         }
     }
 
-    data class VideoRecorder @Throws(IllegalArgumentException::class) constructor(
+    data class VideoRecorder @Throws(InAppChatException::class) constructor(
         val videoFileExtension: String,
     ) : AttachmentSourceSpecification(AttachmentSource.VideoRecorder, R.string.ib_chat_attachments_record_video) {
         companion object {
@@ -45,8 +46,8 @@ internal sealed class AttachmentSourceSpecification(
         }
 
         init {
-            require(allowedFileExtension.any { videoFileExtension.equals(it, ignoreCase = true) }) {
-                "Video file extension must by mp4 or 3gp."
+            if (allowedFileExtension.none { videoFileExtension.equals(it, ignoreCase = true) }) {
+                throw InAppChatException.InvalidVideoAttachmentExtension()
             }
         }
     }

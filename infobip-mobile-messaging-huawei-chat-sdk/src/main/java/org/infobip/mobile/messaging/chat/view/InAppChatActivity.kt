@@ -1,5 +1,6 @@
 package org.infobip.mobile.messaging.chat.view
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
@@ -56,6 +57,7 @@ class InAppChatActivity : AppCompatActivity() {
         super.attachBaseContext(newBase?.applyInAppChatLanguage())
     }
 
+    @SuppressLint("CommitTransaction")
     override fun onCreate(savedInstanceState: Bundle?) {
         setTheme(getChatViewTheme(this))
         super.onCreate(savedInstanceState)
@@ -69,7 +71,7 @@ class InAppChatActivity : AppCompatActivity() {
                 .replace(R.id.ib_in_app_chat_fragment, fragment, IN_APP_CHAT_FRAGMENT_TAG)
                 .commit()
         }.onFailure {
-            MobileMessagingLogger.w(TAG, "Failed to show InAppChatFragment.", it)
+            MobileMessagingLogger.e(TAG, "Failed to show InAppChatFragment.", it)
         }
     }
 
@@ -77,7 +79,6 @@ class InAppChatActivity : AppCompatActivity() {
         super.onNewIntent(intent)
         handleIntent(intent)
     }
-
 
     private fun getEventsListener(): EventsListener {
         val activityEventsListener = InAppChat.getInstance(this).inAppChatScreen().eventsListener
@@ -167,18 +168,6 @@ class InAppChatActivity : AppCompatActivity() {
     private fun getErrorsHandler(): ErrorsHandler? {
         return InAppChat.getInstance(this).inAppChatScreen().errorHandler?.let { activityErrorHandler ->
             object : ErrorsHandler {
-                override fun handlerError(error: String) {
-                    activityErrorHandler.handlerError(error)
-                }
-
-                override fun handlerWidgetError(error: String) {
-                    activityErrorHandler.handlerWidgetError(error)
-                }
-
-                override fun handlerNoInternetConnectionError(hasConnection: Boolean) {
-                    activityErrorHandler.handlerNoInternetConnectionError(hasConnection)
-                }
-
                 override fun handleError(exception: InAppChatException): Boolean {
                     return activityErrorHandler.handleError(exception)
                 }
@@ -199,7 +188,7 @@ class InAppChatActivity : AppCompatActivity() {
                 intent.removeExtra(BroadcastParameter.EXTRA_MESSAGE)
             }
         }.onFailure {
-            MobileMessagingLogger.w(TAG, "Failed to send initial livechat message.", it)
+            MobileMessagingLogger.e(TAG, "Failed to send initial livechat message.", it)
         }
     }
 
