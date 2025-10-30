@@ -1,7 +1,12 @@
+/*
+ * HmsMessageMapper.java
+ * Mobile Messaging SDK
+ *
+ * Copyright (c) 2016-2025 Infobip Limited
+ * Licensed under the Apache License, Version 2.0
+ */
 package org.infobip.mobile.messaging.cloud.hms;
 
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import android.text.TextUtils;
 
 import com.huawei.hms.push.RemoteMessage;
@@ -13,7 +18,8 @@ import org.infobip.mobile.messaging.logging.MobileMessagingLogger;
 import org.infobip.mobile.messaging.platform.Time;
 import org.json.JSONObject;
 
-import java.util.Map;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 /**
  * @author sslavin

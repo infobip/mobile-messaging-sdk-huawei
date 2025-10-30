@@ -1,3 +1,10 @@
+/*
+ * ComponentUtil.java
+ * Mobile Messaging SDK
+ *
+ * Copyright (c) 2016-2025 Infobip Limited
+ * Licensed under the Apache License, Version 2.0
+ */
 package org.infobip.mobile.messaging.util;
 
 import android.app.Service;
@@ -8,8 +15,6 @@ import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.os.Build;
 
-import androidx.localbroadcastmanager.content.LocalBroadcastManager;
-
 import org.infobip.mobile.messaging.ConfigurationException;
 import org.infobip.mobile.messaging.LocalEvent;
 import org.infobip.mobile.messaging.MobileMessagingConnectivityReceiver;
@@ -17,6 +22,8 @@ import org.infobip.mobile.messaging.MobileMessagingSynchronizationReceiver;
 import org.infobip.mobile.messaging.cloud.hms.MobileMessagingHmsService;
 import org.infobip.mobile.messaging.logging.MobileMessagingLogger;
 import org.infobip.mobile.messaging.platform.MobileMessagingJobService;
+
+import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 /**
  * Utility class for component state management

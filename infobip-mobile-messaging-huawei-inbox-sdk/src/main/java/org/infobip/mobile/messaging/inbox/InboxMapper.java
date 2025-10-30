@@ -1,6 +1,11 @@
+/*
+ * InboxMapper.java
+ * Mobile Messaging SDK
+ *
+ * Copyright (c) 2016-2025 Infobip Limited
+ * Licensed under the Apache License, Version 2.0
+ */
 package org.infobip.mobile.messaging.inbox;
-
-import androidx.annotation.NonNull;
 
 import org.infobip.mobile.messaging.Message;
 import org.infobip.mobile.messaging.api.inbox.FetchInboxResponse;
@@ -13,6 +18,8 @@ import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import androidx.annotation.NonNull;
 
 public class InboxMapper {
     public static Inbox fromBackend(@NonNull FetchInboxResponse fetchInboxResponse) {

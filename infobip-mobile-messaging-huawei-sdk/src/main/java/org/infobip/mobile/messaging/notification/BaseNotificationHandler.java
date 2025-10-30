@@ -1,6 +1,11 @@
+/*
+ * BaseNotificationHandler.java
+ * Mobile Messaging SDK
+ *
+ * Copyright (c) 2016-2025 Infobip Limited
+ * Licensed under the Apache License, Version 2.0
+ */
 package org.infobip.mobile.messaging.notification;
-
-import static org.infobip.mobile.messaging.BroadcastParameter.EXTRA_MESSAGE;
 
 import android.Manifest;
 import android.app.Notification;
@@ -14,14 +19,6 @@ import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Build;
 import android.util.Log;
-
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.annotation.VisibleForTesting;
-import androidx.arch.core.util.Function;
-import androidx.core.app.NotificationCompat;
-import androidx.core.content.ContextCompat;
-import androidx.core.graphics.BitmapCompat;
 
 import org.infobip.mobile.messaging.ConfigurationException;
 import org.infobip.mobile.messaging.Message;
@@ -43,6 +40,16 @@ import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.annotation.VisibleForTesting;
+import androidx.arch.core.util.Function;
+import androidx.core.app.NotificationCompat;
+import androidx.core.content.ContextCompat;
+import androidx.core.graphics.BitmapCompat;
+
+import static org.infobip.mobile.messaging.BroadcastParameter.EXTRA_MESSAGE;
 
 /**
  * @author sslavin

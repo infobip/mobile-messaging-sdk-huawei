@@ -1,8 +1,11 @@
+/*
+ * UserJson.java
+ * Mobile Messaging SDK
+ *
+ * Copyright (c) 2016-2025 Infobip Limited
+ * Licensed under the Apache License, Version 2.0
+ */
 package org.infobip.mobile.messaging.plugins;
-
-import static org.infobip.mobile.messaging.plugins.InstallationJson.cleanupJsonMapForClient;
-
-import androidx.annotation.NonNull;
 
 import com.google.gson.reflect.TypeToken;
 
@@ -24,6 +27,10 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+
+import androidx.annotation.NonNull;
+
+import static org.infobip.mobile.messaging.plugins.InstallationJson.cleanupJsonMapForClient;
 
 /**
  * User data mapper for JSON conversion in plugins

@@ -1,6 +1,11 @@
+/*
+ * InstallationJson.java
+ * Mobile Messaging SDK
+ *
+ * Copyright (c) 2016-2025 Infobip Limited
+ * Licensed under the Apache License, Version 2.0
+ */
 package org.infobip.mobile.messaging.plugins;
-
-import androidx.annotation.NonNull;
 
 import com.google.gson.reflect.TypeToken;
 
@@ -17,6 +22,8 @@ import org.json.JSONObject;
 import java.lang.reflect.Type;
 import java.util.List;
 import java.util.Map;
+
+import androidx.annotation.NonNull;
 
 /**
  * Installation data mapper for JSON conversion in plugins

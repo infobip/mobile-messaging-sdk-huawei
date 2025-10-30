@@ -1,6 +1,11 @@
+/*
+ * MobileInboxSynchronizer.java
+ * Mobile Messaging SDK
+ *
+ * Copyright (c) 2016-2025 Infobip Limited
+ * Licensed under the Apache License, Version 2.0
+ */
 package org.infobip.mobile.messaging.inbox;
-
-import static org.infobip.mobile.messaging.util.StringUtils.isBlank;
 
 import android.content.Context;
 
@@ -20,6 +25,8 @@ import org.infobip.mobile.messaging.platform.AndroidBroadcaster;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import static org.infobip.mobile.messaging.util.StringUtils.isBlank;
 
 public class MobileInboxSynchronizer {
 

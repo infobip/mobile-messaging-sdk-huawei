@@ -1,3 +1,10 @@
+/*
+ * NotificationTapReceiverActivity.java
+ * Mobile Messaging SDK
+ *
+ * Copyright (c) 2016-2025 Infobip Limited
+ * Licensed under the Apache License, Version 2.0
+ */
 package org.infobip.mobile.messaging;
 
 import android.app.Activity;
@@ -5,12 +12,12 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 
-import androidx.annotation.Nullable;
-import androidx.annotation.VisibleForTesting;
-
 import org.infobip.mobile.messaging.logging.MobileMessagingLogger;
 import org.infobip.mobile.messaging.platform.AndroidBroadcaster;
 import org.infobip.mobile.messaging.platform.Broadcaster;
+
+import androidx.annotation.Nullable;
+import androidx.annotation.VisibleForTesting;
 
 public class NotificationTapReceiverActivity extends Activity {
     private Broadcaster broadcaster;

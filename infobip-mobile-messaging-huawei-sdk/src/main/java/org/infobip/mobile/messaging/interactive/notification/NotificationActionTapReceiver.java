@@ -1,3 +1,10 @@
+/*
+ * NotificationActionTapReceiver.java
+ * Mobile Messaging SDK
+ *
+ * Copyright (c) 2016-2025 Infobip Limited
+ * Licensed under the Apache License, Version 2.0
+ */
 package org.infobip.mobile.messaging.interactive.notification;
 
 import android.app.NotificationManager;
@@ -5,8 +12,6 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
-import androidx.annotation.VisibleForTesting;
-import androidx.core.app.RemoteInput;
 
 import org.infobip.mobile.messaging.BroadcastParameter;
 import org.infobip.mobile.messaging.Message;
@@ -19,6 +24,9 @@ import org.infobip.mobile.messaging.interactive.NotificationCategory;
 import org.infobip.mobile.messaging.interactive.platform.AndroidInteractiveBroadcaster;
 import org.infobip.mobile.messaging.interactive.platform.InteractiveBroadcaster;
 import org.infobip.mobile.messaging.logging.MobileMessagingLogger;
+
+import androidx.annotation.VisibleForTesting;
+import androidx.core.app.RemoteInput;
 
 import static org.infobip.mobile.messaging.BroadcastParameter.EXTRA_TAPPED_ACTION;
 import static org.infobip.mobile.messaging.BroadcastParameter.EXTRA_TAPPED_CATEGORY;

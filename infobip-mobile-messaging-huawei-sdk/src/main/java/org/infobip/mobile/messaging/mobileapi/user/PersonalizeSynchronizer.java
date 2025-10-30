@@ -1,7 +1,12 @@
+/*
+ * PersonalizeSynchronizer.java
+ * Mobile Messaging SDK
+ *
+ * Copyright (c) 2016-2025 Infobip Limited
+ * Licensed under the Apache License, Version 2.0
+ */
 package org.infobip.mobile.messaging.mobileapi.user;
 
-
-import static org.infobip.mobile.messaging.util.AuthorizationUtils.getAuthorizationHeader;
 
 import org.infobip.mobile.messaging.MobileMessaging;
 import org.infobip.mobile.messaging.MobileMessagingCore;
@@ -23,6 +28,8 @@ import org.infobip.mobile.messaging.platform.Broadcaster;
 import org.infobip.mobile.messaging.util.StringUtils;
 
 import java.util.concurrent.Executor;
+
+import static org.infobip.mobile.messaging.util.AuthorizationUtils.getAuthorizationHeader;
 
 public class PersonalizeSynchronizer {
 

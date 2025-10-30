@@ -1,13 +1,20 @@
+/*
+ * Installation.java
+ * Mobile Messaging SDK
+ *
+ * Copyright (c) 2016-2025 Infobip Limited
+ * Licensed under the Apache License, Version 2.0
+ */
 package org.infobip.mobile.messaging;
-
-import static org.infobip.mobile.messaging.InstallationMapper.fromBundle;
-import static org.infobip.mobile.messaging.platform.Platform.usedPushServiceType;
 
 import android.os.Bundle;
 
 import org.infobip.mobile.messaging.api.appinstance.AppInstanceAtts;
 
 import java.util.Map;
+
+import static org.infobip.mobile.messaging.InstallationMapper.fromBundle;
+import static org.infobip.mobile.messaging.platform.Platform.usedPushServiceType;
 
 public class Installation extends CustomAttributeHolder {
 

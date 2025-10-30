@@ -1,14 +1,11 @@
+/*
+ * MobileMessagingCloudService.java
+ * Mobile Messaging SDK
+ *
+ * Copyright (c) 2016-2025 Infobip Limited
+ * Licensed under the Apache License, Version 2.0
+ */
 package org.infobip.mobile.messaging.cloud;
-
-import static org.infobip.mobile.messaging.cloud.MobileMessagingCloudHandler.ACTION_CLOUD_MESSAGE_RECEIVE;
-import static org.infobip.mobile.messaging.cloud.MobileMessagingCloudHandler.ACTION_NEW_TOKEN;
-import static org.infobip.mobile.messaging.cloud.MobileMessagingCloudHandler.ACTION_TOKEN_ACQUIRE;
-import static org.infobip.mobile.messaging.cloud.MobileMessagingCloudHandler.ACTION_TOKEN_CLEANUP;
-import static org.infobip.mobile.messaging.cloud.MobileMessagingCloudHandler.ACTION_TOKEN_RESET;
-import static org.infobip.mobile.messaging.cloud.MobileMessagingCloudHandler.EXTRA_SENDER_ID;
-import static org.infobip.mobile.messaging.cloud.MobileMessagingCloudHandler.EXTRA_TOKEN;
-import static org.infobip.mobile.messaging.cloud.MobileMessagingCloudHandler.MM_ACTION;
-import static org.infobip.mobile.messaging.platform.Platform.mobileMessagingCloudHandler;
 
 import android.Manifest;
 import android.content.Context;
@@ -17,6 +14,12 @@ import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.text.TextUtils;
+
+import org.infobip.mobile.messaging.Message;
+import org.infobip.mobile.messaging.dal.bundle.MessageBundleMapper;
+import org.infobip.mobile.messaging.dal.data.MessageDataMapper;
+import org.infobip.mobile.messaging.logging.MobileMessagingLogger;
+import org.infobip.mobile.messaging.platform.Platform;
 
 import androidx.annotation.NonNull;
 import androidx.core.app.ActivityCompat;
@@ -28,11 +31,15 @@ import androidx.work.WorkManager;
 import androidx.work.Worker;
 import androidx.work.WorkerParameters;
 
-import org.infobip.mobile.messaging.Message;
-import org.infobip.mobile.messaging.dal.bundle.MessageBundleMapper;
-import org.infobip.mobile.messaging.dal.data.MessageDataMapper;
-import org.infobip.mobile.messaging.logging.MobileMessagingLogger;
-import org.infobip.mobile.messaging.platform.Platform;
+import static org.infobip.mobile.messaging.cloud.MobileMessagingCloudHandler.ACTION_CLOUD_MESSAGE_RECEIVE;
+import static org.infobip.mobile.messaging.cloud.MobileMessagingCloudHandler.ACTION_NEW_TOKEN;
+import static org.infobip.mobile.messaging.cloud.MobileMessagingCloudHandler.ACTION_TOKEN_ACQUIRE;
+import static org.infobip.mobile.messaging.cloud.MobileMessagingCloudHandler.ACTION_TOKEN_CLEANUP;
+import static org.infobip.mobile.messaging.cloud.MobileMessagingCloudHandler.ACTION_TOKEN_RESET;
+import static org.infobip.mobile.messaging.cloud.MobileMessagingCloudHandler.EXTRA_SENDER_ID;
+import static org.infobip.mobile.messaging.cloud.MobileMessagingCloudHandler.EXTRA_TOKEN;
+import static org.infobip.mobile.messaging.cloud.MobileMessagingCloudHandler.MM_ACTION;
+import static org.infobip.mobile.messaging.platform.Platform.mobileMessagingCloudHandler;
 
 /**
  * @author sslavin

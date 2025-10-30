@@ -1,3 +1,10 @@
+/*
+ * NotificationSettings.java
+ * Mobile Messaging SDK
+ *
+ * Copyright (c) 2016-2025 Infobip Limited
+ * Licensed under the Apache License, Version 2.0
+ */
 package org.infobip.mobile.messaging;
 
 import android.app.PendingIntent;
@@ -7,15 +14,15 @@ import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
 
-import androidx.annotation.ColorInt;
-import androidx.annotation.DrawableRes;
-import androidx.core.app.NotificationCompat;
-
 import org.infobip.mobile.messaging.logging.MobileMessagingLogger;
 import org.infobip.mobile.messaging.util.PreferenceHelper;
 import org.infobip.mobile.messaging.util.ResourceLoader;
 import org.infobip.mobile.messaging.util.SoftwareInformation;
 import org.infobip.mobile.messaging.util.StringUtils;
+
+import androidx.annotation.ColorInt;
+import androidx.annotation.DrawableRes;
+import androidx.core.app.NotificationCompat;
 
 /**
  * The notifications configuration class. It configures the how notification will look like if the library is displaying it.

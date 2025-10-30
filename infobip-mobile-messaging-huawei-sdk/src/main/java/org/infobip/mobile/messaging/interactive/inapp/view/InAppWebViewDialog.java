@@ -1,6 +1,11 @@
+/*
+ * InAppWebViewDialog.java
+ * Mobile Messaging SDK
+ *
+ * Copyright (c) 2016-2025 Infobip Limited
+ * Licensed under the Apache License, Version 2.0
+ */
 package org.infobip.mobile.messaging.interactive.inapp.view;
-
-import static android.content.Context.WINDOW_SERVICE;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
@@ -23,9 +28,6 @@ import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.PopupWindow;
 
-import androidx.annotation.NonNull;
-import androidx.cardview.widget.CardView;
-
 import org.infobip.mobile.messaging.MobileMessagingCore;
 import org.infobip.mobile.messaging.MobileMessagingProperty;
 import org.infobip.mobile.messaging.R;
@@ -45,6 +47,11 @@ import org.infobip.mobile.messaging.util.UserAgentAdditions;
 
 import java.util.HashMap;
 import java.util.Map;
+
+import androidx.annotation.NonNull;
+import androidx.cardview.widget.CardView;
+
+import static android.content.Context.WINDOW_SERVICE;
 
 public class InAppWebViewDialog implements InAppWebView, ActivityLifecycleListener {
     private static final String TAG = "[InAppWebViewDialog]";

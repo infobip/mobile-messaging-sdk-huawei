@@ -1,13 +1,15 @@
+/*
+ * ContentIntentWrapper.java
+ * Mobile Messaging SDK
+ *
+ * Copyright (c) 2016-2025 Infobip Limited
+ * Licensed under the Apache License, Version 2.0
+ */
 package org.infobip.mobile.messaging.app;
-
-import static org.infobip.mobile.messaging.BroadcastParameter.EXTRA_MESSAGE;
 
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
-
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 
 import org.infobip.mobile.messaging.Event;
 import org.infobip.mobile.messaging.Message;
@@ -15,6 +17,11 @@ import org.infobip.mobile.messaging.NotificationSettings;
 import org.infobip.mobile.messaging.dal.bundle.MessageBundleMapper;
 import org.infobip.mobile.messaging.logging.MobileMessagingLogger;
 import org.infobip.mobile.messaging.view.WebViewActivity;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+
+import static org.infobip.mobile.messaging.BroadcastParameter.EXTRA_MESSAGE;
 
 public class ContentIntentWrapper {
     protected final Context context;

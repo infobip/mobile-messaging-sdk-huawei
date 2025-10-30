@@ -1,9 +1,14 @@
+/*
+ * UserMapper.java
+ * Mobile Messaging SDK
+ *
+ * Copyright (c) 2016-2025 Infobip Limited
+ * Licensed under the Apache License, Version 2.0
+ */
 package org.infobip.mobile.messaging;
 
 import android.os.Bundle;
 import android.util.Pair;
-
-import androidx.annotation.Nullable;
 
 import org.infobip.mobile.messaging.api.appinstance.AppInstance;
 import org.infobip.mobile.messaging.api.appinstance.UserAtts;
@@ -23,6 +28,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
+import androidx.annotation.Nullable;
 
 
 public class UserMapper {

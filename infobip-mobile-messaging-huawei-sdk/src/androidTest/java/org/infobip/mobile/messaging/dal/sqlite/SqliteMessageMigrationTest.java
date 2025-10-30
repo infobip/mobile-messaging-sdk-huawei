@@ -1,8 +1,11 @@
+/*
+ * SqliteMessageMigrationTest.java
+ * Mobile Messaging SDK
+ *
+ * Copyright (c) 2016-2025 Infobip Limited
+ * Licensed under the Apache License, Version 2.0
+ */
 package org.infobip.mobile.messaging.dal.sqlite;
-
-import static junit.framework.Assert.assertEquals;
-import static org.junit.Assert.assertNotEquals;
-import static org.junit.Assert.assertNotNull;
 
 import android.content.ContentValues;
 import android.database.Cursor;
@@ -14,6 +17,10 @@ import org.infobip.mobile.messaging.storage.SQLiteMessageStore;
 import org.infobip.mobile.messaging.tools.MobileMessagingTestCase;
 import org.junit.Test;
 import org.skyscreamer.jsonassert.JSONAssert;
+
+import static junit.framework.Assert.assertEquals;
+import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.assertNotNull;
 
 /**
  * @author sslavin

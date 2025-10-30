@@ -1,3 +1,10 @@
+/*
+ * BaseDatabaseHelper.java
+ * Mobile Messaging SDK
+ *
+ * Copyright (c) 2016-2025 Infobip Limited
+ * Licensed under the Apache License, Version 2.0
+ */
 package org.infobip.mobile.messaging.dal.sqlite;
 
 import android.content.Context;
@@ -6,7 +13,6 @@ import android.database.DatabaseUtils;
 import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
-import androidx.annotation.NonNull;
 import android.util.Log;
 
 import org.infobip.mobile.messaging.logging.MobileMessagingLogger;
@@ -16,6 +22,8 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import androidx.annotation.NonNull;
 
 /**
  * @author sslavin

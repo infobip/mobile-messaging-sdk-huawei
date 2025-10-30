@@ -1,14 +1,22 @@
+/*
+ * SoftwareInformation.java
+ * Mobile Messaging SDK
+ *
+ * Copyright (c) 2016-2025 Infobip Limited
+ * Licensed under the Apache License, Version 2.0
+ */
 package org.infobip.mobile.messaging.util;
 
 import android.content.Context;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
-import androidx.core.app.NotificationManagerCompat;
 import android.util.Log;
 
 import org.infobip.mobile.messaging.BuildConfig;
-import org.infobip.mobile.messaging.logging.MobileMessagingLogger;
 import org.infobip.mobile.messaging.MobileMessagingProperty;
+import org.infobip.mobile.messaging.logging.MobileMessagingLogger;
+
+import androidx.core.app.NotificationManagerCompat;
 
 /**
  * Created by sslavin on 21/04/16.

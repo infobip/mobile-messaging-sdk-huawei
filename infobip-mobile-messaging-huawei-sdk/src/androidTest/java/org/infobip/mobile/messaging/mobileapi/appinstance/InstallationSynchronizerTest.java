@@ -1,6 +1,11 @@
+/*
+ * InstallationSynchronizerTest.java
+ * Mobile Messaging SDK
+ *
+ * Copyright (c) 2016-2025 Infobip Limited
+ * Licensed under the Apache License, Version 2.0
+ */
 package org.infobip.mobile.messaging.mobileapi.appinstance;
-
-import androidx.annotation.NonNull;
 
 import org.infobip.mobile.messaging.Installation;
 import org.infobip.mobile.messaging.InstallationMapper;
@@ -28,6 +33,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
+
+import androidx.annotation.NonNull;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;

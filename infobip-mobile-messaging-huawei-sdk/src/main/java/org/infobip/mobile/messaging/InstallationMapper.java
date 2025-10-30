@@ -1,6 +1,11 @@
+/*
+ * InstallationMapper.java
+ * Mobile Messaging SDK
+ *
+ * Copyright (c) 2016-2025 Infobip Limited
+ * Licensed under the Apache License, Version 2.0
+ */
 package org.infobip.mobile.messaging;
-
-import static org.infobip.mobile.messaging.CustomAttributesMapper.customAttsFromBackend;
 
 import android.os.Bundle;
 
@@ -8,6 +13,8 @@ import org.infobip.mobile.messaging.api.appinstance.AppInstance;
 import org.infobip.mobile.messaging.api.appinstance.PushServiceType;
 import org.infobip.mobile.messaging.api.support.http.serialization.JsonSerializer;
 import org.infobip.mobile.messaging.util.StringUtils;
+
+import static org.infobip.mobile.messaging.CustomAttributesMapper.customAttsFromBackend;
 
 public class InstallationMapper {
 

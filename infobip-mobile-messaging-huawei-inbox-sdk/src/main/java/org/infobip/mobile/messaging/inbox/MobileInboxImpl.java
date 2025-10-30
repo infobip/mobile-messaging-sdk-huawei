@@ -1,11 +1,14 @@
+/*
+ * MobileInboxImpl.java
+ * Mobile Messaging SDK
+ *
+ * Copyright (c) 2016-2025 Infobip Limited
+ * Licensed under the Apache License, Version 2.0
+ */
 package org.infobip.mobile.messaging.inbox;
-
-import static org.infobip.mobile.messaging.api.support.util.StringUtils.isBlank;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
-
-import androidx.annotation.NonNull;
 
 import org.infobip.mobile.messaging.Message;
 import org.infobip.mobile.messaging.MessageHandlerModule;
@@ -17,6 +20,10 @@ import org.infobip.mobile.messaging.platform.AndroidBroadcaster;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+
+import androidx.annotation.NonNull;
+
+import static org.infobip.mobile.messaging.api.support.util.StringUtils.isBlank;
 
 public class MobileInboxImpl extends MobileInbox implements MessageHandlerModule {
     @SuppressLint("StaticFieldLeak")

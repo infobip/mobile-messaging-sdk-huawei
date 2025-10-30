@@ -1,8 +1,14 @@
+/*
+ * InAppClickReporter.java
+ * Mobile Messaging SDK
+ *
+ * Copyright (c) 2016-2025 Infobip Limited
+ * Licensed under the Apache License, Version 2.0
+ */
 package org.infobip.mobile.messaging.mobileapi.inapp;
 
-import androidx.annotation.NonNull;
-
 import android.content.Context;
+
 import org.infobip.mobile.messaging.MobileMessagingCore;
 import org.infobip.mobile.messaging.MobileMessagingProperty;
 import org.infobip.mobile.messaging.logging.MobileMessagingLogger;
@@ -22,6 +28,8 @@ import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.Executor;
+
+import androidx.annotation.NonNull;
 
 public class InAppClickReporter {
     private final MobileMessagingCore mobileMessagingCore;

@@ -1,16 +1,23 @@
+/*
+ * ActivityStarterWrapper.java
+ * Mobile Messaging SDK
+ *
+ * Copyright (c) 2016-2025 Infobip Limited
+ * Licensed under the Apache License, Version 2.0
+ */
 package org.infobip.mobile.messaging.app;
 
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 
-import androidx.annotation.NonNull;
-
 import org.infobip.mobile.messaging.MobileMessagingCore;
 import org.infobip.mobile.messaging.NotificationSettings;
 import org.infobip.mobile.messaging.logging.MobileMessagingLogger;
 import org.infobip.mobile.messaging.util.DomainHelper;
 import org.infobip.mobile.messaging.view.WebViewActivity;
+
+import androidx.annotation.NonNull;
 
 public class ActivityStarterWrapper {
 

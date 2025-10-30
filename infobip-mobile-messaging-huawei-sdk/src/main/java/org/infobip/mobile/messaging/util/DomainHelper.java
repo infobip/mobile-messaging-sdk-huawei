@@ -1,14 +1,21 @@
+/*
+ * DomainHelper.java
+ * Mobile Messaging SDK
+ *
+ * Copyright (c) 2016-2025 Infobip Limited
+ * Licensed under the Apache License, Version 2.0
+ */
 package org.infobip.mobile.messaging.util;
 
 import android.content.Context;
-
-import androidx.annotation.NonNull;
 
 import org.infobip.mobile.messaging.MobileMessagingCore;
 import org.infobip.mobile.messaging.logging.MobileMessagingLogger;
 
 import java.net.URI;
 import java.util.HashSet;
+
+import androidx.annotation.NonNull;
 
 public class DomainHelper {
     private final Context context;

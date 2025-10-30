@@ -1,11 +1,20 @@
+/*
+ * ActivityWrapper.java
+ * Mobile Messaging SDK
+ *
+ * Copyright (c) 2016-2025 Infobip Limited
+ * Licensed under the Apache License, Version 2.0
+ */
 package org.infobip.mobile.messaging.interactive.inapp.view;
 
 import android.app.Activity;
 import android.view.ContextThemeWrapper;
 import android.view.LayoutInflater;
 import android.view.View;
-import androidx.appcompat.app.AlertDialog;
+
 import org.infobip.mobile.messaging.R;
+
+import androidx.appcompat.app.AlertDialog;
 
 
 /**

@@ -1,7 +1,12 @@
+/*
+ * CryptorImpl.java
+ * Mobile Messaging SDK
+ *
+ * Copyright (c) 2016-2025 Infobip Limited
+ * Licensed under the Apache License, Version 2.0
+ */
 package org.infobip.mobile.messaging.util;
 
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import android.util.Base64;
 import android.util.Log;
 
@@ -15,6 +20,9 @@ import java.util.Arrays;
 import javax.crypto.Cipher;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 
 public class CryptorImpl extends Cryptor {

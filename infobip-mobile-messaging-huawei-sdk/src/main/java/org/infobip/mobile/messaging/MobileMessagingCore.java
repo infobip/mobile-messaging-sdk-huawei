@@ -1,8 +1,11 @@
+/*
+ * MobileMessagingCore.java
+ * Mobile Messaging SDK
+ *
+ * Copyright (c) 2016-2025 Infobip Limited
+ * Licensed under the Apache License, Version 2.0
+ */
 package org.infobip.mobile.messaging;
-
-import static org.infobip.mobile.messaging.UserMapper.filterOutDeletedData;
-import static org.infobip.mobile.messaging.UserMapper.toJson;
-import static org.infobip.mobile.messaging.mobileapi.events.UserSessionTracker.SESSION_BOUNDS_DELIMITER;
 
 import android.app.Application;
 import android.app.NotificationChannel;
@@ -14,9 +17,6 @@ import android.net.Uri;
 import android.os.Build;
 import android.text.TextUtils;
 import android.util.Pair;
-
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 
 import org.infobip.mobile.messaging.api.appinstance.AppInstanceAtts;
 import org.infobip.mobile.messaging.api.appinstance.UserAtts;
@@ -99,6 +99,13 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+
+import static org.infobip.mobile.messaging.UserMapper.filterOutDeletedData;
+import static org.infobip.mobile.messaging.UserMapper.toJson;
+import static org.infobip.mobile.messaging.mobileapi.events.UserSessionTracker.SESSION_BOUNDS_DELIMITER;
 
 /**
  * @author sslavin
