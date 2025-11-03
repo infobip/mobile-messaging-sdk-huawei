@@ -15,6 +15,7 @@ import org.infobip.mobile.messaging.api.appinstance.MobileApiAppInstance;
 import org.infobip.mobile.messaging.api.appinstance.MobileApiUserData;
 import org.infobip.mobile.messaging.api.baseurl.MobileApiBaseUrl;
 import org.infobip.mobile.messaging.api.chat.MobileApiChat;
+import org.infobip.mobile.messaging.api.clickreporter.MobileApiClickReporter;
 import org.infobip.mobile.messaging.api.inbox.MobileApiInbox;
 import org.infobip.mobile.messaging.api.messages.MobileApiMessages;
 import org.infobip.mobile.messaging.api.rtc.MobileApiRtc;
@@ -128,6 +129,7 @@ public class MobileApiResourceProvider {
     private MobileApiBaseUrl mobileApiBaseUrl;
     private MobileApiInbox mobileApiInbox;
     private MobileApiRtc mobileApiRtc;
+    private MobileApiClickReporter mobileApiClickReporter;
     private MobileApiUserData mobileApiUserData;
 
     public MobileApiMessages getMobileApiMessages(Context context) {
@@ -205,6 +207,13 @@ public class MobileApiResourceProvider {
             mobileApiRtc = getGenerator(context).create(MobileApiRtc.class);
         }
         return mobileApiRtc;
+    }
+
+    public MobileApiClickReporter getMobileApiClickReporter(Context context) {
+        if (mobileApiClickReporter == null) {
+            mobileApiClickReporter = getGenerator(context).create(MobileApiClickReporter.class);
+        }
+        return mobileApiClickReporter;
     }
 
     private String[] getUserAgentAdditions(Context context) {

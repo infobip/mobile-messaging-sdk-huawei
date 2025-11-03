@@ -2142,7 +2142,7 @@ public class MobileMessagingCore
     @NonNull
     private InAppClickReporter inAppClickReporter() {
         if (inAppClickReporter == null) {
-            inAppClickReporter = new InAppClickReporter(this, context, stats, registrationAlignedExecutor, broadcaster, new BatchReporter(PreferenceHelper.findLong(context, MobileMessagingProperty.BATCH_REPORTING_DELAY)), retryPolicyProvider.DEFAULT());
+            inAppClickReporter = new InAppClickReporter(this, context, stats, registrationAlignedExecutor, broadcaster, new BatchReporter(PreferenceHelper.findLong(context, MobileMessagingProperty.BATCH_REPORTING_DELAY)), retryPolicyProvider.DEFAULT(), mobileApiResourceProvider().getMobileApiClickReporter(context));
         }
         return inAppClickReporter;
     }

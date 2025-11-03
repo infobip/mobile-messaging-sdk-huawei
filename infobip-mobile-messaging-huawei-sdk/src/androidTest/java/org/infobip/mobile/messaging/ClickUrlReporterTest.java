@@ -7,6 +7,7 @@
  */
 package org.infobip.mobile.messaging;
 
+import org.infobip.mobile.messaging.api.clickreporter.MobileApiClickReporter;
 import org.infobip.mobile.messaging.interactive.inapp.InAppWebViewMessage;
 import org.infobip.mobile.messaging.mobileapi.BatchReporter;
 import org.infobip.mobile.messaging.mobileapi.common.MRetryPolicy;
@@ -28,6 +29,7 @@ public class ClickUrlReporterTest extends MobileMessagingTestCase {
     private Executor executor;
     private BatchReporter batchReporter;
     private MRetryPolicy retryPolicy;
+    private MobileApiClickReporter mobileApiClickReporter;
 
     @Override
     public void setUp() throws Exception {
@@ -40,7 +42,8 @@ public class ClickUrlReporterTest extends MobileMessagingTestCase {
 
         MobileMessagingStats stats = mobileMessagingCore.getStats();
         executor = mock(Executor.class);
-        inAppClickReporter = new InAppClickReporter(mobileMessagingCore, context, stats, executor, broadcaster, batchReporter, retryPolicy);
+        mobileApiClickReporter = mock(MobileApiClickReporter.class);
+        inAppClickReporter = new InAppClickReporter(mobileMessagingCore, context, stats, executor, broadcaster, batchReporter, retryPolicy, mobileApiClickReporter);
     }
 
     @Test
