@@ -77,6 +77,7 @@ dependencies {
     implementation "androidx.lifecycle:lifecycle-runtime-ktx:$mm_lifecycleVersion"
     implementation "androidx.constraintlayout:constraintlayout:$mm_constraintLayoutVersion"
     implementation "androidx.appcompat:appcompat:$mm_appCompatVersion"
+    implementation "androidx.activity:activity-ktx:$mm_activityVersion"
     implementation 'androidx.exifinterface:exifinterface:1.4.1'
     implementation "com.google.android.material:material:$mm_materialVersion"
 

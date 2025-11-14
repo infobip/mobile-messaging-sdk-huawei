@@ -111,7 +111,6 @@ dependencies {
 
     implementation "androidx.appcompat:appcompat:$mm_appCompatVersion"
     implementation "com.google.android.material:material:$mm_materialVersion"
-    implementation 'androidx.legacy:legacy-support-v4:1.0.0'
     implementation 'androidx.localbroadcastmanager:localbroadcastmanager:1.1.0'
 
     //To add cryptor use build flavour "cryptorMigration"
