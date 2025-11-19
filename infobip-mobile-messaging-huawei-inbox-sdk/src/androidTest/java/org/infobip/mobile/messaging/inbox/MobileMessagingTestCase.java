@@ -7,6 +7,10 @@
  */
 package org.infobip.mobile.messaging.inbox;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.mock;
+
 import android.annotation.SuppressLint;
 import android.content.Context;
 
@@ -30,10 +34,6 @@ import org.junit.Before;
 
 import java.util.List;
 import java.util.concurrent.TimeUnit;
-
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.mock;
 
 public abstract class MobileMessagingTestCase extends MobileMessagingBaseTestCase {
 
@@ -88,7 +88,7 @@ public abstract class MobileMessagingTestCase extends MobileMessagingBaseTestCas
 
         PreferenceHelper.getDefaultMMSharedPreferences(context).edit().clear().commit();
 
-        PreferenceHelper.saveString(context, MobileMessagingProperty.API_URI, "http://127.0.0.1:" + debugServer.getListeningPort() + "/");
+//        PreferenceHelper.saveString(context, MobileMessagingProperty.API_URI, "http://127.0.0.1:" + debugServer.getListeningPort() + "/");
         PreferenceHelper.saveString(context, MobileMessagingProperty.APPLICATION_CODE, "TestApplicationCode");
         PreferenceHelper.saveString(context, MobileMessagingProperty.INFOBIP_REGISTRATION_ID, "TestDeviceInstanceId");
         PreferenceHelper.saveString(context, MobileMessagingProperty.CLOUD_TOKEN, "TestRegistrationId");
@@ -121,67 +121,30 @@ public abstract class MobileMessagingTestCase extends MobileMessagingBaseTestCas
     }
 
     /**
-     * Generates messages with provided id, topic and seen flag
-     *
-     * @param messageId message id for a message
-     * @param topic     inbox topic of a message
-     * @param isSeen    is message seen
-     * @return new message
-     */
-    protected static InboxMessage createMessage(String messageId, String topic, boolean isSeen) {
-        return createMessage(messageId, new InboxData(topic, isSeen));
-    }
-
-    /**
      * Generates messages with provided id
      *
      * @param messageId message id for a message
      * @return new message
      */
     protected static InboxMessage createMessage(String messageId) {
-        return createMessage(messageId, new InboxData("defaultTopic", false));
+        return createMessage(messageId, "defaultTopic", false);
     }
 
     /**
      * Generates messages with provided ids and inbox data object
      *
      * @param messageId message id for a message
-     * @param inboxData inbox data object for a message
+     * @param topic     inbox topic for a message
+     * @param seen      message seen status
      * @return new message
      */
-    protected static InboxMessage createMessage(String messageId, InboxData inboxData) {
+    protected static InboxMessage createMessage(String messageId, String topic, boolean seen) {
         Message message = new Message();
         message.setMessageId(messageId);
         message.setSentTimestamp(0);
         message.setBody("some text");
 
-        boolean isInbox = inboxData != null && inboxData.getTopic() != null;
-        if (isInbox) {
-            message.setInternalData(InboxDataMapper.inboxDataToInternalData(inboxData));
-        }
-
-        return InboxMessage.createFrom(message, inboxData);
-    }
-
-    /**
-     * Generates inbox data with provided topic
-     *
-     * @param topic inbox topic of a message
-     * @return new inbox data
-     */
-    protected static InboxData createInboxData(String topic) {
-        return createInboxData(topic, false);
-    }
-
-    /**
-     * Generates new inbox data with provided topic and seen
-     *
-     * @param topic  inbox topic of a message
-     * @param isSeen is message seen
-     * @return new inbox data
-     */
-    protected static InboxData createInboxData(String topic, boolean isSeen) {
-        return new InboxData(topic, isSeen);
+        return InboxMessage.createFrom(message, topic, seen);
     }
 
     protected static Inbox createInbox(int countTotal, int countUnread, List<InboxMessage> messages) {
@@ -206,12 +169,11 @@ public abstract class MobileMessagingTestCase extends MobileMessagingBaseTestCas
      * Creates MessageResponse with provided messageId and topic for testing
      *
      * @param messageId message id for a message
-     * @param topic inbox topic of a message
+     * @param topic     inbox topic of a message
      * @return new MessageResponse with topic in internalData
      */
     protected static MessageResponse createMessageResponse(String messageId, String topic, Boolean seen) {
-        InboxData inboxData = createInboxData(topic, seen);
-        String internalData = InboxDataMapper.inboxDataToInternalData(inboxData);
+        String internalData = InboxDataMapper.inboxDataToInternalData(topic, seen);
 
         return new MessageResponse(
                 messageId,        // messageId
