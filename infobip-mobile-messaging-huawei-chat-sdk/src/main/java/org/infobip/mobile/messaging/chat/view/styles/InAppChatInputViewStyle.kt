@@ -192,7 +192,10 @@ data class InAppChatInputViewStyle @JvmOverloads constructor(
                 val isSeparatorLineVisible = getBoolean(R.styleable.InAppChatInputViewStyleable_ibChatInputSeparatorLineVisible, Defaults.isSeparatorLineVisible)
                 val cursorColor = widgetInfo?.colorPrimary?.takeIf { isDefaultTheme || !hasValue(R.styleable.InAppChatInputViewStyleable_ibChatInputCursorColor) }
                     ?: getColor(R.styleable.InAppChatInputViewStyleable_ibChatInputCursorColor, textColor)
-                val charCounterTextAppearance = getResourceId(R.styleable.InAppChatInputViewStyleable_ibChatInputCharCounterTextAppearance, 0).takeIfDefined()
+                val charCounterTextAppearance = getResourceId(
+                    R.styleable.InAppChatInputViewStyleable_ibChatInputCharCounterTextAppearance,
+                    0
+                ).takeIfDefined()
                 val charCounterDefaultColor = getColor(R.styleable.InAppChatInputViewStyleable_ibChatInputCharCounterDefaultColor, Defaults.charCounterDefaultColor)
                 val charCounterAlertColor = getColor(R.styleable.InAppChatInputViewStyleable_ibChatInputCharCounterAlertColor, Defaults.charCounterAlertColor)
 

@@ -102,8 +102,10 @@ class InAppChatInputView @JvmOverloads constructor(
             topSeparator.show(style.isSeparatorLineVisible)
             messageInput.setCursorDrawableColor(style.cursorColor)
             style.charCounterTextAppearance?.let { messageInputLayout.setCounterTextAppearance(it) }
+            style.charCounterTextAppearance?.let { messageInputLayout.setCounterOverflowTextAppearance(it) }
+            messageInputLayout.counterTextColor = ColorStateList.valueOf(style.charCounterDefaultColor)
+            messageInputLayout.counterOverflowTextColor = ColorStateList.valueOf(style.charCounterAlertColor)
         }
-        updateCharacterCounter(getInputText()?.length ?: 0)
     }
 
     private fun addTextChangedListener() {
@@ -114,7 +116,7 @@ class InAppChatInputView @JvmOverloads constructor(
                 val isWithinLimit = textLength <= LivechatWidgetApi.MESSAGE_MAX_LENGTH
                 val isNotEmpty = s?.isNotEmpty() == true
                 binding.sendButton.isEnabled = isNotEmpty && isWithinLimit
-                updateCharacterCounter(textLength)
+                binding.messageInputLayout.isCounterEnabled = textLength > CHAT_INPUT_COUNTER_VISIBILITY_THRESHOLD
             }
 
             override fun afterTextChanged(s: android.text.Editable?) {}
@@ -226,19 +228,6 @@ class InAppChatInputView @JvmOverloads constructor(
 
     fun hideKeyboard() {
         binding.messageInput.hideKeyboard()
-    }
-
-    private fun updateCharacterCounter(textLength: Int) {
-        val isCounterEnabled = textLength > CHAT_INPUT_COUNTER_VISIBILITY_THRESHOLD
-        if (isCounterEnabled) {
-            val counterColor = if (textLength > LivechatWidgetApi.MESSAGE_MAX_LENGTH) {
-                style.charCounterAlertColor
-            } else {
-                style.charCounterDefaultColor
-            }
-            binding.messageInputLayout.counterTextColor = ColorStateList.valueOf(counterColor)
-        }
-        binding.messageInputLayout.isCounterEnabled = isCounterEnabled
     }
 
     override fun onDetachedFromWindow() {
