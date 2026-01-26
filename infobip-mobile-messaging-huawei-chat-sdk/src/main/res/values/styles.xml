@@ -9,9 +9,7 @@
 <resources>
 
     <!--    region Themes-->
-    <style name="IB_ChatDefaultTheme" parent="Theme.MaterialComponents.Light.NoActionBar">
-        <item name="isLightTheme">true</item>
-    </style>
+    <style name="IB_ChatDefaultTheme" parent="Theme.MaterialComponents.Light.NoActionBar" />
 
     <style name="IB_ChatDefaultTheme.Styled" parent="IB_ChatDefaultTheme">
         <item name="ibChatDefaultStyledTheme">true</item>
@@ -52,12 +50,34 @@
     </style>
 
     <style name="IB.Chat" parent="IB">
-        <item name="ibChatBackgroundColor">@android:color/white</item>
-        <item name="ibChatProgressBarColor">@android:color/black</item>
+        <item name="ibChatBackgroundColor">@color/ib_chat_background</item>
+        <item name="ibChatProgressBarColor">@color/ib_chat_progress_bar</item>
         <item name="ibChatNetworkConnectionErrorText">@string/ib_chat_no_connection</item>
-        <item name="ibChatNetworkConnectionErrorTextColor">@android:color/black</item>
+        <item name="ibChatNetworkConnectionErrorTextColor">@color/ib_chat_network_connection_error_text</item>
         <item name="ibChatNetworkConnectionErrorTextAppearance">@null</item>
-        <item name="ibChatNetworkConnectionErrorLabelBackgroundColor">@color/ib_chat_hint_text_color</item>
+        <item name="ibChatNetworkConnectionErrorBackgroundColor">@color/ib_chat_network_connection_error_background</item>
+        <item name="ibChatNetworkConnectionErrorIcon">@drawable/ib_chat_network_error_icon</item>
+        <item name="ibChatNetworkConnectionErrorIconTint">@color/ib_chat_network_connection_error_icon</item>
+        <item name="ibChatSnackbarErrorTextColor">@null</item>
+        <item name="ibChatSnackbarErrorTextAppearance">@null</item>
+        <item name="ibChatSnackbarErrorBackgroundColor">@null</item>
+        <item name="ibChatSnackbarErrorIcon">@null</item>
+        <item name="ibChatSnackbarErrorIconTint">@null</item>
+        <item name="ibChatFullScreenErrorTitleText">@string/ib_chat_error</item>
+        <item name="ibChatFullScreenErrorTitleTextColor">@color/ib_chat_error_title_text</item>
+        <item name="ibChatFullScreenErrorTitleTextAppearance">@null</item>
+        <item name="ibChatFullScreenErrorDescriptionText">@string/ib_chat_error_description</item>
+        <item name="ibChatFullScreenErrorDescriptionTextColor">@color/ib_chat_error_description_text
+        </item>
+        <item name="ibChatFullScreenErrorDescriptionTextAppearance">@null</item>
+        <item name="ibChatFullScreenErrorBackgroundColor">@color/ib_chat_error_background</item>
+        <item name="ibChatFullScreenErrorIcon">@drawable/ib_chat_error</item>
+        <item name="ibChatFullScreenErrorIconTint">@null</item>
+        <item name="ibChatFullScreenErrorRefreshButtonText">@string/ib_chat_refresh</item>
+        <item name="ibChatFullScreenErrorRefreshButtonTextColor">
+          @color/ib_chat_error_action_button_text
+        </item>
+        <item name="ibChatFullScreenErrorRefreshButtonVisible">true</item>
     </style>
 
     <style name="IB.Chat.Input" parent="IB">
@@ -80,7 +100,7 @@
     <style name="IB.Chat.Input.TextAppearance" parent="TextAppearance.MaterialComponents.Body1" />
     <!--    endregion-->
 
-    <!--   region Internally used styles-->
+    <!--    region Internally used styles-->
     <style name="IB.Chat.Input.Button" parent="@style/Widget.AppCompat.ImageButton">
         <item name="android:layout_width">32dp</item>
         <item name="android:layout_height">32dp</item>

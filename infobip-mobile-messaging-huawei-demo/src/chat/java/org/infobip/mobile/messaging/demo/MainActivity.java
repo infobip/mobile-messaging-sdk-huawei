@@ -30,6 +30,7 @@ import androidx.annotation.IdRes;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.content.res.AppCompatResources;
 import androidx.core.content.res.ResourcesCompat;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentTransaction;
@@ -587,19 +588,28 @@ public class MainActivity extends AppCompatActivity {
                     null,
                     true
             );
+            InAppChatStyle chatStyle = new InAppChatStyle.Builder()
+                .setBackgroundColor(Color.LTGRAY)
+                .setProgressBarColor(Color.MAGENTA)
+                .setNetworkConnectionErrorText("Offline")
+                .setNetworkConnectionErrorTextColor(Color.BLACK)
+                .setNetworkConnectionErrorIcon(AppCompatResources.getDrawable(this, org.infobip.mobile.messaging.chat.R.drawable.ib_chat_network_error_icon))
+                .setNetworkConnectionErrorBackgroundColor(Color.CYAN)
+                .setNetworkConnectionErrorIconTint(Color.WHITE)
+                .setChatFullScreenErrorTitleText("Runtime Error!")
+                .setChatFullScreenErrorTitleTextColor(Color.RED)
+                .setChatFullScreenErrorDescriptionText("This is a runtime customization example. Error code: %d")
+                .setChatFullScreenErrorDescriptionTextColor(Color.DKGRAY)
+                .setChatFullScreenErrorBackgroundColor(Color.LTGRAY)
+                .setChatFullScreenErrorIconTint(Color.MAGENTA)
+                .setChatFullScreenErrorRefreshButtonTextColor(Color.BLUE)
+                .setChatFullScreenErrorRefreshButtonVisible(true)
+                .build();
             inAppChat.setTheme(
                     new InAppChatTheme(
                             toolbar,
                             toolbar,
-                            new InAppChatStyle(
-                                    Color.LTGRAY,
-                                    Color.MAGENTA,
-                                    "Offline",
-                                    null,
-                                    null,
-                                    Color.BLACK,
-                                    Color.CYAN
-                            ),
+                            chatStyle,
                             new InAppChatInputViewStyle(
                                     org.infobip.mobile.messaging.chat.R.style.IB_Chat_Input_TextAppearance,
                                     Color.BLACK,
