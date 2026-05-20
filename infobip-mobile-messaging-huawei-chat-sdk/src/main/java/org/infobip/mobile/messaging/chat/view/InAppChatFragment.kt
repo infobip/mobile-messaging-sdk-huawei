@@ -613,6 +613,10 @@ class InAppChatFragment : Fragment(), InAppChatFragmentActivityResultDelegate.Re
             override fun onChatRawMessageReceived(rawMessage: String) {
                 eventsListener?.onChatRawMessageReceived(rawMessage)
             }
+
+            override fun onChatUrlInteracted(url: String): Boolean {
+                return eventsListener?.onChatUrlInteracted(url) ?: false
+            }
         }
         binding.ibLcChat.errorsHandler = object : InAppChatView.ErrorsHandler {
             override fun handleError(exception: InAppChatException): Boolean {

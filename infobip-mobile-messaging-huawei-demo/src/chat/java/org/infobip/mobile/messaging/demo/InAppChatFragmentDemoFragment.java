@@ -30,6 +30,7 @@ import org.infobip.mobile.messaging.chat.models.MessagePayload;
 import org.infobip.mobile.messaging.chat.view.InAppChatFragment;
 import org.infobip.mobile.messaging.logging.MobileMessagingLogger;
 import org.infobip.mobile.messaging.util.StringUtils;
+import org.jetbrains.annotations.NotNull;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -153,6 +154,12 @@ public class InAppChatFragmentDemoFragment extends Fragment {
             @Override
             public void onChatRawMessageReceived(@NonNull String rawMessage) {
                 MobileMessagingLogger.d(TAG, "On chat raw message received: " + rawMessage);
+            }
+
+            @Override
+            public boolean onChatUrlInteracted(@NotNull String url) {
+                MobileMessagingLogger.d(TAG, "On chat url interacted: " + url);
+                return false;
             }
 
             @Override

@@ -7,6 +7,9 @@
  */
 package org.infobip.mobile.messaging.chat.core.widget
 
+import android.content.Intent
+import android.webkit.WebResourceRequest
+import android.webkit.WebView
 import kotlinx.coroutines.CancellableContinuation
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -420,6 +423,20 @@ internal class LivechatWidgetApiImpl(
 
     override fun onWidgetRawMessageReceived(message: String?) {
         propagateEvent { onRawMessageReceived(message) }
+    }
+
+    override fun onWidgetUrlInteracted(webView: WebView?, request: WebResourceRequest?) {
+        val uri = request?.url ?: return
+        scope.launch {
+            val isHandled = eventsListener?.onWidgetUrlInteracted(uri.toString()) ?: false
+            if (!isHandled && (uri.scheme == "http" || uri.scheme == "https")) {
+                runCatching {
+                    webView?.context?.startActivity(Intent(Intent.ACTION_VIEW, uri))
+                }.onFailure { throwable ->
+                    MobileMessagingLogger.e(instanceId.tag(LivechatWidgetApi.TAG), "Could not open URL($uri).", throwable)
+                }
+            }
+        }
     }
 
     override fun onWidgetApiError(method: LivechatWidgetMethod, errorPayload: String?) {

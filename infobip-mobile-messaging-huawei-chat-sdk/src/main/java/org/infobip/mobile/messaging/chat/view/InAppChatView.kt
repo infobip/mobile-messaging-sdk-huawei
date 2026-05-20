@@ -566,6 +566,11 @@ class InAppChatView @JvmOverloads constructor(
                 eventsListener?.onChatRawMessageReceived(message)
         }
 
+        override fun onWidgetUrlInteracted(url: String?): Boolean {
+            if (url.isNullOrBlank()) return false
+            return eventsListener?.onChatUrlInteracted(url) ?: false
+        }
+
         override fun onThreadsReceived(result: LivechatWidgetResult<LivechatWidgetThreads>) {
             eventsListener?.onChatThreadsReceived(result)
             if (eventsListener == null && result.isError) {

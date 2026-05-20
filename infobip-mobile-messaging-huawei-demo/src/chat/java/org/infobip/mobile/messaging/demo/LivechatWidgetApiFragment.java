@@ -238,6 +238,12 @@ public class LivechatWidgetApiFragment extends Fragment {
             public void onRawMessageReceived(@Nullable String message) {
                 addLog("onRawMessageReceived: ", message);
             }
+
+            @Override
+            public boolean onWidgetUrlInteracted(@org.jetbrains.annotations.Nullable String url) {
+                return false;
+                //TODO Deeplink
+            }
         });
     }
 
