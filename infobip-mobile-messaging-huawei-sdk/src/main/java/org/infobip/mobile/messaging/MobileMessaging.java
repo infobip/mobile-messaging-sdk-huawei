@@ -336,6 +336,33 @@ public abstract class MobileMessaging {
     public abstract void personalize(@NonNull UserIdentity userIdentity, @Nullable UserAttributes userAttributes, boolean forceDepersonalize, boolean keepAsLead, ResultListener<User> listener);
 
     /**
+     * Asynchronously personalizes current installation with a person on the server.
+     * <p>
+     * For more information and examples see: <a href=https://github.com/infobip/mobile-messaging-sdk-android/wiki/Users-and-installations>Users and installations</a>
+     *
+     * @param userIdentity       required combination of phones, emails and an external user id that will form a unique key for a person
+     * @param userAttributes     optional user data to be saved for the person
+     * @param forceDepersonalize determines whether or not the depersonalization should be performed on our server in order to depersonalize the installation from previous user profile
+     * @param keepAsLead         determines whether or not the installation should be kept as lead
+     * @param setDeviceAsPrimary       set to true to mark this installation as primary for the personalized user
+     */
+    public abstract void personalize(@NonNull UserIdentity userIdentity, @Nullable UserAttributes userAttributes, boolean forceDepersonalize, boolean keepAsLead, boolean setDeviceAsPrimary);
+
+    /**
+     * Asynchronously personalizes current installation with a person on the server.
+     * <p>
+     * For more information and examples see: <a href=https://github.com/infobip/mobile-messaging-sdk-android/wiki/Users-and-installations>Users and installations</a>
+     *
+     * @param userIdentity       required combination of phones, emails and an external user id that will form a unique key for a person
+     * @param userAttributes     optional user data to be saved for the person
+     * @param forceDepersonalize determines whether or not the depersonalization should be performed on our server in order to depersonalize the installation from previous user profile
+     * @param keepAsLead         determines whether or not the installation should be kept as lead
+     * @param setDeviceAsPrimary       set to true to mark this installation as primary for the personalized user
+     * @param listener           listener to report the result on
+     */
+    public abstract void personalize(@NonNull UserIdentity userIdentity, @Nullable UserAttributes userAttributes, boolean forceDepersonalize, boolean keepAsLead, boolean setDeviceAsPrimary, ResultListener<User> listener);
+
+    /**
      * Asynchronously erases currently stored {@link User} on SDK and server associated with push registration, along with messages in SDK storage (also, deletes data for chat module).
      * <p>
      * {@link User}'s data synced over MobileMessaging is by default associated with created push registration. Depersonalizing an installation means that a push registration and

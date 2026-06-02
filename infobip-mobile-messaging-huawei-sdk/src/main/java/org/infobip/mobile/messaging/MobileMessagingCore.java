@@ -1658,6 +1658,16 @@ public class MobileMessagingCore
 
     @Override
     public void personalize(@NonNull UserIdentity userIdentity, @Nullable UserAttributes userAttributes, boolean forceDepersonalize, boolean keepAsLead, final ResultListener<User> listener) {
+        personalize(userIdentity, userAttributes, forceDepersonalize, keepAsLead, false, listener);
+    }
+
+    @Override
+    public void personalize(@NonNull UserIdentity userIdentity, @Nullable UserAttributes userAttributes, boolean forceDepersonalize, boolean keepAsLead, boolean setDeviceAsPrimary) {
+        personalize(userIdentity, userAttributes, forceDepersonalize, keepAsLead, setDeviceAsPrimary, null);
+    }
+
+    @Override
+    public void personalize(@NonNull UserIdentity userIdentity, @Nullable UserAttributes userAttributes, boolean forceDepersonalize, boolean keepAsLead, boolean setDeviceAsPrimary, final ResultListener<User> listener) {
         if (!isRegistrationAvailable()) {
             if (listener != null) {
                 listener.onResult(new Result<>(getUser(), InternalSdkError.NO_VALID_REGISTRATION.getError()));
@@ -1695,7 +1705,7 @@ public class MobileMessagingCore
                 userAttributes.getMap().remove(UserAtts.externalUserId);
         }
 
-        personalizeSynchronizer().personalize(userIdentity, userAttributes, forceDepersonalize, keepAsLead, listener);
+        personalizeSynchronizer().personalize(userIdentity, userAttributes, forceDepersonalize, keepAsLead, setDeviceAsPrimary, listener);
     }
 
     private boolean areInstallationsExpired() {
