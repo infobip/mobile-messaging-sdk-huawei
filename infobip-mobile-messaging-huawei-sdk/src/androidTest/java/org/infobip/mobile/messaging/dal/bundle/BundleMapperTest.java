@@ -7,19 +7,23 @@
  */
 package org.infobip.mobile.messaging.dal.bundle;
 
-import junit.framework.TestCase;
-
 import org.json.JSONArray;
 import org.json.JSONObject;
+import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.skyscreamer.jsonassert.JSONAssert;
+
+import androidx.test.ext.junit.runners.AndroidJUnit4;
 
 /**
  * @author sslavin
  * @since 13/09/2017.
  */
 
-public class BundleMapperTest extends TestCase {
+@RunWith(AndroidJUnit4.class)
+public class BundleMapperTest {
 
+    @Test
     public void test_shouldSerializeDeserializeJSONObject() throws Exception {
 
         // Given
@@ -32,6 +36,7 @@ public class BundleMapperTest extends TestCase {
         JSONAssert.assertEquals(givenObject, actualObject, true);
     }
 
+    @Test
     public void test_shouldSerializeDeserializeJSONArray() throws Exception {
 
         // Given

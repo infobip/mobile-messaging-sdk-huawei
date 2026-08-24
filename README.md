@@ -8,7 +8,7 @@ Mobile Messaging SDK is designed and developed to easily enable push notificatio
 ## Requirements
 
 - Android Studio
-- API Level: 21 (Android 5.0 - Lollipop) - 36 (Android 16)
+- API Level: 21 (Android 5.0 - Lollipop) - 37 (Android 17)
 - HMS Core (APK) 4.0.0.300 or later
 - [AppGallery](https://huaweimobileservices.com/appgallery/)
 

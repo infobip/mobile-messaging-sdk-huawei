@@ -2,13 +2,11 @@ plugins {
     id 'com.android.library'
     id 'maven-publish'
     id 'org.jetbrains.kotlin.android'
-    id 'org.jetbrains.kotlin.kapt'
 }
 
 android {
     publishing {
-        multipleVariants {
-            allVariants()
+        singleVariant("release") {
             withJavadocJar()
             withSourcesJar()
         }
@@ -19,7 +17,6 @@ android {
 
     defaultConfig {
         minSdkVersion mm_minSdkVersion
-        targetSdkVersion mm_targetSdkVersion
 
         // since AGP 4.1 "VERSION_NAME" is not included anymore to BuildConfig
         // https://issuetracker.google.com/issues/154275579
@@ -43,25 +40,25 @@ android {
         }
         release {
             minifyEnabled false
-            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
 
     compileOptions {
-        sourceCompatibility JavaVersion.VERSION_1_8
-        targetCompatibility JavaVersion.VERSION_1_8
-    }
-
-    kotlinOptions {
-        jvmTarget = '1.8'
+        sourceCompatibility JavaVersion.VERSION_11
+        targetCompatibility JavaVersion.VERSION_11
     }
 
     lint {
         abortOnError false
+        targetSdk 37
     }
 
     packagingOptions {
         resources.excludes.add("META-INF/*")
+    }
+    testOptions {
+        targetSdk 37
     }
 }
 
@@ -86,46 +83,13 @@ dependencies {
     androidTestImplementation "junit:junit:$mm_jUnitVersion"
     androidTestImplementation "io.mockk:mockk-android:1.13.11"
     androidTestImplementation 'com.nanohttpd:nanohttpd:2.1.0'
-    androidTestImplementation 'com.android.support:multidex:2.0.1'
+    androidTestImplementation 'androidx.multidex:multidex:2.0.1'
 
     testImplementation project(":infobip-mobile-messaging-huawei-test")
     testImplementation "junit:junit:$mm_jUnitVersion"
     testImplementation "io.mockk:mockk:1.13.9"
     testImplementation "org.assertj:assertj-core:3.26.0"
 
-}
-
-android.libraryVariants.all { variant ->
-    def name = variant.buildType.name
-    def jar = project.tasks.create(name: "jar${name.capitalize()}", type: Jar) {
-        Task javaCompileTask
-        if (variant.hasProperty('javaCompileProvider')) {
-            // Android 3.3.0+
-            javaCompileTask = variant.javaCompileProvider.get()
-        } else {
-            javaCompileTask = variant.javaCompile
-        }
-
-        dependsOn javaCompileTask
-        from javaCompileTask.destinationDirectory
-
-        manifest {
-            attributes(
-                    "Bundle-Name": 'parse-android',
-                    "Bundle-Version": project.version
-            )
-        }
-
-        exclude '**/R.class'
-        exclude '**/R\$*.class'
-        exclude '**/Manifest.class'
-        exclude '**/Manifest\$*.class'
-        exclude '**/BuildConfig.class'
-    }
-
-    artifacts {
-        archives jar
-    }
 }
 
 ext {

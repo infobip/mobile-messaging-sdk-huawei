@@ -11,18 +11,24 @@ import android.os.Bundle;
 
 import com.huawei.hms.push.RemoteMessage;
 
-import junit.framework.TestCase;
-
 import org.infobip.mobile.messaging.Message;
 import org.json.JSONException;
+import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.skyscreamer.jsonassert.JSONAssert;
+
+import androidx.test.ext.junit.runners.AndroidJUnit4;
+
+import static org.junit.Assert.assertEquals;
 
 /**
  * @author sslavin
  * @since 05/09/2018.
  */
-public class HmsMessageMapperTest extends TestCase {
+@RunWith(AndroidJUnit4.class)
+public class HmsMessageMapperTest {
 
+    @Test
     public void test_shouldMapRemoteMessage() throws JSONException {
 
         final String ibData = dqjson("{'org_ib_d':{" +
@@ -75,6 +81,7 @@ public class HmsMessageMapperTest extends TestCase {
         assertEquals(Message.InAppStyle.MODAL, message.getInAppStyle());
     }
 
+    @Test
     public void test_shouldMapInAppStyleStringInRemoteMessage() {
 
         final String ibData = dqjson("{'org_ib_d':{" +

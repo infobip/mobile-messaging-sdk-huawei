@@ -4,13 +4,11 @@ plugins {
     id 'maven-publish'
     id 'idea'
     id 'org.jetbrains.kotlin.android'
-    id 'org.jetbrains.kotlin.kapt'
 }
 
 android {
     publishing {
-        multipleVariants {
-            allVariants()
+        singleVariant("release") {
             withJavadocJar()
             withSourcesJar()
         }
@@ -21,7 +19,6 @@ android {
 
     defaultConfig {
         minSdkVersion mm_minSdkVersion
-        targetSdkVersion mm_targetSdkVersion
 
         // since AGP 4.1 "VERSION_NAME" is not included anymore to BuildConfig
         // https://issuetracker.google.com/issues/154275579
@@ -43,11 +40,15 @@ android {
 
     lint {
         abortOnError false
+        targetSdk 37
+    }
+    testOptions {
+        targetSdk 37
     }
 
     compileOptions {
-        sourceCompatibility JavaVersion.VERSION_1_8
-        targetCompatibility JavaVersion.VERSION_1_8
+        sourceCompatibility JavaVersion.VERSION_11
+        targetCompatibility JavaVersion.VERSION_11
     }
 }
 
@@ -76,39 +77,6 @@ dependencies {
     testImplementation "junit:junit:$mm_jUnitVersion"
 
     implementation('com.google.code.gson:gson:2.9.0')
-}
-
-android.libraryVariants.all { variant ->
-    def name = variant.buildType.name
-    def jar = project.tasks.create(name: "jar${name.capitalize()}", type: Jar) {
-        Task javaCompileTask
-        if (variant.hasProperty('javaCompileProvider')) {
-            // Android 3.3.0+
-            javaCompileTask = variant.javaCompileProvider.get()
-        } else {
-            javaCompileTask = variant.javaCompile
-        }
-
-        dependsOn javaCompileTask
-        from javaCompileTask.destinationDirectory
-
-        manifest {
-            attributes(
-                    "Bundle-Name": 'parse-android',
-                    "Bundle-Version": project.version
-            )
-        }
-
-        exclude '**/R.class'
-        exclude '**/R\$*.class'
-        exclude '**/Manifest.class'
-        exclude '**/Manifest\$*.class'
-        exclude '**/BuildConfig.class'
-    }
-
-    artifacts {
-        archives jar
-    }
 }
 
 ext {

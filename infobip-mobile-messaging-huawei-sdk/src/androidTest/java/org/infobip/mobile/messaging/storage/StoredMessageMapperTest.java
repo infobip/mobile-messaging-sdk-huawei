@@ -9,20 +9,26 @@ package org.infobip.mobile.messaging.storage;
 
 import android.os.Bundle;
 
-import junit.framework.TestCase;
-
 import org.infobip.mobile.messaging.Message;
+import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.skyscreamer.jsonassert.JSONAssert;
 
+import androidx.test.ext.junit.runners.AndroidJUnit4;
+
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.assertNull;
 
 /**
  * @author sslavin
  * @since 29/12/2016.
  */
 
-public class StoredMessageMapperTest extends TestCase {
+@RunWith(AndroidJUnit4.class)
+public class StoredMessageMapperTest {
 
+    @Test
     public void test_message_should_be_possible_to_construct_message_from_bundle() throws Exception {
         // Given
         Bundle bundle = new Bundle();
@@ -65,6 +71,7 @@ public class StoredMessageMapperTest extends TestCase {
         assertEquals("SomeStatusMessage", message.getStatusMessage());
     }
 
+    @Test
     public void test_toBundle_success() throws Exception {
 
         Message message = new Message();
@@ -76,6 +83,7 @@ public class StoredMessageMapperTest extends TestCase {
         assertEquals(plainBundle.getString("from"), "from");
     }
 
+    @Test
     public void test_fromBundle_success() throws Exception {
 
         Bundle plainBundle = new Bundle();
@@ -98,6 +106,7 @@ public class StoredMessageMapperTest extends TestCase {
         assertEquals(message.isSilent(), false);
     }
 
+    @Test
     public void test_customData() throws Exception {
         String customPayload =
                 "{" +
@@ -114,6 +123,7 @@ public class StoredMessageMapperTest extends TestCase {
         JSONAssert.assertEquals(customPayload, message.getCustomPayload(), true);
     }
 
+    @Test
     public void test_customDataWithGcmKeys() throws Exception {
 
         String customPayload =
@@ -138,6 +148,7 @@ public class StoredMessageMapperTest extends TestCase {
         JSONAssert.assertEquals(customPayload, message.getCustomPayload(), true);
     }
 
+    @Test
     public void test_silentMessage_fromJson_withSilentData() throws Exception {
 
         String internalData =
@@ -167,6 +178,7 @@ public class StoredMessageMapperTest extends TestCase {
         assertEquals("silentCategory", message.getCategory());
     }
 
+    @Test
     public void test_silentMessage_fromJson_withoutSilentData() throws Exception {
 
         Bundle bundle = new Bundle();
@@ -186,6 +198,7 @@ public class StoredMessageMapperTest extends TestCase {
         assertNotEquals("notSilentSound", message.getSound());
     }
 
+    @Test
     public void test_normalMessage_fromJson_withNormalData() throws Exception {
 
         String internalData =
@@ -220,6 +233,7 @@ public class StoredMessageMapperTest extends TestCase {
         assertNull(message.getInAppStyle());
     }
 
+    @Test
     public void test_inApp_mapping_fromJson_to_message_inAppStyle() throws Exception {
 
         String internalData =
@@ -235,6 +249,7 @@ public class StoredMessageMapperTest extends TestCase {
         assertEquals(Message.InAppStyle.MODAL, message.getInAppStyle());
     }
 
+    @Test
     public void test_normalMessage_fromJson_withoutNormalData() throws Exception {
 
         String internalData =
@@ -263,6 +278,7 @@ public class StoredMessageMapperTest extends TestCase {
         assertNotEquals("silentCategory", message.getCategory());
     }
 
+    @Test
     public void test_bundleWithAttachments_intoMessageWithContentUrl() throws Exception {
 
         String internalData =
@@ -280,6 +296,7 @@ public class StoredMessageMapperTest extends TestCase {
         assertEquals("someUrl", message.getContentUrl());
     }
 
+    @Test
     public void test_firstAttachment_shouldMapIntoContentUrl_whenMultipleAttachments() throws Exception {
 
         String internalData =

@@ -7,20 +7,24 @@
  */
 package org.infobip.mobile.messaging.dal.bundle;
 
-import junit.framework.TestCase;
-
 import org.infobip.mobile.messaging.Message;
 import org.json.JSONArray;
 import org.json.JSONObject;
+import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.skyscreamer.jsonassert.JSONAssert;
+
+import androidx.test.ext.junit.runners.AndroidJUnit4;
 
 /**
  * @author sslavin
  * @since 13/09/2017.
  */
 
-public class MessageBundleMapperTest extends TestCase {
+@RunWith(AndroidJUnit4.class)
+public class MessageBundleMapperTest {
 
+    @Test
     public void test_shouldSerializeAndDeserializeCustomPayloadWithNestedObjects() throws Exception {
 
         // Given (some crazy json)
