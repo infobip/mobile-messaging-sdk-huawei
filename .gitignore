@@ -51,3 +51,4 @@ agconnect-services.json
 *.jks
 /CLAUDE.md
 /.claude/
+/AGENTS.md

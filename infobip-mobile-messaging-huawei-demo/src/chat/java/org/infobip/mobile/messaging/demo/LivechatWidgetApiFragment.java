@@ -281,7 +281,11 @@ public class LivechatWidgetApiFragment extends Fragment {
         openThreadButton = new MaterialButton(requireContext());
         openThreadButton.setId(View.generateViewId());
         openThreadButton.setText("Open thread");
-        openThreadButton.setOnClickListener(v -> livechatWidgetApi.showThread(threadId));
+        openThreadButton.setOnClickListener(v -> {
+            if (StringUtils.isNotBlank(threadId)) {
+                livechatWidgetApi.showThread(threadId);
+            }
+        });
         openThreadButton.setVisibility(View.GONE);
         addButtonToFlow(openThreadButton);
 
@@ -325,14 +329,20 @@ public class LivechatWidgetApiFragment extends Fragment {
         updateThreadsAdapter(null);
         threadIdAutocompleteTextView.setOnItemClickListener((adapterView, view, position, id) -> {
             threadId = adapterView.getItemAtPosition(position).toString();
+            openThreadButton.setEnabled(true);
         });
     }
 
     private void updateThreadsAdapter(String threadIdToSelect) {
+        if (threadIdToSelect != null) {
+            threadId = threadIdToSelect;
+        }
+
         int visibility = availableThreads.isEmpty() ? View.GONE : View.VISIBLE;
         threadIdTextInputLayout.setVisibility(visibility);
         if (openThreadButton != null) {
             openThreadButton.setVisibility(visibility);
+            openThreadButton.setEnabled(StringUtils.isNotBlank(threadId));
         }
 
         if (!availableThreads.isEmpty()) {

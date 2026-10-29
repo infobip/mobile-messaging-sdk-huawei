@@ -105,6 +105,17 @@
 -keep class * implements com.google.gson.JsonSerializer
 -keep class * implements com.google.gson.JsonDeserializer
 
+# R8 full mode retains generic signatures only for classes matched by a keep rule.
+-if class com.google.gson.reflect.TypeToken
+-keep,allowobfuscation class com.google.gson.reflect.TypeToken
+-keep,allowobfuscation class * extends com.google.gson.reflect.TypeToken
+
+# WorkManager uses a Room-generated database implementation created through reflection.
+# Room 2.6.1 keeps the generated class but not its constructor required by R8 full mode.
+-keepclassmembers class * extends androidx.room.RoomDatabase {
+    <init>();
+}
+
 # huawei
 -keep class com.huawei.hianalytics.** { *; }
 -keep class com.huawei.updatesdk.** { *; }
