@@ -19,6 +19,7 @@ android {
     }
 
     compileOptions {
+        coreLibraryDesugaringEnabled true
         sourceCompatibility JavaVersion.VERSION_11
         targetCompatibility JavaVersion.VERSION_11
     }
@@ -101,6 +102,8 @@ tasks.named("sonarResolver").configure {
 }
 
 dependencies {
+    coreLibraryDesugaring "com.android.tools:desugar_jdk_libs:$mm_desugarJdkVersion"
+
     implementation "androidx.constraintlayout:constraintlayout:$mm_constraintLayoutVersion"
     testImplementation "junit:junit:$mm_jUnitVersion"
     androidTestImplementation "androidx.test.ext:junit:$mm_androidXjUnitVersion"

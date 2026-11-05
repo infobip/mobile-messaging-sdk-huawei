@@ -53,12 +53,20 @@ android {
     }
     testOptions {
         targetSdk 37
+        unitTests.all {
+            // Gson reflects inherited Throwable fields in the shared API's error DTO.
+            // Android has no module boundary; JVM transport tests need this on JDK 17+.
+            jvmArgs '--add-opens=java.base/java.lang=ALL-UNNAMED'
+        }
     }
 }
 
 dependencies {
     implementation project(':infobip-mobile-messaging-huawei-sdk')
     implementation "com.infobip:infobip-mobile-messaging-api-java:${mm_androidSdkVersion}"
+
+    testImplementation "junit:junit:$mm_jUnitVersion"
+    testImplementation 'com.squareup.okhttp3:mockwebserver:4.12.0'
 
     androidTestImplementation project(':infobip-mobile-messaging-huawei-test')
     androidTestImplementation "androidx.test.ext:junit:$mm_androidXjUnitVersion"
