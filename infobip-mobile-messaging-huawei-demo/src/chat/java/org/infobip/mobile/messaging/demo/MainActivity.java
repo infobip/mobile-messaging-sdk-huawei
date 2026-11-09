@@ -131,6 +131,7 @@ public class MainActivity extends AppCompatActivity {
         this.openChatViewButton = findViewById(R.id.openChatView);
         setSupportActionBar(this.findViewById(R.id.toolbar));
         inAppChat.activate();
+        inAppChat.setPushNavigationEnabled(true);
         setUpPushRegIdField();
         setUpSubjectTypeSpinner();
         setUpOpenChatActivityButton();

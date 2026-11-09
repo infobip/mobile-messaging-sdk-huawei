@@ -280,6 +280,7 @@ public class InAppChatImpl extends InAppChat implements MessageHandlerModule {
         propertyHelper().remove(MobileMessagingChatProperty.IN_APP_CHAT_WIDGET_ATTACHMENT_MAX_SIZE);
         propertyHelper().remove(MobileMessagingChatProperty.IN_APP_CHAT_WIDGET_ATTACHMENT_ALLOWED_EXTENSIONS);
         propertyHelper().remove(MobileMessagingChatProperty.IN_APP_CHAT_ACTIVATED);
+        propertyHelper().remove(MobileMessagingChatProperty.IN_APP_CHAT_PUSH_NAVIGATION_ENABLED);
         propertyHelper().remove(MobileMessagingChatProperty.IN_APP_CHAT_LANGUAGE);
         propertyHelper().remove(MobileMessagingChatProperty.IN_APP_CHAT_WIDGET_NEW_DESIGN_ENABLED);
         PreferenceHelper.remove(context, MobileMessagingProperty.DEFAULT_IN_APP_CHAT_PUSH_TITLE);
@@ -463,6 +464,16 @@ public class InAppChatImpl extends InAppChat implements MessageHandlerModule {
         return livechatWidgetApi();
     }
 
+    @Override
+    public void setPushNavigationEnabled(boolean enabled) {
+        propertyHelper().saveBoolean(MobileMessagingChatProperty.IN_APP_CHAT_PUSH_NAVIGATION_ENABLED, enabled);
+    }
+
+    @Override
+    public boolean isPushNavigationEnabled() {
+        return propertyHelper().findBoolean(MobileMessagingChatProperty.IN_APP_CHAT_PUSH_NAVIGATION_ENABLED);
+    }
+
 
     @Override
     public void setNotificationInteractionHandler(@Nullable InAppChatNotificationInteractionHandler notificationTapHandler) {
@@ -484,8 +495,10 @@ public class InAppChatImpl extends InAppChat implements MessageHandlerModule {
                 public void onNotificationInteracted(@NonNull Message message) {
                     MobileMessagingLogger.d(TAG, "onNotificationInteracted() for message: " + message.getBody());
                     OpenLivechatAction action = OpenLivechatAction.parseFrom(message);
-                    if (action != null) {
-                        onOpenChatActionTriggered(message, action);
+                    if (action != null && action.threadId == null) {
+                        onOpenChatActionTriggered(message, action); //from broadcast
+                    } else if (action != null && StringUtils.isNotBlank(action.threadId) && isPushNavigationEnabled()) {
+                        onOpenChatActionTriggered(message, action); //from LC message
                     } else if (message.isChatMessage()) {
                         onChatNotificationTapped(message);
                     }
